@@ -856,7 +856,7 @@ async function saveToCloud(retryCount) {
     var resp = await fetch(GH_API, { method: 'PUT', headers: ghHeaders(), body: payload });
 
     if (!resp.ok) {
-      if (resp.status === 409; retryCount < 2) {
+      if (resp.status === 409 && retryCount < 2) {
         console.log('409 conflict, auto-retry #' + (retryCount + 1));
         return saveToCloud(retryCount + 1);
       }
@@ -865,7 +865,7 @@ async function saveToCloud(retryCount) {
     }
 
     var result = await resp.json();
-    if (result.content; result.content.sha) { dataSha = result.content.sha; }
+    if (result.content && result.content.sha) { dataSha = result.content.sha; }
     syncOK = true; updateSyncUI();
     showToast('已保存到云端');
     return true;
@@ -873,7 +873,7 @@ async function saveToCloud(retryCount) {
     console.error('saveToCloud:', e);
     dataSha = '';
     syncOK = false; updateSyncUI();
-    showToast('保存失败: ' + (e.message; '未知错误'));
+    showToast('保存失败: ' + (e.message || '未知错误'));
     return false;
   }
 }
