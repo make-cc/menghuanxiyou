@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<title>梦幻西游 · 修炼数据记录</title>
+<style>
+:root {
+  --bg: #f5f6f8; --card: #fff; --border: #e8eaed;
+  --text: #1a1a2e; --muted: #8c8fa3; --blue: #4f6ef7;
+  --blue-light: #eef1ff; --green: #22c55e; --red: #ef4444;
+  --orange: #f59e0b; --purple: #8b5cf6;
+  --radius: 10px; --shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  min-height: 100vh; padding-bottom: 40px;
+}
+
+/* === Header === */
+.header {
+  background: linear-gradient(135deg, #4f6ef7 0%, #8b5cf6 100%);
+  color: #fff; padding: 28px 20px 24px; text-align: center;
+  box-shadow: 0 4px 20px rgba(79,110,247,.3);
+}
+.header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+.header p { font-size: .85rem; opacity: .85; margin-top: 4px; }
+.sync-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.2); border-radius: 20px;
+  padding: 3px 12px; font-size: .75rem; margin-top: 10px;
+}
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+.sync-dot.off { background: #f87171; }
+
+/* === Layout === */
+.container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.tabs {
+  display: flex; gap: 4px; background: var(--card); border-radius: var(--radius);
+  padding: 4px; box-shadow: var(--shadow); margin-bottom: 16px; overflow-x: auto;
+}
+.tab {
+  flex: 1; min-width: 0; padding: 10px 8px; text-align: center;
+  border: none; background: none; border-radius: 8px;
+  font-size: .85rem; font-weight: 500; color: var(--muted);
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.tab.active { background: var(--blue); color: #fff; }
+.tab:hover:not(.active) { background: var(--blue-light); color: var(--blue); }
+
+/* === Card === */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none; gap: 8px;
+}
+.card-header h2 { font-size: 1rem; font-weight: 600; flex: 1; }
+.card-header .arrow { transition: transform .2s; font-size: .8rem; color: var(--muted); }
+.card-header .arrow.open { transform: rotate(90deg); }
+.card-body { padding: 0; transition: max-height .3s ease; }
+.card-body.hidden { display: none; }
+
+/* === Character Selector === */
+.char-tabs {
+  display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+.char-tab {
+  padding: 6px 14px; border-radius: 20px; border: 2px solid var(--border);
+  background: none; font-size: .8rem; cursor: pointer; white-space: nowrap;
+  transition: all .2s; color: var(--muted); font-weight: 500;
+}
+.char-tab.active { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+.char-tab .plus { font-size: 1rem; }
+.char-tab .char-name-wrap { display: flex; align-items: center; gap: 4px; }
+.char-tab .edit-icon { font-size: .65rem; opacity: 0; transition: opacity .15s; cursor: pointer; }
+.char-tab:hover .edit-icon { opacity: .6; }
+.char-tab:hover .edit-icon:hover { opacity: 1; }
+.char-add-name {
+  border: 1px dashed var(--border); border-radius: 20px; padding: 6px 12px;
+  font-size: .8rem; background: none; outline: none; width: 80px; color: var(--text);
+}
+
+/* === Table === */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+thead { background: #f8f9fb; position: sticky; top: 0; z-index: 1; }
+th, td {
+  padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+th { font-weight: 600; color: var(--muted); font-size: .78rem; }
+td { color: var(--text); }
+td:first-child, th:first-child { text-align: left; font-weight: 500; }
+.section-row td {
+  background: var(--blue-light); font-weight: 600; color: var(--blue);
+  font-size: .78rem; padding: 6px 10px; letter-spacing: .5px;
+}
+tr:hover td { background: #fafbfc; }
+.section-row:hover td { background: var(--blue-light); }
+input[type="number"], input[type="text"] {
+  width: 70px; border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 6px; text-align: center; font-size: .82rem;
+  background: #fff; outline: none; transition: border .2s;
+}
+input[type="number"]:focus, input[type="text"]:focus { border-color: var(--blue); }
+input[type="number"] { width: 65px; }
+.auto-val {
+  color: var(--blue); font-weight: 600; font-size: .8rem;
+  text-align: center;
+}
+.char-name-input {
+  width: 120px; border: 1px solid transparent; background: none;
+  font-weight: 600; font-size: .9rem; text-align: center;
+  border-radius: 6px; padding: 3px 6px; outline: none;
+}
+.char-name-input:focus { border-color: var(--blue); background: #fff; }
+.total-row td { font-weight: 700; color: var(--blue); border-top: 2px solid var(--blue); background: var(--blue-light); }
+.subtotal-row td { font-weight: 600; color: #7c3aed; border-top: 1.5px solid #c4b5fd; background: #f5f3ff; }
+
+/* === Grand Total === */
+.grand-total {
+  background: linear-gradient(135deg, #4f6ef7, #8b5cf6);
+  color: #fff; border-radius: var(--radius); padding: 18px 20px;
+  margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 16px;
+  justify-content: space-around; box-shadow: 0 4px 20px rgba(79,110,247,.3);
+}
+.grand-total-item { text-align: center; }
+.grand-total-item .label { font-size: .75rem; opacity: .8; }
+.grand-total-item .value { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
+
+/* === Fabao (法宝) === */
+.fabao-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px; padding: 16px;
+}
+.fabao-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 8px; cursor: pointer;
+  transition: background .15s; font-size: .82rem;
+}
+.fabao-item:hover { background: #f0f1f3; }
+.fabao-item input[type="checkbox"] { accent-color: var(--blue); width: 16px; height: 16px; cursor: pointer; }
+.fabao-item.checked { color: var(--blue); font-weight: 500; }
+.fabao-item span { flex: 1; }
+
+/* === Calculator === */
+.calc-box { padding: 24px 20px; }
+.calc-rate {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 20px; padding: 14px; background: #f8f9fb;
+  border-radius: var(--radius);
+}
+.calc-rate label { font-size: .85rem; font-weight: 500; }
+.calc-rate input {
+  width: 100px; border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: .9rem; text-align: center; outline: none;
+}
+.calc-rate input:focus { border-color: var(--blue); }
+.calc-rate .unit { font-size: .85rem; color: var(--muted); }
+.calc-row {
+  display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.calc-input-group { flex: 1; min-width: 200px; }
+.calc-input-group label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+.calc-input-group input {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; font-size: 1rem; outline: none; transition: border .2s;
+}
+.calc-input-group input:focus { border-color: var(--blue); }
+.calc-result {
+  background: linear-gradient(135deg, #4f6ef7, #8b5cf6);
+  color: #fff; border-radius: var(--radius); padding: 18px;
+  text-align: center; font-size: 1.1rem; font-weight: 600;
+  min-height: 56px; display: flex; align-items: center;
+  justify-content: center;
+}
+
+/* === Toast === */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  background: #333; color: #fff; padding: 10px 20px; border-radius: 8px;
+  font-size: .85rem; z-index: 9999; transition: transform .3s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* === Buttons === */
+.btn {
+  padding: 6px 14px; border-radius: 8px; border: none;
+  font-size: .82rem; cursor: pointer; font-weight: 500;
+  transition: all .2s; display: inline-flex; align-items: center; gap: 4px;
+}
+.btn-blue { background: var(--blue); color: #fff; }
+.btn-blue:hover { background: #3d5bd9; }
+.btn-ghost { background: none; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+.btn-red { background: none; color: var(--red); border: 1px solid #fecaca; }
+.btn-red:hover { background: #fef2f2; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.save-indicator { font-size: .75rem; opacity: .7; }
+
+/* === Chat Presets === */
+.chat-grid { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.chat-item {
+  display: flex; align-items: center; gap: 8px;
+}
+.chat-item .chat-label { font-size: .8rem; color: var(--muted); min-width: 50px; }
+.chat-item input {
+  flex: 1; border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: .82rem; outline: none;
+}
+.chat-item input:focus { border-color: var(--blue); }
+.chat-item .btn-copy {
+  padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: none; cursor: pointer; font-size: .78rem; color: var(--blue);
+  white-space: nowrap; transition: all .2s;
+}
+.chat-item .btn-copy:hover { background: var(--blue-light); border-color: var(--blue); }
+.chat-item .btn-copy:active { transform: scale(.96); }
+
+/* === Gem Synthesis === */
+.gem-box { padding: 16px; }
+.gem-section { margin-bottom: 16px; }
+.gem-section h3 { font-size: .88rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+.gem-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.gem-table th { background: #f0f1f3; padding: 6px 8px; font-size: .75rem; }
+.gem-table td { padding: 5px 8px; }
+.gem-table .price-row td { color: var(--blue); font-weight: 500; }
+.gem-table .total-row td { color: var(--red); font-weight: 600; background: #fef2f2; }
+
+/* === Responsive === */
+@media (max-width: 640px) {
+  .header { padding: 20px 16px; }
+  .header h1 { font-size: 1.2rem; }
+  .container { padding: 10px; }
+  .tabs { gap: 2px; padding: 3px; }
+  .tab { padding: 8px 6px; font-size: .78rem; }
+  .fabao-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .calc-row { flex-direction: column; }
+  .grand-total { padding: 14px 12px; gap: 10px; }
+  .grand-total-item .value { font-size: .95rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎮 梦幻西游 · 修炼数据</h1>
+  <p>多角色修炼进度追踪 · 云端同步</p>
+  <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-text">同步中...</span>
+  </div>
+</div>
+
+<!-- 云存档管理面板 -->
+<div id="cloud-panel" style="display:none;max-width:600px;margin:0 auto 12px;padding:12px 16px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border);font-size:.85rem;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <span style="font-weight:600;">☁️ 云存档</span>
+    <span class="sync-dot" id="sync-dot2" style="margin-left:4px"></span>
+    <span id="sync-text2" style="color:var(--muted);font-size:.8rem"></span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <label style="color:var(--muted);white-space:nowrap;">存档ID：</label>
+    <input type="text" id="blob-id-input" style="flex:1;min-width:200px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:.82rem;font-family:monospace;background:var(--bg);color:var(--text);" spellcheck="false">
+    <button onclick="copyBlobId()" style="padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer;font-size:.82rem;white-space:nowrap;">📋 复制</button>
+    <button onclick="applyBlobId()" style="padding:5px 12px;border:none;border-radius:6px;background:var(--blue);color:#fff;cursor:pointer;font-size:.82rem;white-space:nowrap;">✅ 切换</button>
+  </div>
+  <p style="color:var(--muted);font-size:.75rem;margin:8px 0 0;">💡 新设备打开后，粘贴存档ID点"切换"即可同步数据。点击页面空白处关闭此面板。</p>
+</div>
+
+<div class="container">
+  <!-- Tabs -->
+  <div class="tabs" id="main-tabs">
+    <button class="tab active" onclick="switchTab(0)">📋 修炼进度</button>
+    <button class="tab" onclick="switchTab(1)">🔮 法宝</button>
+    <button class="tab" onclick="switchTab(2)">📢 喊话</button>
+    <button class="tab" onclick="switchTab(3)">💰 汇率换算</button>
+    <button class="tab" onclick="switchTab(4)">💎 宝石合成</button>
+  </div>
+
+  <!-- ========== TAB 0: 修炼进度 ========== -->
+  <div id="tab-progress">
+    <div class="card">
+      <div class="char-tabs" id="char-tabs"></div>
+      <div class="table-wrap">
+        <table>
+          <thead id="progress-thead">
+            <tr>
+              <th>项目</th><th>当前</th><th>目标</th>
+              <th>消耗经验</th><th>消耗金钱</th><th>附加</th>
+            </tr>
+          </thead>
+          <tbody id="progress-tbody"></tbody>
+        </table>
+      </div>
+      <!-- Grand Total -->
+      <div class="grand-total" id="grand-total">
+        <div class="grand-total-item"><div class="label">总计金钱</div><div class="value" id="gt-gold">—</div></div>
+        <div class="grand-total-item"><div class="label">总计经验</div><div class="value" id="gt-exp">—</div></div>
+        <div class="grand-total-item"><div class="label">总计帮贡</div><div class="value" id="gt-bang">—</div></div>
+      </div>
+      <div style="padding: 12px 16px; border-top: 1px solid var(--border); display:flex; gap:8px; justify-content: flex-end;">
+        <button class="btn btn-ghost" onclick="saveData()">💾 保存</button>
+        <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 1: 法宝 ========== -->
+  <div id="tab-fabao" style="display:none">
+    <div class="card">
+      <div class="card-header" onclick="toggleFabaoChar()">
+        <h2>🔮 选择角色查看法宝</h2>
+        <span class="arrow open" id="fabao-arrow">▶</span>
+      </div>
+      <div class="card-body" id="fabao-char-select">
+        <div class="char-tabs" id="fabao-char-tabs"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="fabao-grid" id="fabao-grid"></div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 2: 喊话 ========== -->
+  <div id="tab-chat" style="display:none">
+    <div class="card">
+      <div class="card-header"><h2>📢 常用喊话 · 点击复制</h2></div>
+      <div class="chat-grid" id="chat-grid"></div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 3: 汇率换算 ========== -->
+  <div id="tab-calc" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <h2>💰 人民币 ⇄ 游戏币 换算</h2>
+      </div>
+      <div class="calc-box">
+        <div class="calc-rate">
+          <label>汇率设置：</label>
+          <input type="number" id="rate-rmb" step="0.01" value="233.16" oninput="updateRate()">
+          <span class="unit">RMB ＝</span>
+          <input type="number" id="rate-gold" step="100" value="3000" oninput="updateRate()">
+          <span class="unit">万游戏币</span>
+        </div>
+        <div class="calc-rate">
+          <label>修炼果价格：</label>
+          <input type="number" id="fruitPrice" value="75" min="1" oninput="onFruitPriceChange()">
+          <span class="unit">万两/个</span>
+        </div>
+        <div class="calc-row">
+          <div class="calc-input-group">
+            <label>输入人民币 (RMB)</label>
+            <input type="number" id="calc-rmb" placeholder="输入金额..." oninput="calcFromRMB()">
+          </div>
+          <div class="calc-input-group">
+            <label>输入游戏币 (万)</label>
+            <input type="number" id="calc-gold" placeholder="输入万..." oninput="calcFromGold()">
+          </div>
+        </div>
+        <div class="calc-result" id="calc-result">输入金额开始换算</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 4: 宝石合成 ========== -->
+  <div id="tab-gem" style="display:none">
+    <div class="card">
+      <div class="card-header"><h2>💎 宝石合成价格计算</h2></div>
+      <div class="gem-box">
+        <div id="gem-results"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== CONSUMPTION DATA ====================
+// 师门技能每级消耗 (1-180级), [经验, 金钱(梦幻币)]
+const SKILL_DATA = [
+null, // 0
+[16,6],[32,12],[52,19],[75,28],[103,38],[136,51],[179,67],[231,86],[295,110],[372,139],
+[466,174],[578,216],[711,266],[867,325],[1049,393],[1260,472],[1503,563],[1780,667],[2096,786],[2452,919],
+[2854,1070],[3304,1238],[3807,1426],[4364,1636],[4983,1868],[5664,2124],[6415,2404],[7238,2714],[8138,3050],[9120,3420],
+[10188,3820],[11347,4255],[12602,4725],[13959,5234],[15423,5783],[16998,6374],[18692,7009],[20508,7690],[22452,8419],[24532,9199],
+[26753,10032],[29121,10920],[31642,11865],[34323,12871],[37169,13938],[40188,15070],[43388,16270],[46773,17540],[50352,18882],[54132,20299],
+[58120,21795],[62324,23371],[66750,25031],[71407,26777],[76303,28613],[81444,30541],[86840,32565],[92500,34687],[98430,36911],[104640,39240],
+[111136,41676],[117931,44224],[125031,46886],[132444,49666],[140183,52568],[148253,55595],[156666,58749],[165430,62036],[174556,65458],[184052,69019],
+[193930,72723],[204198,76574],[214868,80575],[225948,84730],[237449,89043],[249383,93518],[261760,98160],[274589,102971],[287884,107956],[301652,113119],
+[315908,118465],[330662,123998],[345924,129721],[361708,135640],[378023,141758],[394882,148080],[412297,154611],[430280,161355],[448844,168316],[468000,175500],
+[487760,182910],[508137,190551],[529145,198429],[550796,206548],[573103,214913],[596078,223529],[619735,232400],[644088,241533],[669149,250931],[694932,260599],
+[721452,270544],[748722,280770],[776755,291283],[805566,302087],[835169,313188],[865579,324592],[896809,336303],[928876,348328],[961792,360672],[995572,373339],
+[1030234,386337],[1065190,399671],[1102256,413346],[1139649,427368],[1177983,441743],[1217273,456477],[1256104,471576],[1298787,487045],[1341043,502891],[1384320,519120],
+[1428632,535737],[1473999,552749],[1520435,570163],[1567957,587984],[1616583,606218],[1666328,624873],[1717211,643954],[1769248,663468],[1822456,683421],[1876852,703819],
+[1932456,724671],[1989284,745981],[2047353,767757],[2106682,790005],[2167289,812733],[2229192,835947],[2292410,859653],[2356960,883860],[2422861,908573],[2490132,933799],
+[2558792,959547],[2628860,985822],[2700356,1012633],[2773296,1039986],[2847703,1067888],[2923593,1096347],[3000989,1125371],[3079908,1154965],[3160372,1185139],[3242400,1215900],
+// 151-155
+[6652022,2494508],[6822452,2558419],[6996132,2623549],[7173104,2689914],[7353406,2757527],
+// 156-160
+[11305620,4239607],[11586254,4344845],[11872072,4452027],[12163140,4561177],[12459518,4672319],
+// 161-165
+[15033471,4500041],[15315219,4594563],[15600468,4680138],[15889236,4766769],[16181550,4854465],
+// 166-170
+[16477425,4943226],[16776885,5033064],[17079954,5123985],[17386650,5215995],[17697000,5309100],
+// 171-175
+[24014692,7204407],[24438308,7331490],[24866880,7460064],[25300432,7590129],[25739000,7721700],
+// 176-180
+[32728255,9818475],[33289095,9986727],[33856310,10156893],[34492930,10328979],[40842000,12252600]
+];
+
+// 修炼经验对照表（基于官方数据，累计总经验）
+const PLAYER_EXP_TABLE = [
+  0,      // 0级
+  150,    // 1级
+  360,    // 2级
+  650,    // 3级
+  1040,   // 4级
+  1550,   // 5级
+  2200,   // 6级
+  3010,   // 7级
+  4000,   // 8级
+  5190,   // 9级
+  6600,   // 10级
+  8250,   // 11级
+  10160,  // 12级
+  12350,  // 13级
+  14840,  // 14级
+  17650,  // 15级
+  20800,  // 16级
+  24310,  // 17级
+  28200,  // 18级
+  32490,  // 19级
+  37200,  // 20级
+  42350,  // 21级
+  47960,  // 22级
+  54050,  // 23级
+  60640,  // 24级
+  67730   // 25级
+];
+
+// 乾元丹数据: 每级消耗 [经验, 金钱(梦幻币)]，0→1到8→9
+const QIANYUAN_DATA = [
+  [22341872, 4468371],   // 0→1
+  [26346096, 5269219],   // 1→2
+  [31071540, 6214308],   // 2→3
+  [36622678, 7324536],   // 3→4
+  [43104464, 8620893],   // 4→5
+  [50744028, 10148806],  // 5→6
+  [59721696, 11944339],  // 6→7
+  [70305556, 14061111],  // 7→8
+  [82781008, 16556202]   // 8→9
+];
+
+// ==================== CALCULATION ENGINE ====================
+
+function calcSkill(cur, target) {
+  if (cur >= target || cur < 1) return { exp: 0, gold: 0 };
+  cur = Math.max(1, Math.floor(cur));
+  target = Math.min(180, Math.floor(target));
+  let exp = 0, gold = 0;
+  for (let lv = cur + 1; lv <= target; lv++) {
+    if (SKILL_DATA[lv]) { exp += SKILL_DATA[lv][0]; gold += SKILL_DATA[lv][1]; }
+  }
+  return { exp, gold };
+}
+
+// 帮派辅助技能 - 精确公式（来源mh.ycccx.cn）
+// 6种类型: 1=强身(140), 2=冥想/暗器/中药/养生/健身(120), 3=灵石(160), 4=强壮/神速(60), 5=打造/裁缝/炼金(160), 6=烹饪(140)
+const AUX_MAX = { 1:140, 2:120, 3:160, 4:60, 5:160, 6:140 };
+
+function guildBaseA(caseN, e) {
+  var p4 = parseInt(Math.pow(e, 4) / 30);
+  if (caseN === 1) return parseInt((p4 + Math.pow(e, 3)) / 5) + e * 20;
+  if (caseN === 2) { var e2 = e + 15; return parseInt((parseInt(Math.pow(e2, 4) / 30) + Math.pow(e2, 3)) / 5) + e2 * 20; }
+  return parseInt((p4 + Math.pow(e, 3)) / 5) + e * 20;
+}
+
+function buildGuildTable(type) {
+  var table = [];
+  var max = AUX_MAX[type] || 120;
+  for (var e = 0; e <= max; e++) {
+    var t, n;
+    if (type === 1) { // 强身
+      t = parseInt(guildBaseA(3, e) * 3 / 10);
+      if (e <= 120) n = parseInt(guildBaseA(1, e) * 4 / 5);
+      else if (e <= 130) n = parseInt(guildBaseA(1, e) * 6 / 5);
+      else n = parseInt(guildBaseA(1, e) * 8 / 5);
+    } else if (type === 2) { // 冥想/暗器/中药/养生/健身
+      if (e <= 80) t = parseInt(guildBaseA(2, e) * 4 / 5);
+      else t = parseInt(guildBaseA(2, e) * 6 / 5);
+      n = parseInt(t * 3 / 10);
+    } else if (type === 4) { // 强壮/神速
+      if (e < 41) {
+        t = parseInt(Math.pow(e + 5, 2) * 20000 + 1000000);
+        var p = parseInt(t / 2);
+        table.push({ exp: t, money: p });
+        continue;
+      } else {
+        var prev = table[e - 1];
+        var base = 9780000;
+        var ex = prev.exp + base + 40000 * (e - 40);
+        var mn = parseInt(prev.money + parseInt((2445000 + (e - 40) * 10000) * 2));
+        table.push({ exp: ex, money: mn });
+        continue;
+      }
+    } else if (type === 6) { // 烹饪
+      if (e <= 150) t = parseInt(guildBaseA(1, e) * 4 / 5);
+      else { var gb = guildBaseA(1, e); t = parseInt((parseInt(gb * (e - 100) / 100) + gb) * 4 / 5); }
+      n = parseInt(guildBaseA(3, e) * 3 / 10);
+    } else { // type 3/5 fallback
+      t = parseInt(guildBaseA(3, e) * 3 / 10);
+      n = parseInt(guildBaseA(1, e) * 4 / 5);
+    }
+    table.push({ exp: n, money: t });
+  }
+  return table;
+}
+
+var guildTables = {};
+[1, 2, 4, 6].forEach(function(t) { guildTables[t] = buildGuildTable(t); });
+
+function calcBangpaiSkill(cur, target, type) {
+  var max = AUX_MAX[type] || 120;
+  if (cur >= target) return { exp: 0, gold: 0, bang: 0, bangReq: 0 };
+  cur = Math.max(0, Math.floor(cur));
+  target = Math.min(max, Math.floor(target));
+  var table = guildTables[type];
+  if (!table) return { exp: 0, gold: 0, bang: 0, bangReq: 0 };
+  var totalExp = 0, totalMoney = 0, totalBgUse = 0;
+  for (var lv = cur + 1; lv <= target; lv++) {
+    if (table[lv]) {
+      totalExp += table[lv].exp;
+      totalMoney += table[lv].money;
+      totalBgUse += lv;
+    }
+  }
+  return {
+    exp: totalExp,
+    gold: parseInt(totalMoney / 2),
+    bang: totalBgUse,
+    bangReq: totalBgUse + target * 5
+  };
+}
+
+function calcRxiu(cur, target) {
+  if (cur >= target) return { exp: 0, gold: 0, bangReq: 0 };
+  cur = Math.max(0, Math.floor(cur));
+  target = Math.min(25, Math.floor(target));
+  const exp = PLAYER_EXP_TABLE[target] - PLAYER_EXP_TABLE[cur];
+  const clicks = Math.ceil(exp / 10);
+  const gold = clicks * 30000;
+  const bangReq = target * 150;
+  return { exp, gold, bangReq };
+}
+
+function calcCxiu(cur, target) {
+  if (cur >= target) return { exp: 0, gold: 0, bangReq: 0, fruitCount: 0, fruitMoney: 0 };
+  cur = Math.max(0, Math.floor(cur));
+  target = Math.min(25, Math.floor(target));
+  const exp = PLAYER_EXP_TABLE[target] - PLAYER_EXP_TABLE[cur];
+  const fruitCount = Math.ceil(exp / 150);
+  const fruitPriceInput = document.getElementById('fruitPrice');
+  const fruitPrice = fruitPriceInput ? (parseInt(fruitPriceInput.value) || 75) : 75;
+  const fruitMoney = fruitCount * fruitPrice;
+  const bangReq = target * 150;
+  return { exp, gold: fruitMoney * 10000, fruitCount, fruitPrice, bangReq };
+}
+
+function calcQianliGuo(cur, target) {
+  if (cur >= target || cur < 0) return { exp: 0 };
+  cur = Math.max(0, Math.floor(cur));
+  target = Math.min(200, Math.floor(target));
+  let exp = 0;
+  for (let n = cur + 1; n <= target; n++) {
+    exp += (985 + 15 * n) * 10000;
+  }
+  return { exp };
+}
+
+function calcLevelExp(cur, target) {
+  const LEVEL_EXP = [
+    0,0,100,300,650,1150,1800,2650,3700,5000,6600,
+    8600,11000,13900,17300,21300,26000,31500,38000,45500,54200,
+    64400,76500,90800,107600,127000,149500,175500,205500,240000,279500,
+    324500,375500,433500,499000,572500,655000,747500,851000,966500,1095000,
+    1237500,1396500,1573500,1770500,1989500,2232500,2501500,2798500,3126000,3487000,
+    3884000,4320500,4800000,5326000,5902500,6533000,7222000,7973500,8792500,9684000,
+    10653000,11707500,12860000,14117000,15484500,16970000,18580000,20322500,22205000,24235000,
+    26420000,28767500,31285000,33980000,36860000,39935000,43215000,46710000,50430000,54385000,
+    58585000,63040000,67765000,72770000,78065000,83660000,89565000,95790000,102350000,109250000,
+    116500000,124125000,132150000,140600000,149500000,158850000,168675000,179000000,189850000,201250000,
+    213225000,225800000,239000000,252850000,267375000,282600000,298550000,315250000,332725000,351000000,
+    370100000,390050000,410875000,432600000,455250000,478850000,503425000,529000000,555600000,583250000
+  ];
+  if (cur >= target || cur < 0) return { exp: 0 };
+  cur = Math.max(0, Math.floor(cur));
+  target = Math.min(150, Math.floor(target));
+  return { exp: (LEVEL_EXP[target]||0) - (LEVEL_EXP[cur]||0) };
+}
+
+function calcQianyuan(cur, target) {
+  if (cur >= target || cur < 0 || cur > 8 || target > 9) return { exp: 0, gold: 0 };
+  cur = Math.max(0, Math.floor(cur));
+  target = Math.min(9, Math.floor(target));
+  let exp = 0, gold = 0;
+  for (let i = cur; i < target && i < QIANYUAN_DATA.length; i++) {
+    exp += QIANYUAN_DATA[i][0];
+    gold += QIANYUAN_DATA[i][1];
+  }
+  return { exp, gold };
+}
+
+function autoCalc(itemName, cur, target) {
+  if (itemName.startsWith('技能')) return calcSkill(cur, target);
+  if (itemName === '攻法修' || itemName === '防御修' || itemName === '法防修') return calcRxiu(cur, target);
+  if (itemName === '攻修' || itemName === '防修' || itemName === '法修' || itemName === '法抗修') return calcCxiu(cur, target);
+  if (itemName === '潜力果') return calcQianliGuo(cur, target);
+  if (itemName === '等级') return calcLevelExp(cur, target);
+  if (itemName === '乾元丹') return calcQianyuan(cur, target);
+  // 辅助修炼 - 查找类型
+  const auxDef = AUX_SKILLS.find(a => a.name === itemName);
+  if (auxDef) return calcBangpaiSkill(cur, target, auxDef.type);
+  return calcBangpaiSkill(cur, target, 3);
+}
+
+// ==================== DATA ====================
+
+// 法宝列表：修正HS盘龙壁→盘龙壁，按首字母正序排列
+const FABAO_LIST = [
+  '碧玉葫芦','缚妖索','飞剑','风袋','鬼脸面具','汇灵盏',
+  '会神珠','九黎战鼓','惊魂铃','金甲','金钱镖','雷兽',
+  '盘龙壁','清心咒','试剑石','天师符','五色旗盒','嗜血幡',
+  '神行飞剑','织女扇','定风珠','迷魂灯','幽灵珠'
+];
+
+// 辅助修炼完整列表（9个）
+const AUX_SKILLS = [
+  { name: '强身', type: 1 },
+  { name: '冥想', type: 2 },
+  { name: '强壮', type: 4 },
+  { name: '神速', type: 4 },
+  { name: '暗器', type: 2 },
+  { name: '烹饪', type: 6 },
+  { name: '健身', type: 2 },
+  { name: '养生', type: 2 },
+  { name: '中药', type: 2 }
+];
+
+const ITEM_GROUPS = [
+  { label: '门派技能', key: 'skills', items: ['技能1','技能2','技能3','技能4','技能5','技能6','技能7'] },
+  { label: '人物修炼', key: 'rxiu', items: ['攻法修','防御修','法防修'] },
+  { label: '宠物修炼', key: 'cxiu', items: ['攻修','防修','法修','法抗修'] },
+  { label: '辅助修炼', key: 'aux', items: AUX_SKILLS.map(a => a.name) },
+  { label: '其他', key: 'other', items: ['乾元丹','潜力果','等级'] },
+];
+
+const DEFAULT_CHAR = () => ({
+  name: '新角色',
+  data: buildEmptyData(),
+  fabao: {}
+});
+
+function buildEmptyData() {
+  const d = {};
+  ITEM_GROUPS.forEach(g => {
+    g.items.forEach(item => {
+      d[item] = { cur: 0, target: 0 };
+    });
+  });
+  return d;
+}
+
+let appData = {
+  characters: [DEFAULT_CHAR()],
+  activeCharIdx: 0,
+  fabaoCharIdx: 0,
+  rate: { rmb: 233.16, gold: 3000 },
+  fruitPrice: 75,
+  gemPrices: {},
+  chatPresets: [
+    '收XX技能书，有的M价格',
+    '收修炼果，有的M',
+    'XX老板好！请问XX怎么卖？',
+    '来个强力DPS，副本速刷',
+    'XX区XX帮收人，活跃的来'
+  ]
+};
+
+// ==================== CLOUD ====================
+const DEFAULT_BLOB_ID = '019d4787-c39c-7362-b93d-b7ec1201ba29';
+let BLOB_ID = localStorage.getItem('dream_blob_id') || DEFAULT_BLOB_ID;
+let API = 'https://jsonblob.com/api/jsonBlob/' + BLOB_ID;
+let saveTimer = null;
+let syncOK = false;
+
+async function loadCloud() {
+  try {
+    const resp = await fetch(API);
+    if (!resp.ok) throw new Error(resp.status);
+    const d = await resp.json();
+    if (d.characters && d.characters.length) {
+      if (d.characters[0].data) { appData = d; }
+    }
+    if (!appData.rate) appData.rate = { rmb: 233.16, gold: 3000 };
+    if (typeof appData.fabaoCharIdx !== 'number') appData.fabaoCharIdx = 0;
+    if (!appData.chatPresets || !appData.chatPresets.length) {
+      appData.chatPresets = ['收XX技能书，有的M价格','收修炼果，有的M','XX老板好！请问XX怎么卖？','来个强力DPS，副本速刷','XX区XX帮收人，活跃的来'];
+    }
+    if (!appData.gemPrices) appData.gemPrices = {};
+    // Migration
+    appData.characters.forEach(ch => {
+      Object.keys(ch.data).forEach(k => {
+        if (ch.data[k].exp !== undefined) {
+          const { exp, gold, bang, ...rest } = ch.data[k];
+          ch.data[k] = rest;
+        }
+      });
+      // Ensure new fields exist
+      if (!ch.data['乾元丹']) ch.data['乾元丹'] = { cur: 0, target: 0 };
+      AUX_SKILLS.forEach(a => {
+        if (!ch.data[a.name]) ch.data[a.name] = { cur: 0, target: 0 };
+      });
+      // Migrate old fabao: HS盘龙壁 → 盘龙壁
+      if (ch.fabao && ch.fabao['HS盘龙壁']) {
+        ch.fabao['盘龙壁'] = ch.fabao['HS盘龙壁'];
+        delete ch.fabao['HS盘龙壁'];
+      }
+    });
+    syncOK = true;
+    localStorage.setItem('dream_blob_id', BLOB_ID);
+    updateSyncUI();
+  } catch(e) {
+    syncOK = false;
+    updateSyncUI();
+  }
+  renderAll();
+}
+
+async function saveToCloud() {
+  try {
+    const resp = await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(appData)
+    });
+    syncOK = resp.ok;
+    updateSyncUI();
+    return resp.ok;
+  } catch(e) {
+    syncOK = false;
+    updateSyncUI();
+    return false;
+  }
+}
+
+function updateSyncUI() {
+  document.getElementById('sync-dot').className = 'sync-dot' + (syncOK ? '' : ' off');
+  document.getElementById('sync-text').textContent = syncOK ? '已连接云端' : '云端未连接';
+  document.getElementById('sync-dot2').className = 'sync-dot' + (syncOK ? '' : ' off');
+  document.getElementById('sync-text2').textContent = syncOK ? '已同步' : '未连接';
+}
+
+function toggleCloudPanel() {
+  const p = document.getElementById('cloud-panel');
+  const show = p.style.display === 'none';
+  p.style.display = show ? 'block' : 'none';
+  if (show) {
+    document.getElementById('blob-id-input').value = BLOB_ID;
+  }
+}
+
+// 点击空白处关闭
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('cloud-panel');
+  const badge = document.querySelector('.sync-badge');
+  if (panel && panel.style.display !== 'none' && !panel.contains(e.target) && !badge.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
+
+function copyBlobId() {
+  const id = document.getElementById('blob-id-input').value;
+  navigator.clipboard.writeText(id).then(() => showToast('存档ID已复制 📋'));
+}
+
+async function applyBlobId() {
+  const id = document.getElementById('blob-id-input').value.trim();
+  if (!id) return showToast('请输入存档ID');
+  BLOB_ID = id;
+  API = 'https://jsonblob.com/api/jsonBlob/' + BLOB_ID;
+  localStorage.setItem('dream_blob_id', BLOB_ID);
+  showToast('正在切换存档...');
+  await loadCloud();
+  showToast('存档已切换 ☁️');
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    collectCurrentData();
+    await saveToCloud();
+    showToast('已保存到云端 ☁️');
+  }, 800);
+}
+
+// ==================== TABS ====================
+const TAB_IDS = ['progress','fabao','chat','calc','gem'];
+
+function switchTab(idx) {
+  document.querySelectorAll('#main-tabs .tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+  TAB_IDS.forEach((t, i) => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = i === idx ? '' : 'none';
+  });
+  if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
+  if (TAB_IDS[idx] === 'chat') renderChatGrid();
+  if (TAB_IDS[idx] === 'gem') calcAllGems();
+}
+
+// ==================== CHARACTER TABS ====================
+function renderCharTabs() {
+  const wrap = document.getElementById('char-tabs');
+  let html = '';
+  appData.characters.forEach((c, i) => {
+    const active = i===appData.activeCharIdx ? 'active' : '';
+    html += '<button class="char-tab ' + active + '" onclick="selectChar(' + i + ')">' +
+      '<span class="char-name-wrap">' + esc(c.name) + '<span class="edit-icon" onclick="event.stopPropagation();renameChar(' + i + ')">✏️</span></span>' +
+      '</button>';
+  });
+  html += '<button class="char-tab" onclick="addChar()">＋</button>';
+  wrap.innerHTML = html;
+}
+
+function renderFabaoCharTabs() {
+  const wrap = document.getElementById('fabao-char-tabs');
+  let html = '';
+  appData.characters.forEach((c, i) => {
+    const active = i===appData.fabaoCharIdx ? 'active' : '';
+    html += '<button class="char-tab ' + active + '" onclick="selectFabaoChar(' + i + ')">' +
+      '<span class="char-name-wrap">' + esc(c.name) + '<span class="edit-icon" onclick="event.stopPropagation();renameChar(' + i + ')">✏️</span></span>' +
+      '</button>';
+  });
+  wrap.innerHTML = html;
+}
+
+function renameChar(idx) {
+  const oldName = appData.characters[idx].name;
+  const newName = prompt('修改角色名称：', oldName);
+  if (newName && newName.trim()) {
+    appData.characters[idx].name = newName.trim();
+    renderAll();
+    scheduleSave();
+    showToast('角色已重命名 ✏️');
+  }
+}
+
+function selectChar(idx) {
+  collectCurrentData();
+  appData.activeCharIdx = idx;
+  renderCharTabs();
+  renderProgressTable();
+}
+
+function selectFabaoChar(idx) {
+  appData.fabaoCharIdx = idx;
+  renderFabaoCharTabs();
+  renderFabaoGrid();
+}
+
+function addChar() {
+  collectCurrentData();
+  const name = prompt('输入角色名称：');
+  if (!name || !name.trim()) return;
+  const ch = DEFAULT_CHAR();
+  ch.name = name.trim();
+  appData.characters.push(ch);
+  appData.activeCharIdx = appData.characters.length - 1;
+  renderAll();
+  scheduleSave();
+}
+
+function deleteCurrentChar() {
+  if (appData.characters.length <= 1) { showToast('至少保留一个角色'); return; }
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!confirm('确定删除角色「' + ch.name + '」？')) return;
+  appData.characters.splice(appData.activeCharIdx, 1);
+  appData.activeCharIdx = Math.min(appData.activeCharIdx, appData.characters.length-1);
+  renderAll();
+  scheduleSave();
+}
+
+// ==================== FORMAT ====================
+function fmtNum(n) {
+  return Math.round(n).toLocaleString();
+}
+
+function fmtWan(n) {
+  // <1万：直接千分位（如 6,000）
+  // ≥1万：四舍五入显示"xxx万"（如 1,235万）
+  if (n <= 0) return '0';
+  if (n < 10000) return Math.round(n).toLocaleString();
+  const wan = Math.round(n / 10000);
+  return wan.toLocaleString() + '万';
+}
+
+function fmtGold(n) { return fmtWan(n); }
+
+function fmtExp(n) { return fmtWan(n); }
+
+// ==================== PROGRESS TABLE ====================
+function renderProgressTable() {
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  const thead = document.getElementById('progress-thead');
+  const tbody = document.getElementById('progress-tbody');
+  let html = '';
+  let totalExp=0, totalGold=0, totalBang=0;
+
+  // 各分类表头配置
+  const HEADERS = {
+    skills:  ['项目','当前等级','目标等级','消耗经验','消耗金钱',''],
+    rxiu:    ['项目','当前等级','目标等级','所需修炼经验','消耗金钱','所需帮贡上限'],
+    cxiu:    ['项目','当前等级','目标等级','所需修炼经验','消耗金钱','修炼果个数'],
+    aux:     ['项目','当前等级','目标等级','消耗经验','消耗金钱','消耗帮贡','所需帮贡上限'],
+    other:   ['项目','当前','目标','消耗经验','消耗金钱','']
+  };
+
+  ITEM_GROUPS.forEach(g => {
+    const headers = HEADERS[g.key] || HEADERS.other;
+    const colSpan = headers.length;
+
+    // 分类标题行
+    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label + '</td></tr>';
+
+    // 表头行（每个分类自己的表头）
+    html += '<tr>';
+    headers.forEach(h => { html += '<th>' + h + '</th>'; });
+    html += '</tr>';
+
+    let subExp=0, subGold=0, subBang=0;
+
+    g.items.forEach(item => {
+      const d = ch.data[item] || { cur:0, target:0 };
+      const k = item;
+      const result = autoCalc(item, d.cur, d.target);
+      const exp = result.exp || 0;
+      const gold = result.gold || 0;
+      const bang = result.bang || 0;
+      const bangReq = result.bangReq || 0;
+      const fruitCount = result.fruitCount || 0;
+      subExp += exp; subGold += gold; subBang += bang;
+      totalExp += exp; totalGold += gold; totalBang += bang;
+
+      // 构建行内容
+      if (g.key === 'skills') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td></td>' +
+          '</tr>';
+      } else if (g.key === 'rxiu') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td class="auto-val">' + (bangReq > 0 ? fmtNum(bangReq) : '—') + '</td>' +
+          '</tr>';
+      } else if (g.key === 'cxiu') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td class="auto-val">' + (fruitCount > 0 ? '🍎' + fruitCount + '个' : '—') + '</td>' +
+          '</tr>';
+      } else if (g.key === 'aux') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td class="auto-val">' + (bang > 0 ? fmtNum(bang) : '—') + '</td>' +
+          '<td class="auto-val">' + (bangReq > 0 ? fmtNum(bangReq) : '—') + '</td>' +
+          '</tr>';
+      } else {
+        // other: 乾元丹, 潜力果, 等级
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td></td>' +
+          '</tr>';
+      }
+    });
+
+    // 分类小计行
+    const subHeaders = HEADERS[g.key] || HEADERS.other;
+    html += '<tr class="subtotal-row">';
+    html += '<td>' + g.label + ' 合计</td>';
+    for (let i = 1; i < subHeaders.length; i++) { html += '<td></td>'; }
+    // 溢出多余的列，在最后两列显示经验和金钱
+    // 重新构建：根据列数，把小计放对位置
+    html = html.slice(0, html.lastIndexOf('<tr class="subtotal-row">'));
+    html += '<tr class="subtotal-row">';
+    if (g.key === 'skills') {
+      html += '<td>' + g.label + ' 合计</td><td></td><td></td>';
+      html += '<td class="auto-val">' + (subExp > 0 ? fmtExp(subExp) : '—') + '</td>';
+      html += '<td class="auto-val">' + (subGold > 0 ? fmtGold(subGold) : '—') + '</td><td></td>';
+    } else if (g.key === 'rxiu') {
+      html += '<td>' + g.label + ' 合计</td><td></td><td></td><td></td>';
+      html += '<td class="auto-val">' + (subGold > 0 ? fmtGold(subGold) : '—') + '</td><td></td>';
+    } else if (g.key === 'cxiu') {
+      html += '<td>' + g.label + ' 合计</td><td></td><td></td><td></td>';
+      html += '<td class="auto-val">' + (subGold > 0 ? fmtGold(subGold) : '—') + '</td><td></td>';
+    } else if (g.key === 'aux') {
+      html += '<td>' + g.label + ' 合计</td><td></td><td></td>';
+      html += '<td class="auto-val">' + (subExp > 0 ? fmtExp(subExp) : '—') + '</td>';
+      html += '<td class="auto-val">' + (subGold > 0 ? fmtGold(subGold) : '—') + '</td>';
+      html += '<td class="auto-val">' + (subBang > 0 ? fmtNum(subBang) : '—') + '</td><td></td>';
+    } else {
+      html += '<td>' + g.label + ' 合计</td><td></td><td></td>';
+      html += '<td class="auto-val">' + (subExp > 0 ? fmtExp(subExp) : '—') + '</td>';
+      html += '<td class="auto-val">' + (subGold > 0 ? fmtGold(subGold) : '—') + '</td><td></td>';
+    }
+    html += '</tr>';
+  });
+
+  tbody.innerHTML = html;
+
+  // 更新总消耗
+  document.getElementById('gt-gold').textContent = totalGold > 0 ? fmtGold(totalGold) : '—';
+  document.getElementById('gt-exp').textContent = totalExp > 0 ? fmtExp(totalExp) : '—';
+  document.getElementById('gt-bang').textContent = totalBang > 0 ? fmtNum(totalBang) : '—';
+}
+
+function onFruitPriceChange() {
+  collectCurrentData();
+  renderProgressTable();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
+}
+
+function onLevelChange(el) {
+  // Save focus state
+  const activeEl = document.activeElement;
+  const selStart = activeEl ? activeEl.selectionStart : null;
+  const selEnd = activeEl ? activeEl.selectionEnd : null;
+  const key = el.dataset.key;
+  const field = el.dataset.field;
+
+  collectCurrentData();
+
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  const d = ch.data[key] || { cur:0, target:0 };
+  const result = autoCalc(key, d.cur, d.target);
+
+  // Update the auto-val cells in same row
+  const row = el.closest('tr');
+  if (!row) return;
+  const autoVals = row.querySelectorAll('.auto-val');
+
+  // Determine group for correct column mapping
+  let groupKey = 'other';
+  for (const g of ITEM_GROUPS) {
+    if (g.items.includes(key)) { groupKey = g.key; break; }
+  }
+
+  if (groupKey === 'skills' || groupKey === 'other') {
+    if (autoVals[0]) autoVals[0].textContent = (result.exp || 0) > 0 ? fmtExp(result.exp) : '—';
+    if (autoVals[1]) autoVals[1].textContent = (result.gold || 0) > 0 ? fmtGold(result.gold) : '—';
+  } else if (groupKey === 'rxiu') {
+    if (autoVals[0]) autoVals[0].textContent = (result.exp || 0) > 0 ? fmtExp(result.exp) : '—';
+    if (autoVals[1]) autoVals[1].textContent = (result.gold || 0) > 0 ? fmtGold(result.gold) : '—';
+    if (autoVals[2]) autoVals[2].textContent = (result.bangReq || 0) > 0 ? fmtNum(result.bangReq) : '—';
+  } else if (groupKey === 'cxiu') {
+    if (autoVals[0]) autoVals[0].textContent = (result.exp || 0) > 0 ? fmtExp(result.exp) : '—';
+    if (autoVals[1]) autoVals[1].textContent = (result.gold || 0) > 0 ? fmtGold(result.gold) : '—';
+    if (autoVals[2]) autoVals[2].textContent = (result.fruitCount || 0) > 0 ? '🍎' + result.fruitCount + '个' : '—';
+  } else if (groupKey === 'aux') {
+    if (autoVals[0]) autoVals[0].textContent = (result.exp || 0) > 0 ? fmtExp(result.exp) : '—';
+    if (autoVals[1]) autoVals[1].textContent = (result.gold || 0) > 0 ? fmtGold(result.gold) : '—';
+    if (autoVals[2]) autoVals[2].textContent = (result.bang || 0) > 0 ? fmtNum(result.bang) : '—';
+    if (autoVals[3]) autoVals[3].textContent = (result.bangReq || 0) > 0 ? fmtNum(result.bangReq) : '—';
+  }
+
+  // Recalculate grand total
+  recalcGrandTotal();
+
+  // Debounced save
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
+
+  // Restore focus
+  if (activeEl && selStart !== null) {
+    try {
+      activeEl.focus();
+      activeEl.setSelectionRange(selStart, selEnd);
+    } catch(e) {}
+  }
+}
+
+function recalcGrandTotal() {
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  let totalExp=0, totalGold=0, totalBang=0;
+  ITEM_GROUPS.forEach(g => {
+    g.items.forEach(item => {
+      const d = ch.data[item] || { cur:0, target:0 };
+      const r = autoCalc(item, d.cur, d.target);
+      totalExp += (r.exp||0); totalGold += (r.gold||0); totalBang += (r.bang||0);
+    });
+  });
+  document.getElementById('gt-gold').textContent = totalGold > 0 ? fmtGold(totalGold) : '—';
+  document.getElementById('gt-exp').textContent = totalExp > 0 ? fmtExp(totalExp) : '—';
+  document.getElementById('gt-bang').textContent = totalBang > 0 ? fmtNum(totalBang) : '—';
+}
+
+function collectCurrentData() {
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  document.querySelectorAll('#progress-tbody input[data-key]').forEach(inp => {
+    const key = inp.dataset.key;
+    const field = inp.dataset.field;
+    if (!ch.data[key]) ch.data[key] = { cur:0, target:0 };
+    ch.data[key][field] = parseFloat(inp.value) || 0;
+  });
+}
+
+// ==================== FABAO ====================
+function toggleFabaoChar() {
+  const body = document.getElementById('fabao-char-select');
+  const arrow = document.getElementById('fabao-arrow');
+  body.classList.toggle('hidden');
+  arrow.classList.toggle('open');
+}
+
+function renderFabaoGrid() {
+  const ch = appData.characters[appData.fabaoCharIdx];
+  if (!ch) return;
+  const grid = document.getElementById('fabao-grid');
+  let html = '';
+  FABAO_LIST.forEach(f => {
+    const checked = ch.fabao[f] ? 'checked' : '';
+    const cls = ch.fabao[f] ? ' checked' : '';
+    html += '<label class="fabao-item' + cls + '">' +
+      '<input type="checkbox" ' + checked + ' onchange="onFabaoChange(\'' + f + '\', this.checked)">' +
+      '<span>' + f + '</span></label>';
+  });
+  grid.innerHTML = html;
+}
+
+function onFabaoChange(name, val) {
+  const ch = appData.characters[appData.fabaoCharIdx];
+  if (!ch) return;
+  ch.fabao[name] = val;
+  renderFabaoGrid();
+  scheduleSave();
+}
+
+// ==================== CHAT PRESETS ====================
+function renderChatGrid() {
+  const grid = document.getElementById('chat-grid');
+  let html = '';
+  appData.chatPresets.forEach((text, i) => {
+    html += '<div class="chat-item">' +
+      '<span class="chat-label">喊话' + (i+1) + '</span>' +
+      '<input type="text" value="' + esc(text) + '" oninput="onChatChange(' + i + ', this.value)">' +
+      '<button class="btn-copy" onclick="copyChat(' + i + ')">📋 复制</button>' +
+      '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+function onChatChange(idx, val) {
+  appData.chatPresets[idx] = val;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
+}
+
+function copyChat(idx) {
+  const text = appData.chatPresets[idx] || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('已复制 ✓');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制 ✓');
+  });
+}
+
+// ==================== GEM SYNTHESIS ====================
+const GEM_LIST = [
+  { name: '太阳石', merge: 2 },
+  { name: '月亮石', merge: 2 },
+  { name: '光芒石', merge: 2 },
+  { name: '红玛瑙', merge: 2 },
+  { name: '舍利子', merge: 2 },
+  { name: '黑宝石', merge: 2 },
+  { name: '神秘石', merge: 2 },
+  { name: '翡翠石', merge: 2 },
+  { name: '星辉石', merge: 3 },
+  { name: '五色灵尘', merge: 3 }
+];
+
+function calcGemPrices(basePrice, merge) {
+  // basePrice: 1级单价（万两）
+  // merge: 合成数量（2或3）
+  // 返回 [1级, 2级, ..., 9级] 各级单价（万两）
+  // 以及累计总花费
+  const prices = [basePrice]; // 1级
+  let cumulative = [0, basePrice]; // cumulative[N] = 从1级升到N级的总花费
+
+  for (let lv = 2; lv <= 9; lv++) {
+    prices[lv-1] = prices[lv-2] * merge;
+    cumulative[lv] = cumulative[lv-1] + prices[lv-1];
+  }
+  return { prices, cumulative };
+}
+
+function fmtGemPrice(n) {
+  // n 单位：万两
+  if (n < 1) return n.toFixed(2);
+  if (n < 100) return n.toFixed(1);
+  return Math.round(n).toLocaleString();
+}
+
+function calcAllGems() {
+  // 保存焦点
+  const activeEl = document.activeElement;
+  const selStart = activeEl ? activeEl.selectionStart : null;
+  const selEnd = activeEl ? activeEl.selectionEnd : null;
+  const focusName = activeEl ? activeEl.getAttribute('data-gem') : null;
+
+  const container = document.getElementById('gem-results');
+  let html = '';
+
+  GEM_LIST.forEach((gem, idx) => {
+    const base = appData.gemPrices[gem.name] || 1.5;
+    const { prices, cumulative } = calcGemPrices(base, gem.merge);
+    html += '<div class="gem-section">';
+    html += '<h3>' + gem.name + (gem.merge === 3 ? '（3合1）' : '（2合1）') +
+      '　<input type="number" data-gem="' + gem.name + '" style="width:70px;font-size:.8rem;padding:2px 4px;border:1px solid #ccc;border-radius:4px;" ' +
+      'value="' + base + '" min="0.01" step="0.1" ' +
+      'oninput="appData.gemPrices[\'' + gem.name + '\']=parseFloat(this.value)||0;calcAllGems()">' +
+      ' <span style="font-size:.8rem;color:var(--muted)">万两/级</span></h3>';
+    html += '<table class="gem-table"><thead><tr>';
+    html += '<th></th>';
+    for (let i = 1; i <= 9; i++) html += '<th>' + i + '级</th>';
+    html += '</tr></thead><tbody>';
+
+    // 价格行
+    html += '<tr class="price-row"><td>单价</td>';
+    for (let i = 0; i < 9; i++) html += '<td>' + fmtGemPrice(prices[i]) + '万</td>';
+    html += '</tr>';
+
+    // 累计行
+    html += '<tr class="total-row"><td>累计</td>';
+    for (let i = 1; i <= 9; i++) html += '<td>' + fmtGemPrice(cumulative[i]) + '万</td>';
+    html += '</tr>';
+
+    html += '</tbody></table></div>';
+  });
+
+  container.innerHTML = html;
+
+  // 恢复焦点
+  if (focusName) {
+    const inp = container.querySelector('input[data-gem="' + focusName + '"]');
+    if (inp) { inp.focus(); if (selStart !== null) inp.setSelectionRange(selStart, selEnd); }
+  }
+}
+
+// ==================== CALCULATOR ====================
+function updateRate() {
+  appData.rate.rmb = parseFloat(document.getElementById('rate-rmb').value) || 0;
+  appData.rate.gold = parseFloat(document.getElementById('rate-gold').value) || 0;
+  calcFromRMB();
+  calcFromGold();
+  scheduleSave();
+}
+
+function calcFromRMB() {
+  const rmb = parseFloat(document.getElementById('calc-rmb').value);
+  if (!rmb || !appData.rate.rmb) {
+    document.getElementById('calc-result').textContent = '输入金额开始换算';
+    return;
+  }
+  const ratio = appData.rate.gold / appData.rate.rmb;
+  const gold = (rmb * ratio).toFixed(2);
+  document.getElementById('calc-result').innerHTML =
+    '💰 ' + rmb + ' RMB ＝ <strong>' + gold + '</strong> 万游戏币';
+}
+
+function calcFromGold() {
+  const gold = parseFloat(document.getElementById('calc-gold').value);
+  if (!gold || !appData.rate.gold) {
+    document.getElementById('calc-result').textContent = '输入金额开始换算';
+    return;
+  }
+  const ratio = appData.rate.rmb / appData.rate.gold;
+  const rmb = (gold * ratio).toFixed(2);
+  document.getElementById('calc-result').innerHTML =
+    '🎮 ' + gold + ' 万游戏币 ＝ <strong>' + rmb + '</strong> RMB';
+}
+
+function restoreCalcUI() {
+  document.getElementById('rate-rmb').value = appData.rate.rmb || 233.16;
+  document.getElementById('rate-gold').value = appData.rate.gold || 3000;
+  document.getElementById('fruitPrice').value = appData.fruitPrice || 75;
+}
+
+// ==================== SAVE ====================
+function saveData() {
+  collectCurrentData();
+  renderProgressTable();
+  scheduleSave();
+}
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==================== UTILS ====================
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ==================== RENDER ALL ====================
+function renderAll() {
+  renderCharTabs();
+  renderProgressTable();
+  renderFabaoCharTabs();
+  renderFabaoGrid();
+  restoreCalcUI();
+}
+
+// ==================== INIT ====================
+(async function() {
+  await loadCloud();
+  setInterval(async () => { await loadCloud(); }, 30000);
+})();
+</script>
+</body>
+</html>
