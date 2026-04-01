@@ -702,72 +702,24 @@ let appData = {
   ]
 };
 
-// ==================== CLOUD (GitHub Gist) ====================
-let GIST_TOKEN = localStorage.getItem('dream_gist_token') || '';
-const DEFAULT_GIST_ID = localStorage.getItem('dream_gist_id') || '';
-let GIST_ID = DEFAULT_GIST_ID;
-let GIST_FILE = 'dream-data.json';
+// ==================== CLOUD (Same-Origin + CORS Proxy) ====================
+let GITHUB_TOKEN = localStorage.getItem('dream_gh_token') || '';
+const DATA_URL = './data.json';
+const CORS_PROXY = 'https://corsproxy.io/?url=';
+const GH_API = 'https://api.github.com/repos/make-cc/menghuanxiyou/contents/data.json';
 let saveTimer = null;
 let syncOK = false;
+let dataSha = ''; // Track SHA for updates
 let syncRetryCount = 0;
 const SYNC_MAX_RETRY = 3;
 const SYNC_RETRY_DELAY = 5000;
 
-function gistHeaders() {
-  return { 'Authorization': 'token ' + GIST_TOKEN, 'Accept': 'application/vnd.github.v3+json' };
-}
-
-async function ensureGist() {
-  if (GIST_ID) return;
-  if (!GIST_TOKEN) {
-    showToast('请先在云存档面板中填写GitHub Token');
-    return;
-  }
-  // Create a new gist
-  try {
-    const resp = await fetch('https://api.github.com/gists', {
-      method: 'POST',
-      headers: { ...gistHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        description: '梦幻西游修炼数据',
-        public: false,
-        files: { [GIST_FILE]: { content: JSON.stringify(appData) } }
-      })
-    });
-    if (!resp.ok) throw new Error('Gist创建失败 ' + resp.status);
-    const g = await resp.json();
-    GIST_ID = g.id;
-    localStorage.setItem('dream_gist_id', GIST_ID);
-    showToast('已创建云端存档');
-  } catch(e) {
-    console.error('ensureGist:', e);
-  }
-}
-
-async function migrateAppData(d) {
-  if (!d.rate) d.rate = { rmb: 233.16, gold: 3000 };
-  if (typeof d.fabaoCharIdx !== 'number') d.fabaoCharIdx = 0;
-  if (!d.chatPresets || !d.chatPresets.length) {
-    d.chatPresets = ['收XX技能书，有的M价格','收修炼果，有的M','XX老板好！请问XX怎么卖？','来个强力DPS，副本速刷','XX区XX帮收人，活跃的来'];
-  }
-  if (!d.gemPrices) d.gemPrices = {};
-  d.characters.forEach(ch => {
-    Object.keys(ch.data).forEach(k => {
-      if (ch.data[k].exp !== undefined) {
-        const { exp, gold, bang, ...rest } = ch.data[k];
-        ch.data[k] = rest;
-      }
-    });
-    if (!ch.data['乾元丹']) ch.data['乾元丹'] = { cur: 0, target: 0 };
-    AUX_SKILLS.forEach(a => {
-      if (!ch.data[a.name]) ch.data[a.name] = { cur: 0, target: 0 };
-    });
-    if (ch.fabao && ch.fabao['HS盘龙壁']) {
-      ch.fabao['盘龙壁'] = ch.fabao['HS盘龙壁'];
-      delete ch.fabao['HS盘龙壁'];
-    }
-  });
-  return d;
+function ghHeaders() {
+  return {
+    'Authorization': 'token ' + GITHUB_TOKEN,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
 }
 
 async function loadCloud(isManualRetry) {
@@ -775,42 +727,19 @@ async function loadCloud(isManualRetry) {
     syncRetryCount = 0;
     var st = document.getElementById('sync-text');
     var st2 = document.getElementById('sync-text2');
-    if(st) st.textContent = '重新连接...';
-    if(st2) st2.textContent = '重连中...';
+    if(st) st.textContent = '连接中...';
+    if(st2) st2.textContent = '同步中...';
   }
   try {
-    // Clear old jsonblob id if exists
-    if (localStorage.getItem('dream_blob_id')) {
-      localStorage.removeItem('dream_blob_id');
+    // Read data.json from same origin - works everywhere including WeChat!
+    const resp = await fetch(DATA_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
+    const d = await resp.json();
+    if (d.characters && d.characters.length && d.characters[0].data) {
+      appData = await migrateAppData(d);
     }
-
-    if (!GIST_ID) {
-      // No gist yet, create one
-      if (!GIST_TOKEN) {
-        showToast('请在云存档面板中填写GitHub Token以启用云端同步');
-        return;
-      }
-      await ensureGist();
-      if (GIST_ID) {
-        syncOK = true;
-        updateSyncUI();
-      } else {
-        throw new Error('无法创建云端存档');
-      }
-    } else {
-      const resp = await fetch('https://api.github.com/gists/' + GIST_ID, { cache: 'no-cache', headers: gistHeaders() });
-      if (!resp.ok) throw new Error(resp.status);
-      const g = await resp.json();
-      const file = g.files[GIST_FILE];
-      if (file && file.content) {
-        const d = JSON.parse(file.content);
-        if (d.characters && d.characters.length && d.characters[0].data) {
-          appData = await migrateAppData(d);
-        }
-      }
-      syncOK = true;
-      syncRetryCount = 0;
-    }
+    syncOK = true;
+    syncRetryCount = 0;
     updateSyncUI();
   } catch(e) {
     console.error('loadCloud:', e);
@@ -819,26 +748,46 @@ async function loadCloud(isManualRetry) {
     updateSyncUI();
     if (syncRetryCount < SYNC_MAX_RETRY && !isManualRetry) {
       setTimeout(function(){ loadCloud(false); }, SYNC_RETRY_DELAY);
-    } else if (syncRetryCount >= SYNC_MAX_RETRY || isManualRetry) {
-      showToast('云端连接失败，点击状态栏可重试');
+    } else if (isManualRetry) {
+      showToast('读取失败，请检查网络');
     }
   }
   renderAll();
 }
 
 async function saveToCloud() {
-  if (!GIST_ID || !GIST_TOKEN) return false;
+  if (!GITHUB_TOKEN) return false;
+  collectCurrentData();
   try {
-    collectCurrentData();
-    const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
-      method: 'PATCH',
-      headers: { ...gistHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(appData) } } })
+    // Get current SHA first
+    var shaUrl = CORS_PROXY + encodeURIComponent(GH_API + '?ref=main');
+    var shaResp = await fetch(shaUrl, { headers: { 'Authorization': 'token ' + GITHUB_TOKEN } });
+    if (!shaResp.ok) throw new Error('get SHA failed');
+    var shaData = await shaResp.json();
+    var currentSha = shaData.sha;
+
+    // Update data.json via GitHub API through CORS proxy
+    var updateUrl = CORS_PROXY + encodeURIComponent(GH_API);
+    var payload = JSON.stringify({
+      message: 'update data',
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))),
+      sha: currentSha,
+      branch: 'main'
     });
-    syncOK = resp.ok;
-    if (!syncOK) console.error('saveToCloud:', resp.status);
+
+    var resp = await fetch(updateUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: payload
+    });
+
+    if (!resp.ok) throw new Error('save failed: ' + resp.status);
+    syncOK = true;
     updateSyncUI();
-    return resp.ok;
+    return true;
   } catch(e) {
     console.error('saveToCloud:', e);
     syncOK = false;
@@ -859,12 +808,11 @@ function toggleCloudPanel() {
   const show = p.style.display === 'none';
   p.style.display = show ? 'block' : 'none';
   if (show) {
-    document.getElementById('blob-id-input').value = GIST_ID;
-    document.getElementById('gist-token-input').value = GIST_TOKEN;
+    document.getElementById('gist-token-input').value = GITHUB_TOKEN;
+    document.getElementById('blob-id-input').value = '数据自动同步（同仓库存储）';
   }
 }
 
-// 点击空白处关闭
 document.addEventListener('click', function(e) {
   const panel = document.getElementById('cloud-panel');
   const badge = document.querySelector('.sync-badge');
@@ -876,41 +824,14 @@ document.addEventListener('click', function(e) {
 function saveToken() {
   const t = document.getElementById('gist-token-input').value.trim();
   if (!t) return showToast('请输入Token');
-  GIST_TOKEN = t;
-  localStorage.setItem('dream_gist_token', GIST_TOKEN);
-  showToast('Token已保存');
-  // Try to connect with new token
+  GITHUB_TOKEN = t;  // Update the module-level var
+  localStorage.setItem('dream_gh_token', t);
+  showToast('Token已保存，现在可以保存数据到云端了');
   loadCloud(true);
 }
 
 function copyBlobId() {
-  const id = document.getElementById('blob-id-input').value;
-  navigator.clipboard.writeText(id).then(() => showToast('存档ID已复制 📋')).catch(() => {
-    const inp = document.getElementById('blob-id-input');
-    inp.select();
-    document.execCommand('copy');
-    showToast('存档ID已复制 📋');
-  });
-}
-
-async function applyBlobId() {
-  const id = document.getElementById('blob-id-input').value.trim();
-  if (!id) return showToast('请输入存档ID');
-  GIST_ID = id;
-  localStorage.setItem('dream_gist_id', GIST_ID);
-  showToast('正在切换存档...');
-  syncRetryCount = 0;
-  await loadCloud(true);
-  showToast('存档已切换 ☁️');
-}
-
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    collectCurrentData();
-    await saveToCloud();
-    showToast('已保存到云端 ☁️');
-  }, 800);
+  showToast('数据自动同步，无需手动复制存档ID');
 }
 
 // ==================== TABS ====================
