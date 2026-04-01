@@ -955,15 +955,82 @@ function renderFabaoCharTabs() {
   wrap.innerHTML = html;
 }
 
-function renameChar(idx) {
-  const oldName = appData.characters[idx].name;
-  const newName = prompt('修改角色名称：', oldName);
-  if (newName && newName.trim()) {
-    appData.characters[idx].name = newName.trim();
-    renderAll();
-    scheduleSave();
-    showToast('角色已重命名 ✏️');
+// ==================== MOBILE-FRIENDLY INPUT ====================
+function _inlinePrompt(placeholder, callback) {
+  _closeInlineInput();
+  const overlay = document.createElement('div');
+  overlay.id = 'inline-input-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:12px;padding:20px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+  box.innerHTML = '<p style="margin:0 0 12px;font-size:.9rem;color:var(--text);">' + placeholder + '</p>' +
+    '<input id="inline-input-field" type="text" placeholder="' + placeholder + '" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:.9rem;outline:none;background:var(--bg);color:var(--text);box-sizing:border-box;">' +
+    '<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">' +
+    '<button id="inline-input-cancel" style="padding:6px 16px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer;font-size:.85rem;">取消</button>' +
+    '<button id="inline-input-ok" style="padding:6px 16px;border:none;border-radius:8px;background:var(--blue);color:#fff;cursor:pointer;font-size:.85rem;">确定</button>' +
+    '</div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  const inp = document.getElementById('inline-input-field');
+  inp.focus();
+  function finish(val) {
+    _closeInlineInput();
+    callback(val);
   }
+  document.getElementById('inline-input-ok').onclick = function() { finish(inp.value.trim()); };
+  document.getElementById('inline-input-cancel').onclick = function() { _closeInlineInput(); callback(null); };
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); finish(inp.value.trim()); }
+    if (e.key === 'Escape') { _closeInlineInput(); callback(null); }
+  });
+}
+
+function _inlineConfirm(message, onOk) {
+  _closeInlineInput();
+  const overlay = document.createElement('div');
+  overlay.id = 'inline-input-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:12px;padding:20px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+  box.innerHTML = '<p style="margin:0 0 16px;font-size:.9rem;color:var(--text);">' + message + '</p>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+    '<button id="inline-input-cancel" style="padding:6px 16px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer;font-size:.85rem;">取消</button>' +
+    '<button id="inline-input-ok" style="padding:6px 16px;border:none;border-radius:8px;background:#ef4444;color:#fff;cursor:pointer;font-size:.85rem;">删除</button>' +
+    '</div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  document.getElementById('inline-input-ok').onclick = function() { _closeInlineInput(); onOk(); };
+  document.getElementById('inline-input-cancel').onclick = function() { _closeInlineInput(); };
+}
+
+function _closeInlineInput() {
+  const el = document.getElementById('inline-input-overlay');
+  if (el) el.remove();
+}
+
+function renameChar(idx) {
+  const tab = document.querySelectorAll('.char-tab')[idx];
+  if (!tab || tab.querySelector('.rename-input')) return;
+  const oldName = appData.characters[idx].name;
+  const wrap = tab.querySelector('.char-name-wrap');
+  wrap.innerHTML = '<input class="rename-input" type="text" value="' + esc(oldName) + '" style="width:60px;font-size:.8rem;padding:1px 4px;border:1px solid var(--blue);border-radius:4px;outline:none;">';
+  const inp = wrap.querySelector('.rename-input');
+  inp.focus();
+  inp.select();
+  function finish() {
+    const v = inp.value.trim();
+    if (v) {
+      appData.characters[idx].name = v;
+      scheduleSave();
+      showToast('角色已重命名 ✏️');
+    }
+    renderAll();
+  }
+  inp.addEventListener('blur', finish);
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); finish(); }
+    if (e.key === 'Escape') { inp.value = oldName; finish(); }
+  });
 }
 
 function selectChar(idx) {
@@ -981,24 +1048,26 @@ function selectFabaoChar(idx) {
 
 function addChar() {
   collectCurrentData();
-  const name = prompt('输入角色名称：');
-  if (!name || !name.trim()) return;
-  const ch = DEFAULT_CHAR();
-  ch.name = name.trim();
-  appData.characters.push(ch);
-  appData.activeCharIdx = appData.characters.length - 1;
-  renderAll();
-  scheduleSave();
+  const name = _inlinePrompt('输入角色名称', function(v) {
+    if (!v) return;
+    const ch = DEFAULT_CHAR();
+    ch.name = v.trim();
+    appData.characters.push(ch);
+    appData.activeCharIdx = appData.characters.length - 1;
+    renderAll();
+    scheduleSave();
+  });
 }
 
 function deleteCurrentChar() {
   if (appData.characters.length <= 1) { showToast('至少保留一个角色'); return; }
   const ch = appData.characters[appData.activeCharIdx];
-  if (!confirm('确定删除角色「' + ch.name + '」？')) return;
-  appData.characters.splice(appData.activeCharIdx, 1);
-  appData.activeCharIdx = Math.min(appData.activeCharIdx, appData.characters.length-1);
-  renderAll();
-  scheduleSave();
+  _inlineConfirm('确定删除角色「' + ch.name + '」？', function() {
+    appData.characters.splice(appData.activeCharIdx, 1);
+    appData.activeCharIdx = Math.min(appData.activeCharIdx, appData.characters.length-1);
+    renderAll();
+    scheduleSave();
+  });
 }
 
 // ==================== FORMAT ====================
