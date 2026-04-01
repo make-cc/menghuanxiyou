@@ -888,14 +888,6 @@ async function loadCloud(isManualRetry) {
       });
       appData = {...appData, ...lb};
     }
-      try {
-        var localData = JSON.parse(localBackup);
-        if (localData.characters && localData.characters.length) {
-          appData = localData;
-          console.log('Restored from localStorage backup');
-        }
-      } catch(e2) { /* ignore backup parse error */ }
-    }
     syncOK = false;
     syncRetryCount++;
     updateSyncUI();
