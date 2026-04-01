@@ -254,7 +254,7 @@ input[type="number"] { width: 65px; }
 <div class="header">
   <h1>🎮 梦幻西游 · 修炼数据</h1>
   <p>多角色修炼进度追踪 · 云端同步</p>
-  <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer">
+  <div class="sync-badge" onclick="if(!syncOK){loadCloud(true);}else{toggleCloudPanel();}" style="cursor:pointer" title="未连接时点击重试">
     <span class="sync-dot" id="sync-dot"></span>
     <span id="sync-text">同步中...</span>
   </div>
@@ -703,10 +703,20 @@ let BLOB_ID = localStorage.getItem('dream_blob_id') || DEFAULT_BLOB_ID;
 let API = 'https://jsonblob.com/api/jsonBlob/' + BLOB_ID;
 let saveTimer = null;
 let syncOK = false;
+let syncRetryCount = 0;
+const SYNC_MAX_RETRY = 3;
+const SYNC_RETRY_DELAY = 5000;
 
-async function loadCloud() {
+async function loadCloud(isManualRetry) {
+  if (isManualRetry) {
+    syncRetryCount = 0;
+    var st = document.getElementById('sync-text');
+    var st2 = document.getElementById('sync-text2');
+    if(st) st.textContent = '重新连接...';
+    if(st2) st2.textContent = '重连中...';
+  }
   try {
-    const resp = await fetch(API);
+    const resp = await fetch(API, { cache: 'no-cache' });
     if (!resp.ok) throw new Error(resp.status);
     const d = await resp.json();
     if (d.characters && d.characters.length) {
@@ -738,11 +748,18 @@ async function loadCloud() {
       }
     });
     syncOK = true;
+    syncRetryCount = 0;
     localStorage.setItem('dream_blob_id', BLOB_ID);
     updateSyncUI();
   } catch(e) {
     syncOK = false;
+    syncRetryCount++;
     updateSyncUI();
+    if (syncRetryCount < SYNC_MAX_RETRY && !isManualRetry) {
+      setTimeout(function(){ loadCloud(false); }, SYNC_RETRY_DELAY);
+    } else if (syncRetryCount >= SYNC_MAX_RETRY || isManualRetry) {
+      showToast('云端连接失败，点击状态栏可重试');
+    }
   }
   renderAll();
 }
