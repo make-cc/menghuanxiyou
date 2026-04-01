@@ -254,7 +254,7 @@ input[type="number"] { width: 65px; }
 <div class="header">
   <h1>🎮 梦幻西游 · 修炼数据</h1>
   <p>多角色修炼进度追踪 · 云端同步</p>
-  <div class="sync-badge" onclick="if(!syncOK){loadCloud(true);}else{toggleCloudPanel();}" style="cursor:pointer" title="未连接时点击重试">
+  <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer" title="点击管理云端存档">
     <span class="sync-dot" id="sync-dot"></span>
     <span id="sync-text">同步中...</span>
   </div>
