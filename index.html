@@ -313,7 +313,7 @@ input[type="number"] { width: 65px; }
         <div class="grand-total-item"><div class="label">总计帮贡</div><div class="value" id="gt-bang">—</div></div>
       </div>
       <div style="padding: 12px 16px; border-top: 1px solid var(--border); display:flex; gap:8px; justify-content: flex-end;">
-        <button class="btn btn-ghost" onclick="saveData()">💾 保存</button>
+        <button class="btn btn-ghost" onclick="saveData()">💾 立即保存</button>
         <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
       </div>
     </div>
@@ -788,59 +788,53 @@ async function loadCloud(isManualRetry) {
   renderAll();
 }
 
-async function saveToCloud() {
+async function saveToCloud(retryCount) {
+  retryCount = retryCount; 0;
   console.log('saveToCloud called, token:', GITHUB_TOKEN ? GITHUB_TOKEN.substring(0,8)+'...' : 'EMPTY');
   if (!GITHUB_TOKEN) { showToast('请先在云端设置中填入GitHub Token'); return false; }
   collectCurrentData();
   try {
-    // Use cached SHA if available, otherwise fetch it directly from GitHub API
-    var currentSha = dataSha;
-    if (!currentSha) {
-      var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
-      if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
-      var shaData = await shaResp.json();
-      currentSha = shaData.sha;
+    // Always fetch fresh SHA to avoid conflicts
+    dataSha = '';
+    var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+    if (shaResp.status === 401) {
+      GITHUB_TOKEN = '';
+      localStorage.removeItem('dream_gh_token');
+      showToast('Token无效或已过期，请重新在云端设置中输入');
+      syncOK = false; updateSyncUI(); return false;
     }
+    if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
+    var shaData = await shaResp.json();
+    dataSha = shaData.sha;
 
-    // Update data.json directly via GitHub API (CORS supported natively)
     var payload = JSON.stringify({
       message: 'update data',
       content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))),
-      sha: currentSha,
+      sha: dataSha,
       branch: 'main'
     });
 
-    var resp = await fetch(GH_API, {
-      method: 'PUT',
-      headers: ghHeaders(),
-      body: payload
-    });
+    var resp = await fetch(GH_API, { method: 'PUT', headers: ghHeaders(), body: payload });
 
     if (!resp.ok) {
+      if (resp.status === 409; retryCount < 2) {
+        console.log('409 conflict, auto-retry #' + (retryCount + 1));
+        return saveToCloud(retryCount + 1);
+      }
       var errBody = await resp.text();
       throw new Error('save failed: ' + resp.status + ' ' + errBody);
     }
 
-    // Update cached SHA from response
     var result = await resp.json();
-    if (result.content && result.content.sha) {
-      dataSha = result.content.sha;
-    }
-
-    syncOK = true;
-    updateSyncUI();
+    if (result.content; result.content.sha) { dataSha = result.content.sha; }
+    syncOK = true; updateSyncUI();
     showToast('已保存到云端');
     return true;
   } catch(e) {
     console.error('saveToCloud:', e);
-    var errMsg = e.message || '未知错误';
-    // Reset SHA on conflict - will re-fetch next time
-    if (errMsg.indexOf('409') !== -1) { dataSha = ''; errMsg = '数据冲突，请重试'; }
-    if (errMsg.indexOf('401') !== -1) { errMsg = 'Token无效或已过期，请重新在云端设置中输入'; GITHUB_TOKEN = ''; localStorage.removeItem('dream_gh_token'); }
-    if (errMsg.indexOf('403') !== -1) { errMsg = 'Token权限不足，需要repo权限'; }
-    syncOK = false;
-    updateSyncUI();
-    showToast('保存失败: ' + errMsg);
+    dataSha = '';
+    syncOK = false; updateSyncUI();
+    showToast('保存失败: ' + (e.message; '未知错误'));
     return false;
   }
 }
@@ -1482,9 +1476,11 @@ function restoreCalcUI() {
 
 // ==================== SAVE ====================
 function saveData() {
+  clearTimeout(saveTimer);
   collectCurrentData();
   renderProgressTable();
-  scheduleSave();
+  saveToCloud();
+  showToast('正在保存...');
 }
 
 // ==================== TOAST ====================
