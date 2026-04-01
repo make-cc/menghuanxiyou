@@ -779,31 +779,9 @@ async function loadCloud(isManualRetry) {
     if(st2) st2.textContent = '重连中...';
   }
   try {
-    // Try legacy jsonblob first (one-time migration)
-    var legacyId = localStorage.getItem('dream_blob_id');
-    if (legacyId && !GIST_ID) {
-      try {
-        const lr = await fetch('https://jsonblob.com/api/jsonBlob/' + legacyId, { cache: 'no-cache' });
-        if (lr.ok) {
-          const ld = await lr.json();
-          if (ld.characters && ld.characters[0].data) {
-            appData = await migrateAppData(ld);
-            // Save to gist
-            await ensureGist();
-            if (GIST_ID) await saveToCloud();
-            localStorage.removeItem('dream_blob_id');
-            syncOK = true;
-            syncRetryCount = 0;
-            updateSyncUI();
-            renderAll();
-            showToast('数据已迁移到云端');
-            return;
-          }
-        }
-      } catch(migErr) {
-        console.log('Migration skip:', migErr);
-        localStorage.removeItem('dream_blob_id');
-      }
+    // Clear old jsonblob id if exists
+    if (localStorage.getItem('dream_blob_id')) {
+      localStorage.removeItem('dream_blob_id');
     }
 
     if (!GIST_ID) {
