@@ -768,7 +768,10 @@ async function loadCloud(isManualRetry) {
   }
   try {
     // Read data.json from same origin - works everywhere including WeChat!
-    const resp = await fetch(DATA_URL + '?t=' + Date.now());
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(function() { controller.abort(); }, 10000);
+    const resp = await fetch(DATA_URL + '?t=' + Date.now(), { signal: controller.signal });
+    clearTimeout(fetchTimeout);
     if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
     const d = await resp.json();
     // Merge cloud data into appData
@@ -825,7 +828,7 @@ async function loadCloud(isManualRetry) {
 }
 
 async function saveToCloud(retryCount) {
-  retryCount = retryCount; 0;
+  retryCount = retryCount || 0;
   console.log('saveToCloud called, token:', GITHUB_TOKEN ? GITHUB_TOKEN.substring(0,8)+'...' : 'EMPTY');
   if (!GITHUB_TOKEN) { showToast('请先在云端设置中填入GitHub Token'); return false; }
   collectCurrentData();
@@ -1553,7 +1556,12 @@ function renderAll() {
 
 // ==================== INIT ====================
 (async function() {
+  // Timeout protection: ensure UI updates even if loadCloud hangs
+  var initTimeout = setTimeout(function() {
+    if (!syncOK) { updateSyncUI(); renderAll(); }
+  }, 8000);
   await loadCloud();
+  clearTimeout(initTimeout);
   setInterval(async () => { await loadCloud(); }, 30000);
 })();
 </script>
