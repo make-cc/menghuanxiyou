@@ -705,7 +705,7 @@ let appData = {
 // ==================== CLOUD (Same-Origin + CORS Proxy) ====================
 let GITHUB_TOKEN = localStorage.getItem('dream_gh_token') || '';
 const DATA_URL = './data.json';
-const CORS_PROXY = 'https://corsproxy.io/?url=';
+// GitHub API supports CORS natively - no proxy needed!
 const GH_API = 'https://api.github.com/repos/make-cc/menghuanxiyou/contents/data.json';
 let saveTimer = null;
 let syncOK = false;
@@ -738,6 +738,18 @@ async function loadCloud(isManualRetry) {
     if (d.characters && d.characters.length && d.characters[0].data) {
       appData = await migrateAppData(d);
     }
+
+    // Also fetch SHA from GitHub API for future saves (skip if no token)
+    if (GITHUB_TOKEN) {
+      try {
+        var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+        if (shaResp.ok) {
+          var shaData = await shaResp.json();
+          dataSha = shaData.sha;
+        }
+      } catch(shaErr) { /* non-critical */ }
+    }
+
     syncOK = true;
     syncRetryCount = 0;
     updateSyncUI();
@@ -759,15 +771,16 @@ async function saveToCloud() {
   if (!GITHUB_TOKEN) return false;
   collectCurrentData();
   try {
-    // Get current SHA first
-    var shaUrl = CORS_PROXY + encodeURIComponent(GH_API + '?ref=main');
-    var shaResp = await fetch(shaUrl, { headers: { 'Authorization': 'token ' + GITHUB_TOKEN } });
-    if (!shaResp.ok) throw new Error('get SHA failed');
-    var shaData = await shaResp.json();
-    var currentSha = shaData.sha;
+    // Use cached SHA if available, otherwise fetch it directly from GitHub API
+    var currentSha = dataSha;
+    if (!currentSha) {
+      var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+      if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
+      var shaData = await shaResp.json();
+      currentSha = shaData.sha;
+    }
 
-    // Update data.json via GitHub API through CORS proxy
-    var updateUrl = CORS_PROXY + encodeURIComponent(GH_API);
+    // Update data.json directly via GitHub API (CORS supported natively)
     var payload = JSON.stringify({
       message: 'update data',
       content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))),
@@ -775,21 +788,30 @@ async function saveToCloud() {
       branch: 'main'
     });
 
-    var resp = await fetch(updateUrl, {
+    var resp = await fetch(GH_API, {
       method: 'PUT',
-      headers: {
-        'Authorization': 'token ' + GITHUB_TOKEN,
-        'Content-Type': 'application/json'
-      },
+      headers: ghHeaders(),
       body: payload
     });
 
-    if (!resp.ok) throw new Error('save failed: ' + resp.status);
+    if (!resp.ok) {
+      var errBody = await resp.text();
+      throw new Error('save failed: ' + resp.status + ' ' + errBody);
+    }
+
+    // Update cached SHA from response
+    var result = await resp.json();
+    if (result.content && result.content.sha) {
+      dataSha = result.content.sha;
+    }
+
     syncOK = true;
     updateSyncUI();
     return true;
   } catch(e) {
     console.error('saveToCloud:', e);
+    // Reset SHA on conflict - will re-fetch next time
+    if (e.message && e.message.indexOf('409') !== -1) dataSha = '';
     syncOK = false;
     updateSyncUI();
     return false;
