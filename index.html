@@ -746,6 +746,9 @@ async function loadCloud(isManualRetry) {
     if (d.gemPrices) appData.gemPrices = d.gemPrices;
     if (d.chatPresets) appData.chatPresets = d.chatPresets;
 
+    // Save merged data to localStorage as local backup
+    localStorage.setItem('dream_local_data', JSON.stringify(appData));
+
     // Also fetch SHA from GitHub API for future saves (skip if no token)
     if (GITHUB_TOKEN) {
       try {
@@ -762,20 +765,32 @@ async function loadCloud(isManualRetry) {
     updateSyncUI();
   } catch(e) {
     console.error('loadCloud:', e);
+    // Try to restore from localStorage backup
+    var localBackup = localStorage.getItem('dream_local_data');
+    if (localBackup) {
+      try {
+        var localData = JSON.parse(localBackup);
+        if (localData.characters && localData.characters.length) {
+          appData = localData;
+          console.log('Restored from localStorage backup');
+        }
+      } catch(e2) { /* ignore backup parse error */ }
+    }
     syncOK = false;
     syncRetryCount++;
     updateSyncUI();
     if (syncRetryCount < SYNC_MAX_RETRY && !isManualRetry) {
       setTimeout(function(){ loadCloud(false); }, SYNC_RETRY_DELAY);
     } else if (isManualRetry) {
-      showToast('读取失败，请检查网络');
+      showToast('读取失败，已从本地恢复数据');
     }
   }
   renderAll();
 }
 
 async function saveToCloud() {
-  if (!GITHUB_TOKEN) return false;
+  console.log('saveToCloud called, token:', GITHUB_TOKEN ? GITHUB_TOKEN.substring(0,8)+'...' : 'EMPTY');
+  if (!GITHUB_TOKEN) { showToast('请先在云端设置中填入GitHub Token'); return false; }
   collectCurrentData();
   try {
     // Use cached SHA if available, otherwise fetch it directly from GitHub API
@@ -814,6 +829,7 @@ async function saveToCloud() {
 
     syncOK = true;
     updateSyncUI();
+    showToast('已保存到云端');
     return true;
   } catch(e) {
     console.error('saveToCloud:', e);
@@ -821,6 +837,7 @@ async function saveToCloud() {
     if (e.message && e.message.indexOf('409') !== -1) dataSha = '';
     syncOK = false;
     updateSyncUI();
+    showToast('保存失败: ' + (e.message || '未知错误'));
     return false;
   }
 }
@@ -1178,6 +1195,8 @@ function onFruitPriceChange() {
   renderProgressTable();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
+  // Also save locally immediately
+  localStorage.setItem('dream_local_data', JSON.stringify(appData));
 }
 
 function onLevelChange(el) {
@@ -1230,6 +1249,8 @@ function onLevelChange(el) {
   // Debounced save
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
+  // Also save locally immediately
+  localStorage.setItem('dream_local_data', JSON.stringify(appData));
 
   // Restore focus
   if (activeEl && selStart !== null) {
