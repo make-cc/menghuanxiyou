@@ -145,6 +145,16 @@ input[type="number"] { width: 65px; }
   padding: 6px 10px; border-radius: 8px; cursor: pointer;
   transition: background .15s; font-size: .82rem;
 }
+.fabao-icon {
+  width: 28px; height: 28px; border-radius: 4px;
+  object-fit: contain; flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.15));
+}
+.fabao-icon-emoji {
+  width: 28px; height: 28px; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
 .fabao-item:hover { background: #f0f1f3; }
 .fabao-item input[type="checkbox"] { accent-color: var(--blue); width: 16px; height: 16px; cursor: pointer; }
 .fabao-item.checked { color: var(--blue); font-weight: 500; }
@@ -648,6 +658,33 @@ const FABAO_LIST = [
   '盘龙壁','清心咒','试剑石','天师符','五色旗盒','嗜血幡',
   '神行飞剑','织女扇','定风珠','迷魂灯','幽灵珠'
 ];
+
+const FABAO_ICONS = {
+  '碧玉葫芦': 'byhl',
+  '缚妖索': 'fys',
+  '飞剑': 'fj',
+  '风袋': 'fd',
+  '鬼脸面具': 'glmj',
+  '汇灵盏': 'hlz',
+  '九黎战鼓': 'jlzg',
+  '惊魂铃': 'jhl',
+  '金甲': 'jjxy',
+  '金钱镖': 'jqb',
+  '雷兽': 'ls',
+  '盘龙壁': 'plb',
+  '清心咒': 'qxz',
+  '试剑石': 'sjs',
+  '天师符': 'tsf',
+  '五色旗盒': 'wsqh',
+  '嗜血幡': 'sxf',
+  '神行飞剑': 'sxfj',
+  '织女扇': 'zns',
+  '定风珠': 'dfz',
+  '迷魂灯': 'mhd',
+  '幽灵珠': 'ylz',
+};
+const FABAO_ICON_BASE = 'http://box.gm.163.com/download/box_tools/fabaodaquan/';
+
 
 // 辅助修炼完整列表（9个）
 const AUX_SKILLS = [
@@ -1301,8 +1338,16 @@ function renderFabaoGrid() {
   FABAO_LIST.forEach(f => {
     const checked = ch.fabao[f] ? 'checked' : '';
     const cls = ch.fabao[f] ? ' checked' : '';
+      var iconHtml = '';
+    var iconKey = FABAO_ICONS[f];
+    if (iconKey) {
+      iconHtml = '<img class="fabao-icon" src="' + FABAO_ICON_BASE + iconKey + '.jpg" loading="lazy" onerror=\'this.style.display=\x27none\x27\'>';
+    } else {
+      iconHtml = '<span class="fabao-icon-emoji">🔮</span>';
+    }
     html += '<label class="fabao-item' + cls + '">' +
       '<input type="checkbox" ' + checked + ' onchange="onFabaoChange(\'' + f + '\', this.checked)">' +
+      iconHtml +
       '<span>' + f + '</span></label>';
   });
   grid.innerHTML = html;
