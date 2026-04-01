@@ -833,11 +833,14 @@ async function saveToCloud() {
     return true;
   } catch(e) {
     console.error('saveToCloud:', e);
+    var errMsg = e.message || '未知错误';
     // Reset SHA on conflict - will re-fetch next time
-    if (e.message && e.message.indexOf('409') !== -1) dataSha = '';
+    if (errMsg.indexOf('409') !== -1) { dataSha = ''; errMsg = '数据冲突，请重试'; }
+    if (errMsg.indexOf('401') !== -1) { errMsg = 'Token无效或已过期，请重新在云端设置中输入'; GITHUB_TOKEN = ''; localStorage.removeItem('dream_gh_token'); }
+    if (errMsg.indexOf('403') !== -1) { errMsg = 'Token权限不足，需要repo权限'; }
     syncOK = false;
     updateSyncUI();
-    showToast('保存失败: ' + (e.message || '未知错误'));
+    showToast('保存失败: ' + errMsg);
     return false;
   }
 }
