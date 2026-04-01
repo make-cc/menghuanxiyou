@@ -1427,36 +1427,32 @@ function renderFabaoGrid() {
   const ch = appData.characters[appData.fabaoCharIdx];
   if (!ch) return;
   const grid = document.getElementById('fabao-grid');
-  const level = getFabaoLevel(ch);
   const levelNames = {1:'一级法宝', 2:'二级法宝', 3:'三级法宝', 4:'四级法宝'};
   const levelSubs = {1:'60级可用', 2:'80级可用', 3:'100级可用', 4:'120级可用'};
-  let html = '<div style="display:flex;gap:6px;margin-bottom:12px;">';
+  let html = '';
   for (let lv = 1; lv <= 4; lv++) {
-    const active = lv === level ? 'background:var(--blue);color:#fff;' : '';
-    html += '<button onclick="setFabaoLevel(' + lv + ')" style="' + active + 'padding:6px 14px;border-radius:6px;border:1px solid var(--border);font-size:.8rem;cursor:pointer;background:' + (lv===level?'':'var(--card)') + ';">' + levelNames[lv] + '</button>';
+    html += '<div class="fabao-section lvl' + lv + '">';
+    html += '<div class="fabao-section-title"><span class="level-badge">' + levelNames[lv] + '</span>' + levelSubs[lv] + '</div>';
+    html += '<div class="fabao-section-grid">';
+    FABAO_DATA[lv].forEach(function(item) {
+      const f = item[0];
+      const checked = ch.fabao[f] ? 'checked' : '';
+      const cls = ch.fabao[f] ? ' checked' : '';
+      var iconHtml = '';
+      var iconKey = FABAO_ICONS[f];
+      if (iconKey) {
+        iconHtml = '<img class="fabao-icon" src="' + iconKey + '" loading="lazy" onerror="this.style.display=\x27none\x27">';
+      } else {
+        iconHtml = '<span class="fabao-icon-emoji">🔮</span>';
+      }
+      const typeTag = '<span class="fabao-type-tag">' + item[1] + '</span>';
+      html += '<label class="fabao-item' + cls + '">' +
+        '<input type="checkbox" ' + checked + ' onchange="onFabaoChange(\'' + f + '\', this.checked)">' +
+        iconHtml +
+        '<span>' + f + '</span>' + typeTag + '</label>';
+    });
+    html += '</div></div>';
   }
-  html += '</div>';
-  html += '<div class="fabao-section lvl' + level + '">';
-  html += '<div class="fabao-section-title"><span class="level-badge">' + levelNames[level] + '</span>' + levelSubs[level] + '</div>';
-  html += '<div class="fabao-section-grid">';
-  FABAO_DATA[level].forEach(function(item) {
-    const f = item[0];
-    const checked = ch.fabao[f] ? 'checked' : '';
-    const cls = ch.fabao[f] ? ' checked' : '';
-    var iconHtml = '';
-    var iconKey = FABAO_ICONS[f];
-    if (iconKey) {
-      iconHtml = '<img class="fabao-icon" src="' + iconKey + '" loading="lazy" onerror="this.style.display=\x27none\x27">';
-    } else {
-      iconHtml = '<span class="fabao-icon-emoji">🔮</span>';
-    }
-    const typeTag = '<span class="fabao-type-tag">' + item[1] + '</span>';
-    html += '<label class="fabao-item' + cls + '">' +
-      '<input type="checkbox" ' + checked + ' onchange="onFabaoChange(\'' + f + '\', this.checked)">' +
-      iconHtml +
-      '<span>' + f + '</span>' + typeTag + '</label>';
-  });
-  html += '</div></div>';
   grid.innerHTML = html;
 }
 
