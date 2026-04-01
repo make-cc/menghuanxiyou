@@ -735,9 +735,16 @@ async function loadCloud(isManualRetry) {
     const resp = await fetch(DATA_URL + '?t=' + Date.now());
     if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
     const d = await resp.json();
-    if (d.characters && d.characters.length && d.characters[0].data) {
-      appData = await migrateAppData(d);
+    // Merge cloud data into appData
+    if (d.characters && d.characters.length) {
+      appData.characters = d.characters;
     }
+    if (d.activeCharIdx !== undefined) appData.activeCharIdx = d.activeCharIdx;
+    if (d.fabaoCharIdx !== undefined) appData.fabaoCharIdx = d.fabaoCharIdx;
+    if (d.rate) appData.rate = d.rate;
+    if (d.fruitPrice !== undefined) appData.fruitPrice = d.fruitPrice;
+    if (d.gemPrices) appData.gemPrices = d.gemPrices;
+    if (d.chatPresets) appData.chatPresets = d.chatPresets;
 
     // Also fetch SHA from GitHub API for future saves (skip if no token)
     if (GITHUB_TOKEN) {
