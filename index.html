@@ -806,6 +806,7 @@ let appData = {
   rate: { rmb: 233.16, gold: 3000 },
   fruitPrice: 75,
   gemPrices: {},
+  hiddenItems: [], // Items to hide in progress table, e.g. ['暗器']
   chatPresets: [
     '收XX技能书，有的M价格',
     '收修炼果，有的M',
@@ -875,6 +876,7 @@ async function loadCloud(isManualRetry) {
     if (d.fruitPrice !== undefined) appData.fruitPrice = d.fruitPrice;
     if (d.gemPrices) appData.gemPrices = d.gemPrices;
     if (d.chatPresets) appData.chatPresets = d.chatPresets;
+    if (d.hiddenItems) appData.hiddenItems = d.hiddenItems;
 
     // Migrate old fabao names
     appData.characters.forEach(function(ch) {
@@ -1222,7 +1224,18 @@ function renderProgressTable() {
     const colSpan = headers.length;
 
     // 分类标题行
-    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label + '</td></tr>';
+    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label;
+    if (g.key === 'aux') {
+      // Add toggle buttons for hideable items
+      const toggleItems = ['暗器'];
+      toggleItems.forEach(item => {
+        const isHidden = (appData.hiddenItems || []).includes(item);
+        const label = isHidden ? '+ ' + item + '（已隐藏）' : '- ' + item;
+        const color = isHidden ? 'color:var(--muted);' : '';
+        html += ' <span style="cursor:pointer;font-size:.75rem;font-weight:normal;margin-left:8px;' + color + '" onclick="toggleHideItem(\'' + item + '\')" title="点击' + (isHidden ? '显示' : '隐藏') + '">' + label + '</span>';
+      });
+    }
+    html += '</td></tr>';
 
     // 表头行（每个分类自己的表头）
     html += '<tr>';
@@ -1232,6 +1245,8 @@ function renderProgressTable() {
     let subExp=0, subGold=0, subBang=0;
 
     g.items.forEach(item => {
+      // Skip hidden items
+      if ((appData.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
       const k = item;
       const result = autoCalc(item, d.cur, d.target);
@@ -1424,6 +1439,7 @@ function recalcGrandTotal() {
   let totalExp=0, totalGold=0, totalBang=0;
   ITEM_GROUPS.forEach(g => {
     g.items.forEach(item => {
+      if ((appData.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
       const r = autoCalc(item, d.cur, d.target);
       totalExp += (r.exp||0); totalGold += (r.gold||0); totalBang += (r.bang||0);
@@ -1662,6 +1678,16 @@ function restoreCalcUI() {
 }
 
 // ==================== SAVE ====================
+function toggleHideItem(item) {
+  if (!appData.hiddenItems) appData.hiddenItems = [];
+  const idx = appData.hiddenItems.indexOf(item);
+  if (idx === -1) appData.hiddenItems.push(item);
+  else appData.hiddenItems.splice(idx, 1);
+  scheduleSave();
+  renderProgressTable();
+  recalcGrandTotal();
+}
+
 function saveData() {
   clearTimeout(saveTimer);
   collectCurrentData();
