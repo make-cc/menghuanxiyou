@@ -286,6 +286,9 @@ input[type="number"] { width: 65px; }
   .grand-total { padding: 14px 12px; gap: 10px; }
   .grand-total-item .value { font-size: .95rem; }
 }
+
+body.locked #progress-tbody input { pointer-events: none; opacity: 0.7; }
+body.locked .fabao-grid .fabao-card { pointer-events: none; opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -346,14 +349,17 @@ input[type="number"] { width: 65px; }
         </table>
       </div>
       <!-- Grand Total -->
+      <div style="padding: 8px 16px; display:flex; gap:8px; justify-content: space-between; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" id="btn-lock" onclick="toggleLock()">🔒 锁定</button>
+          <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
+        </div>
+        <button class="btn btn-ghost" onclick="saveData()">💾 立即保存</button>
+      </div>
       <div class="grand-total" id="grand-total">
         <div class="grand-total-item"><div class="label">总计金钱</div><div class="value" id="gt-gold">—</div></div>
         <div class="grand-total-item"><div class="label">总计经验</div><div class="value" id="gt-exp">—</div></div>
         <div class="grand-total-item"><div class="label">总计帮贡</div><div class="value" id="gt-bang">—</div></div>
-      </div>
-      <div style="padding: 12px 16px; border-top: 1px solid var(--border); display:flex; gap:8px; justify-content: flex-end;">
-        <button class="btn btn-ghost" onclick="saveData()">💾 立即保存</button>
-        <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
       </div>
     </div>
   </div>
@@ -666,7 +672,7 @@ function calcQianyuan(cur, target) {
 }
 
 function autoCalc(itemName, cur, target) {
-  if (itemName.startsWith('技能')) return calcSkill(cur, target);
+  if (itemName.startsWith('技能') || itemName.startsWith('师门技能')) return calcSkill(cur, target);
   if (itemName === '攻法修' || itemName === '防御修' || itemName === '法防修') return calcRxiu(cur, target);
   if (itemName === '攻修' || itemName === '防修' || itemName === '法修' || itemName === '法抗修') return calcCxiu(cur, target);
   if (itemName === '潜力果') return calcQianliGuo(cur, target);
@@ -765,7 +771,7 @@ const AUX_SKILLS = [
 ];
 
 const ITEM_GROUPS = [
-  { label: '门派技能', key: 'skills', items: ['技能1','技能2','技能3','技能4','技能5','技能6','技能7'] },
+  { label: '师门技能', key: 'skills', items: ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7'] },
   { label: '人物修炼', key: 'rxiu', items: ['攻法修','防御修','法防修'] },
   { label: '宠物修炼', key: 'cxiu', items: ['攻修','防修','法修','法抗修'] },
   { label: '辅助修炼', key: 'aux', items: AUX_SKILLS.map(a => a.name) },
@@ -1225,7 +1231,7 @@ function renderProgressTable() {
       // 构建行内容
       if (g.key === 'skills') {
         html += '<tr>' +
-          '<td>' + esc(item) + '</td>' +
+          '<td><input type="text" data-key="' + k + '" data-field="name" value="' + esc(item) + '" oninput="onSkillNameChange(this)" style="width:100%;border:none;background:transparent;color:var(--text);font-size:.85rem;padding:2px 4px;text-align:left;"></td>' +
           '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
           '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
           '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
@@ -1316,6 +1322,25 @@ function renderProgressTable() {
 function onFruitPriceChange() {
   collectCurrentData();
   renderProgressTable();
+  scheduleSave();
+}
+
+function onSkillNameChange(el) {
+  const oldKey = el.dataset.key;
+  const newName = el.value.trim();
+  if (!newName || newName === oldKey) return;
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  // Rename key in data
+  ch.data[newName] = ch.data[oldKey] || { cur: 0, target: 0 };
+  delete ch.data[oldKey];
+  // Rename in ITEM_GROUPS
+  const skillGroup = ITEM_GROUPS.find(g => g.key === 'skills');
+  if (skillGroup) {
+    const idx = skillGroup.items.indexOf(oldKey);
+    if (idx !== -1) skillGroup.items[idx] = newName;
+  }
+  el.dataset.key = newName;
   scheduleSave();
 }
 
@@ -1631,6 +1656,14 @@ function saveData() {
 }
 
 // ==================== TOAST ====================
+function toggleLock() {
+  const locked = document.body.classList.toggle('locked');
+  const btn = document.getElementById('btn-lock');
+  btn.textContent = locked ? '🔓 解锁' : '🔒 锁定';
+  btn.style.background = locked ? 'var(--red)' : '';
+  btn.style.color = locked ? '#fff' : '';
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1646,6 +1679,22 @@ function esc(s) {
 }
 
 // ==================== RENDER ALL ====================
+function migrateSkillKeys() {
+  const OLD_NEW = {'技能1':'师门技能1','技能2':'师门技能2','技能3':'师门技能3','技能4':'师门技能4','技能5':'师门技能5','技能6':'师门技能6','技能7':'师门技能7'};
+  let migrated = false;
+  appData.characters.forEach(ch => {
+    Object.keys(OLD_NEW).forEach(old => {
+      const nw = OLD_NEW[old];
+      if (ch.data[old]) {
+        ch.data[nw] = ch.data[old];
+        delete ch.data[old];
+        migrated = true;
+      }
+    });
+  });
+  if (migrated) scheduleSave();
+}
+
 function renderAll() {
   renderCharTabs();
   renderProgressTable();
@@ -1662,6 +1711,7 @@ function renderAll() {
   }, 8000);
   await loadCloud();
   clearTimeout(initTimeout);
+  migrateSkillKeys();
   setInterval(async () => { await loadCloud(); }, 30000);
 })();
 </script>
