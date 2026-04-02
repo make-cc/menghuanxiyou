@@ -786,7 +786,8 @@ const ITEM_GROUPS = [
 const DEFAULT_CHAR = () => ({
   name: '新角色',
   data: buildEmptyData(),
-  fabao: {}
+  fabao: {},
+  skillNames: ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7']
 });
 
 function buildEmptyData() {
@@ -1244,7 +1245,11 @@ function renderProgressTable() {
 
     let subExp=0, subGold=0, subBang=0;
 
-    g.items.forEach(item => {
+    var items = g.items;
+    if (g.key === 'skills' && ch.skillNames && ch.skillNames.length) {
+      items = ch.skillNames;
+    }
+    items.forEach(item => {
       // Skip hidden items
       if ((appData.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
@@ -1361,14 +1366,13 @@ function onSkillNameChange(el) {
   if (!newName || newName === oldKey) return;
   const ch = appData.characters[appData.activeCharIdx];
   if (!ch) return;
-  // Rename key in data
+  // Rename key in this character's data
   ch.data[newName] = ch.data[oldKey] || { cur: 0, target: 0 };
   delete ch.data[oldKey];
-  // Rename in ITEM_GROUPS
-  const skillGroup = ITEM_GROUPS.find(g => g.key === 'skills');
-  if (skillGroup) {
-    const idx = skillGroup.items.indexOf(oldKey);
-    if (idx !== -1) skillGroup.items[idx] = newName;
+  // Update this character's skillNames
+  if (ch.skillNames) {
+    const idx = ch.skillNames.indexOf(oldKey);
+    if (idx !== -1) ch.skillNames[idx] = newName;
   }
   el.dataset.key = newName;
   scheduleSave();
@@ -1438,7 +1442,11 @@ function recalcGrandTotal() {
   if (!ch) return;
   let totalExp=0, totalGold=0, totalBang=0;
   ITEM_GROUPS.forEach(g => {
-    g.items.forEach(item => {
+    var items = g.items;
+    if (g.key === 'skills' && ch.skillNames && ch.skillNames.length) {
+      items = ch.skillNames;
+    }
+    items.forEach(item => {
       if ((appData.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
       const r = autoCalc(item, d.cur, d.target);
@@ -1723,6 +1731,7 @@ function migrateSkillKeys() {
   const OLD_NEW = {'技能1':'师门技能1','技能2':'师门技能2','技能3':'师门技能3','技能4':'师门技能4','技能5':'师门技能5','技能6':'师门技能6','技能7':'师门技能7'};
   let migrated = false;
   appData.characters.forEach(ch => {
+    // Migrate old skill names
     Object.keys(OLD_NEW).forEach(old => {
       const nw = OLD_NEW[old];
       if (ch.data[old]) {
@@ -1731,6 +1740,11 @@ function migrateSkillKeys() {
         migrated = true;
       }
     });
+    // Ensure skillNames exists (for old characters without it)
+    if (!ch.skillNames) {
+      ch.skillNames = ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7'];
+      migrated = true;
+    }
   });
   if (migrated) scheduleSave();
 }
