@@ -287,8 +287,10 @@ input[type="number"] { width: 65px; }
   .grand-total-item .value { font-size: .95rem; }
 }
 
-body.locked #progress-tbody input { pointer-events: none; opacity: 0.7; }
-body.locked .fabao-grid .fabao-card { pointer-events: none; opacity: 0.7; }
+body.locked #progress-tbody input[data-field="name"] { pointer-events: none; opacity: 0.5; background: var(--bg); }
+body.locked .char-tab-rename { display: none; }
+body.locked .btn-add-char { display: none; }
+body.locked #btn-lock { background: var(--red); color: #fff; }
 </style>
 </head>
 <body>
@@ -337,6 +339,14 @@ body.locked .fabao-grid .fabao-card { pointer-events: none; opacity: 0.7; }
   <div id="tab-progress">
     <div class="card">
       <div class="char-tabs" id="char-tabs"></div>
+      <!-- 操作栏 -->
+      <div style="padding: 8px 16px; display:flex; gap:8px; justify-content: space-between; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost" id="btn-lock" onclick="toggleLock()">🔒 锁定</button>
+          <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
+        </div>
+        <button class="btn btn-ghost" onclick="saveData()">💾 立即保存</button>
+      </div>
       <div class="table-wrap">
         <table>
           <thead id="progress-thead">
@@ -347,14 +357,6 @@ body.locked .fabao-grid .fabao-card { pointer-events: none; opacity: 0.7; }
           </thead>
           <tbody id="progress-tbody"></tbody>
         </table>
-      </div>
-      <!-- Grand Total -->
-      <div style="padding: 8px 16px; display:flex; gap:8px; justify-content: space-between; align-items:center; flex-wrap:wrap;">
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-ghost" id="btn-lock" onclick="toggleLock()">🔒 锁定</button>
-          <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
-        </div>
-        <button class="btn btn-ghost" onclick="saveData()">💾 立即保存</button>
       </div>
       <div class="grand-total" id="grand-total">
         <div class="grand-total-item"><div class="label">总计金钱</div><div class="value" id="gt-gold">—</div></div>
@@ -1032,10 +1034,10 @@ function renderCharTabs() {
   appData.characters.forEach((c, i) => {
     const active = i===appData.activeCharIdx ? 'active' : '';
     html += '<button class="char-tab ' + active + '" onclick="selectChar(' + i + ')">' +
-      '<span class="char-name-wrap">' + esc(c.name) + '<span class="edit-icon" onclick="event.stopPropagation();renameChar(' + i + ')">✏️</span></span>' +
+      '<span class="char-name-wrap">' + esc(c.name) + '<span class="char-tab-rename edit-icon" onclick="event.stopPropagation();renameChar(' + i + ')">✏️</span></span>' +
       '</button>';
   });
-  html += '<button class="char-tab" onclick="addChar()">＋</button>';
+  html += '<button class="char-tab btn-add-char" onclick="addChar()">＋</button>';
   wrap.innerHTML = html;
 }
 
@@ -1660,8 +1662,6 @@ function toggleLock() {
   const locked = document.body.classList.toggle('locked');
   const btn = document.getElementById('btn-lock');
   btn.textContent = locked ? '🔓 解锁' : '🔒 锁定';
-  btn.style.background = locked ? 'var(--red)' : '';
-  btn.style.color = locked ? '#fff' : '';
 }
 
 function showToast(msg) {
