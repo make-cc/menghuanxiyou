@@ -896,7 +896,8 @@ const DEFAULT_CHAR = () => ({
   name: '新角色',
   data: buildEmptyData(),
   fabao: {},
-  skillNames: ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7']
+  skillNames: ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7'],
+  hiddenItems: []
 });
 
 function buildEmptyData() {
@@ -987,6 +988,13 @@ async function loadCloud(isManualRetry) {
     if (d.gemPrices) appData.gemPrices = d.gemPrices;
     if (d.chatPresets) appData.chatPresets = d.chatPresets;
     if (d.hiddenItems) appData.hiddenItems = d.hiddenItems;
+    // 迁移全局hiddenItems到各角色（兼容旧数据）
+    if (appData.hiddenItems && appData.hiddenItems.length && appData.characters.length) {
+      appData.characters.forEach(function(ch) {
+        if (!ch.hiddenItems) ch.hiddenItems = appData.hiddenItems.slice();
+      });
+      appData.hiddenItems = []; // 清空全局的
+    }
 
     // Migrate old fabao names
     appData.characters.forEach(function(ch) {
@@ -1339,7 +1347,7 @@ function renderProgressTable() {
       // Add toggle buttons for hideable items
       const toggleItems = ['暗器'];
       toggleItems.forEach(item => {
-        const isHidden = (appData.hiddenItems || []).includes(item);
+        const isHidden = (ch.hiddenItems || []).includes(item);
         const label = isHidden ? '+ ' + item + '（已隐藏）' : '- ' + item;
         const color = isHidden ? 'color:var(--muted);' : '';
         html += ' <span style="cursor:pointer;font-size:.75rem;font-weight:normal;margin-left:8px;' + color + '" onclick="toggleHideItem(\'' + item + '\')" title="点击' + (isHidden ? '显示' : '隐藏') + '">' + label + '</span>';
@@ -1360,7 +1368,7 @@ function renderProgressTable() {
     }
     items.forEach(item => {
       // Skip hidden items
-      if ((appData.hiddenItems || []).includes(item)) return;
+      if ((ch.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
       const k = item;
       const result = autoCalc(item, d.cur, d.target);
@@ -1556,7 +1564,7 @@ function recalcGrandTotal() {
       items = ch.skillNames;
     }
     items.forEach(item => {
-      if ((appData.hiddenItems || []).includes(item)) return;
+      if ((ch.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
       const r = autoCalc(item, d.cur, d.target);
       totalExp += (r.exp||0); totalGold += (r.gold||0); totalBang += (r.bang||0);
@@ -1799,10 +1807,12 @@ function restoreCalcUI() {
 
 // ==================== SAVE ====================
 function toggleHideItem(item) {
-  if (!appData.hiddenItems) appData.hiddenItems = [];
-  const idx = appData.hiddenItems.indexOf(item);
-  if (idx === -1) appData.hiddenItems.push(item);
-  else appData.hiddenItems.splice(idx, 1);
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  if (!ch.hiddenItems) ch.hiddenItems = [];
+  const idx = ch.hiddenItems.indexOf(item);
+  if (idx === -1) ch.hiddenItems.push(item);
+  else ch.hiddenItems.splice(idx, 1);
   scheduleSave();
   renderProgressTable();
   recalcGrandTotal();
@@ -1855,6 +1865,9 @@ function migrateSkillKeys() {
     // Ensure skillNames exists (for old characters without it)
     if (!ch.skillNames) {
       ch.skillNames = ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7'];
+    }
+    // Ensure hiddenItems exists
+    if (!ch.hiddenItems) ch.hiddenItems = [];
       migrated = true;
     }
   });
