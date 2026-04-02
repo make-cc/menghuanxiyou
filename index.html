@@ -946,6 +946,7 @@ function scheduleSave() {
   saveTimer = setTimeout(() => {
     collectCurrentData();
     localStorage.setItem('dream_local_data', JSON.stringify(appData));
+    localStorage.setItem('dream_local_ts', Date.now().toString());
     if (syncOK && !hasUnsyncedChanges) {
       hasUnsyncedChanges = true;
       updateSyncUI();
@@ -977,17 +978,24 @@ async function loadCloud(isManualRetry) {
     clearTimeout(fetchTimeout);
     if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
     const d = await resp.json();
-    // Merge cloud data into appData
-    if (d.characters && d.characters.length) {
-      appData.characters = d.characters;
+    // Compare with local data - don't overwrite local changes
+    var localTs = parseInt(localStorage.getItem('dream_local_ts')) || 0;
+    var cloudTs = d._ts || 0;
+    var localHasChanges = localTs > cloudTs;
+
+    // Merge cloud data into appData (only if local is not newer)
+    if (!localHasChanges) {
+      if (d.characters && d.characters.length) {
+        appData.characters = d.characters;
+      }
+      if (d.activeCharIdx !== undefined) appData.activeCharIdx = d.activeCharIdx;
+      if (d.fabaoCharIdx !== undefined) appData.fabaoCharIdx = d.fabaoCharIdx;
+      if (d.rate) appData.rate = d.rate;
+      if (d.fruitPrice !== undefined) appData.fruitPrice = d.fruitPrice;
+      if (d.gemPrices) appData.gemPrices = d.gemPrices;
+      if (d.chatPresets) appData.chatPresets = d.chatPresets;
+      if (d.hiddenItems) appData.hiddenItems = d.hiddenItems;
     }
-    if (d.activeCharIdx !== undefined) appData.activeCharIdx = d.activeCharIdx;
-    if (d.fabaoCharIdx !== undefined) appData.fabaoCharIdx = d.fabaoCharIdx;
-    if (d.rate) appData.rate = d.rate;
-    if (d.fruitPrice !== undefined) appData.fruitPrice = d.fruitPrice;
-    if (d.gemPrices) appData.gemPrices = d.gemPrices;
-    if (d.chatPresets) appData.chatPresets = d.chatPresets;
-    if (d.hiddenItems) appData.hiddenItems = d.hiddenItems;
     // 迁移全局hiddenItems到各角色（兼容旧数据）
     if (appData.hiddenItems && appData.hiddenItems.length && appData.characters.length) {
       appData.characters.forEach(function(ch) {
@@ -1024,6 +1032,7 @@ async function loadCloud(isManualRetry) {
     console.error('loadCloud:', e);
     // Try to restore from localStorage backup
     var localBackup = localStorage.getItem('dream_local_data');
+    var localTs = parseInt(localStorage.getItem('dream_local_ts')) || 0;
     if (localBackup) {
       var lb = JSON.parse(localBackup);
       // Migrate old fabao names in local backup too
@@ -1069,7 +1078,7 @@ async function saveToCloud(retryCount) {
 
     var payload = JSON.stringify({
       message: 'update data',
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))),
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign({}, appData, {_ts: Date.now()}))))),
       sha: dataSha,
       branch: 'main'
     });
