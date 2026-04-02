@@ -1233,7 +1233,7 @@ function renderProgressTable() {
       // 构建行内容
       if (g.key === 'skills') {
         html += '<tr>' +
-          '<td><input type="text" data-key="' + k + '" data-field="name" value="' + esc(item) + '" oninput="onSkillNameChange(this)" style="width:100%;border:none;background:transparent;color:var(--text);font-size:.85rem;padding:2px 4px;text-align:left;"></td>' +
+          '<td><input type="text" data-key="' + k + '" data-field="name" value="' + esc(item) + '" onchange="onSkillNameChange(this)" onfocus="this.select()" style="width:100%;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);font-size:.85rem;padding:2px 4px;text-align:left;cursor:text;" onmouseover="this.style.borderColor=\'var(--border)\'" onmouseout="if(document.activeElement!==this)this.style.borderColor=\'transparent\'"></td>' +
           '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
           '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
           '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
