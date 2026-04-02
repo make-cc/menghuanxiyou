@@ -1868,8 +1868,6 @@ function migrateSkillKeys() {
     }
     // Ensure hiddenItems exists
     if (!ch.hiddenItems) ch.hiddenItems = [];
-      migrated = true;
-    }
   });
   if (migrated) scheduleSave();
 }
