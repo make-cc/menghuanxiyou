@@ -150,6 +150,13 @@ input[type="number"] { width: 65px; }
   font-size: .7rem; padding: 1px 6px; border-radius: 3px;
   color: #fff; font-weight: 500;
 }
+  .fabao-collection-count {
+    margin-left: auto; font-size: .75rem; font-weight: 400;
+    opacity: .7;
+  }
+  .fabao-collection-count .count-num {
+    font-weight: 700; font-size: .8rem;
+  }
 .fabao-section-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 6px;
@@ -281,7 +288,14 @@ input[type="number"] { width: 65px; }
   .container { padding: 10px; }
   .tabs { gap: 2px; padding: 3px; }
   .tab { padding: 8px 6px; font-size: .78rem; }
-  .fabao-section-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .fabao-collection-count {
+    margin-left: auto; font-size: .75rem; font-weight: 400;
+    opacity: .7;
+  }
+  .fabao-collection-count .count-num {
+    font-weight: 700; font-size: .8rem;
+  }
+.fabao-section-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   .calc-row { flex-direction: column; }
   .grand-total { padding: 14px 12px; gap: 10px; }
   .grand-total-item .value { font-size: .95rem; }
@@ -1591,7 +1605,10 @@ function renderFabaoGrid() {
   let html = '';
   for (let lv = 1; lv <= 4; lv++) {
     html += '<div class="fabao-section lvl' + lv + '">';
-    html += '<div class="fabao-section-title"><span class="level-badge">' + levelNames[lv] + '</span>' + levelSubs[lv] + '</div>';
+    html += '<div class="fabao-section-title"><span class="level-badge">' + levelNames[lv] + '</span>' + levelSubs[lv];
+    var lvTotal = FABAO_DATA[lv].length;
+    var lvCollected = FABAO_DATA[lv].filter(function(item) { return ch.fabao[item[0]]; }).length;
+    html += '<span class="fabao-collection-count"><span class="count-num">' + lvCollected + '</span>/' + lvTotal + '</span></div>';
     html += '<div class="fabao-section-grid">';
     FABAO_DATA[lv].forEach(function(item) {
       const f = item[0];
