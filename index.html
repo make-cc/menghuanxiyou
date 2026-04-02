@@ -816,6 +816,14 @@ let syncRetryCount = 0;
 const SYNC_MAX_RETRY = 3;
 const SYNC_RETRY_DELAY = 5000;
 
+function scheduleSave() {
+  // Save to localStorage immediately
+  localStorage.setItem('dream_local_data', JSON.stringify(appData));
+  // Debounce cloud save: wait 3s after last change
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveToCloud(); }, 3000);
+}
+
 function ghHeaders() {
   return {
     'Authorization': 'token ' + GITHUB_TOKEN,
@@ -902,22 +910,24 @@ async function loadCloud(isManualRetry) {
 
 async function saveToCloud(retryCount) {
   retryCount = retryCount || 0;
-  console.log('saveToCloud called, token:', GITHUB_TOKEN ? GITHUB_TOKEN.substring(0,8)+'...' : 'EMPTY');
   if (!GITHUB_TOKEN) { showToast('请先在云端设置中填入GitHub Token'); return false; }
   collectCurrentData();
+  // Also save locally immediately
+  localStorage.setItem('dream_local_data', JSON.stringify(appData));
   try {
-    // Always fetch fresh SHA to avoid conflicts
-    dataSha = '';
-    var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
-    if (shaResp.status === 401) {
-      GITHUB_TOKEN = '';
-      localStorage.removeItem('dream_gh_token');
-      showToast('Token无效或已过期，请重新在云端设置中输入');
-      syncOK = false; updateSyncUI(); return false;
+    // Only fetch SHA if we don't have one (or after 409 conflict)
+    if (!dataSha) {
+      var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+      if (shaResp.status === 401) {
+        GITHUB_TOKEN = '';
+        localStorage.removeItem('dream_gh_token');
+        showToast('Token无效或已过期，请重新在云端设置中输入');
+        syncOK = false; updateSyncUI(); return false;
+      }
+      if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
+      var shaData = await shaResp.json();
+      dataSha = shaData.sha;
     }
-    if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
-    var shaData = await shaResp.json();
-    dataSha = shaData.sha;
 
     var payload = JSON.stringify({
       message: 'update data',
@@ -929,8 +939,11 @@ async function saveToCloud(retryCount) {
     var resp = await fetch(GH_API, { method: 'PUT', headers: ghHeaders(), body: payload });
 
     if (!resp.ok) {
-      if (resp.status === 409 && retryCount < 2) {
-        console.log('409 conflict, auto-retry #' + (retryCount + 1));
+      if (resp.status === 409 && retryCount < 3) {
+        // SHA stale — clear cache and retry with fresh SHA
+        dataSha = '';
+        console.log('409 conflict, refetching SHA and retry #' + (retryCount + 1));
+        await new Promise(r => setTimeout(r, 500));
         return saveToCloud(retryCount + 1);
       }
       var errBody = await resp.text();
@@ -938,9 +951,10 @@ async function saveToCloud(retryCount) {
     }
 
     var result = await resp.json();
+    // Cache the new SHA for next save (no need to re-fetch)
     if (result.content && result.content.sha) { dataSha = result.content.sha; }
     syncOK = true; updateSyncUI();
-    showToast('已保存到云端');
+    showToast('已保存 ✓');
     return true;
   } catch(e) {
     console.error('saveToCloud:', e);
@@ -1302,10 +1316,7 @@ function renderProgressTable() {
 function onFruitPriceChange() {
   collectCurrentData();
   renderProgressTable();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
-  // Also save locally immediately
-  localStorage.setItem('dream_local_data', JSON.stringify(appData));
+  scheduleSave();
 }
 
 function onLevelChange(el) {
@@ -1356,10 +1367,7 @@ function onLevelChange(el) {
   recalcGrandTotal();
 
   // Debounced save
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
-  // Also save locally immediately
-  localStorage.setItem('dream_local_data', JSON.stringify(appData));
+  scheduleSave();
 
   // Restore focus
   if (activeEl && selStart !== null) {
@@ -1472,8 +1480,7 @@ function renderChatGrid() {
 
 function onChatChange(idx, val) {
   appData.chatPresets[idx] = val;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveToCloud(); }, 2000);
+  scheduleSave();
 }
 
 function copyChat(idx) {
