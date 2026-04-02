@@ -345,7 +345,10 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
           <button class="btn btn-ghost" id="btn-lock" onclick="toggleLock()">🔒 锁定</button>
           <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
         </div>
-        <button class="btn btn-ghost" onclick="saveData()">💾 立即保存</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="unsync-hint" style="display:none; color:#f0a030; font-size:12px;">● 有未同步的改动</span>
+          <button class="btn btn-ghost" onclick="saveData()">💾 同步到云端</button>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
@@ -819,17 +822,23 @@ const DATA_URL = './data.json';
 const GH_API = 'https://api.github.com/repos/make-cc/menghuanxiyou/contents/data.json';
 let saveTimer = null;
 let syncOK = false;
+let hasUnsyncedChanges = false; // Track local changes not yet synced
 let dataSha = ''; // Track SHA for updates
 let syncRetryCount = 0;
-const SYNC_MAX_RETRY = 3;
-const SYNC_RETRY_DELAY = 5000;
+const SYNC_MAX_RETRY = 1;
+const SYNC_RETRY_DELAY = 3000;
 
 function scheduleSave() {
-  // Save to localStorage immediately
-  localStorage.setItem('dream_local_data', JSON.stringify(appData));
-  // Debounce cloud save: wait 3s after last change
+  // Save to localStorage immediately (no cloud sync on edit)
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveToCloud(); }, 3000);
+  saveTimer = setTimeout(() => {
+    collectCurrentData();
+    localStorage.setItem('dream_local_data', JSON.stringify(appData));
+    if (syncOK && !hasUnsyncedChanges) {
+      hasUnsyncedChanges = true;
+      updateSyncUI();
+    }
+  }, 300);
 }
 
 function ghHeaders() {
@@ -889,6 +898,7 @@ async function loadCloud(isManualRetry) {
 
     syncOK = true;
     syncRetryCount = 0;
+    hasUnsyncedChanges = false;
     updateSyncUI();
   } catch(e) {
     console.error('loadCloud:', e);
@@ -961,7 +971,7 @@ async function saveToCloud(retryCount) {
     var result = await resp.json();
     // Cache the new SHA for next save (no need to re-fetch)
     if (result.content && result.content.sha) { dataSha = result.content.sha; }
-    syncOK = true; updateSyncUI();
+    syncOK = true; hasUnsyncedChanges = false; updateSyncUI();
     showToast('已保存 ✓');
     return true;
   } catch(e) {
@@ -975,9 +985,12 @@ async function saveToCloud(retryCount) {
 
 function updateSyncUI() {
   document.getElementById('sync-dot').className = 'sync-dot' + (syncOK ? '' : ' off');
-  document.getElementById('sync-text').textContent = syncOK ? '已连接云端' : '云端未连接';
+  document.getElementById('sync-text').textContent = syncOK ? (hasUnsyncedChanges ? '本地已保存' : '已连接云端') : '云端未连接';
   document.getElementById('sync-dot2').className = 'sync-dot' + (syncOK ? '' : ' off');
-  document.getElementById('sync-text2').textContent = syncOK ? '已同步' : '未连接';
+  document.getElementById('sync-text2').textContent = syncOK ? (hasUnsyncedChanges ? '待同步' : '已同步') : '未连接';
+  // Show unsynced hint
+  var hint = document.getElementById('unsync-hint');
+  if (hint) hint.style.display = (syncOK && hasUnsyncedChanges) ? 'inline' : 'none';
 }
 
 function toggleCloudPanel() {
@@ -1652,9 +1665,10 @@ function restoreCalcUI() {
 function saveData() {
   clearTimeout(saveTimer);
   collectCurrentData();
+  localStorage.setItem('dream_local_data', JSON.stringify(appData));
   renderProgressTable();
   saveToCloud();
-  showToast('正在保存...');
+  showToast('正在同步到云端...');
 }
 
 // ==================== TOAST ====================
@@ -1708,11 +1722,11 @@ function renderAll() {
   // Timeout protection: ensure UI updates even if loadCloud hangs
   var initTimeout = setTimeout(function() {
     if (!syncOK) { updateSyncUI(); renderAll(); }
-  }, 8000);
+  }, 5000);
   await loadCloud();
   clearTimeout(initTimeout);
   migrateSkillKeys();
-  setInterval(async () => { await loadCloud(); }, 30000);
+  // No more auto-polling — cloud sync only on manual button click
 })();
 </script>
 </body>
