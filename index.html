@@ -42,7 +42,7 @@ body {
 .ov-compare-table th { background: var(--bg); font-weight: 600; position: sticky; top: 0; z-index: 2; }
 .ov-th-name { text-align: left !important; min-width: 50px !important; position: sticky; left: 0; background: var(--bg); z-index: 3; }
 .ov-section td { background: var(--blue-light); font-weight: 600; font-size: .75rem; color: var(--blue); }
-.ov-label { text-align: left !important; min-width: 50px !important; position: sticky; left: 0; background: var(--card); z-index: 1; color: var(--text); }
+.ov-label { min-width: 50px !important; position: sticky; left: 0; background: var(--card); z-index: 1; color: var(--text); }
 .ov-val { min-width: 36px !important; }
 
 /* === Layout === */
@@ -2084,9 +2084,9 @@ function renderOverview() {
   skillList.forEach((item, si) => {
     h += '<tr><td class="ov-label">' + item + '</td>';
     chars.forEach(ch => {
-      const names = (ch.skillNames && ch.skillNames.length) ? ch.skillNames : ITEM_GROUPS[0].items;
-      const label = names[si] || item;
-      const d = (ch.data || {})[item] || {cur:0,target:0};
+      // 用角色实际的skillNames作为data key（可能被自定义改名）
+      const realKey = (ch.skillNames && ch.skillNames.length) ? (ch.skillNames[si] || item) : item;
+      const d = (ch.data || {})[realKey] || {cur:0,target:0};
       h += '<td class="ov-val">' + (d.cur > 0 ? d.cur : '<span style="color:var(--muted)">—</span>') + '</td>';
     });
     h += '</tr>';
