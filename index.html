@@ -36,20 +36,21 @@ body {
 .sync-dot.off { background: #f87171; }
 
 /* === Overview === */
-.overview-grid { padding: 16px; }
-.ov-compare-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
-.ov-compare-table th, .ov-compare-table td { padding: 4px 6px; border: 1px solid var(--border); text-align: center; white-space: nowrap; }
-.ov-compare-table th { background: var(--bg); font-weight: 600; position: sticky; top: 0; }
-.ov-th-name { text-align: left !important; min-width: 60px; position: sticky; left: 0; background: var(--card); z-index: 1; }
-.ov-section td { background: var(--blue-light); font-weight: 600; font-size: .75rem; color: var(--blue); }
-.ov-label { text-align: left !important; min-width: 60px; position: sticky; left: 0; background: var(--card); z-index: 1; color: var(--text); }
-.ov-val { min-width: 50px; }
+.overview-grid { padding: 8px; }
+.ov-compare-table { width: 100%; border-collapse: collapse; font-size: .75rem; margin: 0 auto; }
+.ov-compare-table th, .ov-compare-table td { padding: 3px 5px; border: 1px solid var(--border); text-align: center; white-space: nowrap; }
+.ov-compare-table th { background: var(--bg); font-weight: 600; position: sticky; top: 0; z-index: 2; }
+.ov-th-name { text-align: left !important; min-width: 50px; position: sticky; left: 0; background: var(--bg); z-index: 3; }
+.ov-section td { background: var(--blue-light); font-weight: 600; font-size: .7rem; color: var(--blue); }
+.ov-label { text-align: left !important; min-width: 50px; position: sticky; left: 0; background: var(--card); z-index: 1; color: var(--text); }
+.ov-val { min-width: 36px; }
 
 /* === Layout === */
 .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
 .tabs {
   display: flex; gap: 4px; background: var(--card); border-radius: var(--radius);
   padding: 4px; box-shadow: var(--shadow); margin-bottom: 16px; overflow-x: auto;
+  position: sticky; top: 0; z-index: 10;
 }
 .tab {
   flex: 1; min-width: 0; padding: 10px 8px; text-align: center;
@@ -499,8 +500,8 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       </div>
     </div>
   </div>
-  <div id="tab-overview" style="display:none">
-    <div class="overview-grid" id="overview-grid"></div>
+  <div id="tab-overview" style="display:none;position:relative">
+    <div class="overview-grid" id="overview-grid" style="overflow-x:auto;max-height:calc(100vh - 160px);overflow-y:auto"></div>
   </div>
 
 </div>
