@@ -1890,9 +1890,9 @@ function calcAllGems() {
     const { prices, cumulative } = calcGemPrices(base, gem.merge);
     html += '<div class="gem-section">';
     html += '<h3>' + gem.name + (gem.merge === 3 ? '（3合1）' : '（2合1）') +
-      '　<input type="number" data-gem="' + gem.name + '" style="width:70px;font-size:.8rem;padding:2px 4px;border:1px solid #ccc;border-radius:4px;" ' +
+      '　<input type="text" inputmode="decimal" data-gem="' + gem.name + '" style="width:70px;font-size:.8rem;padding:2px 4px;border:1px solid #ccc;border-radius:4px;" ' +
       'value="' + base + '" min="0.01" step="0.1" ' +
-      'oninput="appData.gemPrices[\'' + gem.name + '\']=parseFloat(this.value)||0;calcAllGems()">' +
+      'oninput="var v=this.value.replace(/[^0-9.]/g,\'\');if(v!==this.value)this.value=v;appData.gemPrices[\'' + gem.name + '\']=parseFloat(v)||0;calcAllGems()">' +
       ' <span style="font-size:.8rem;color:var(--muted)">万两/级</span></h3>';
     html += '<table class="gem-table"><thead><tr>';
     html += '<th></th>';
