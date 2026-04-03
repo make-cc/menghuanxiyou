@@ -345,7 +345,8 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
   <p>多角色修炼进度追踪 · 云端同步</p>
   <div style="display:flex;align-items:center;gap:12px;">
     <span id="unsync-hint" style="display:none; color:#f0a030; font-size:12px;cursor:default;">● 有未同步的改动</span>
-    <button class="btn btn-ghost" onclick="saveData()" style="padding:4px 12px;font-size:.8rem;">💾 同步到云端</button>
+    <button class="btn" onclick="saveData()" style="padding:6px 16px;font-size:.85rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.15);">☁️ 同步到云端</button>
+
     <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer" title="点击管理云端存档">
       <span class="sync-dot" id="sync-dot"></span>
       <span id="sync-text">同步中...</span>
