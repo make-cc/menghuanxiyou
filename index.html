@@ -2086,12 +2086,7 @@ function renderOverview() {
       const names = (ch.skillNames && ch.skillNames.length) ? ch.skillNames : ITEM_GROUPS[0].items;
       const label = names[si] || item;
       const d = (ch.data || {})[item] || {cur:0,target:0};
-      if (d.cur > 0 || d.target > 0) {
-        const pct = d.target > 0 ? Math.min(100, Math.round(d.cur / d.target * 100)) : 0;
-        h += '<td class="ov-val">' + label + ' ' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.65rem">(' + pct + '%)</span></td>';
-      } else {
-        h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
-      }
+      h += '<td class="ov-val">' + (d.cur > 0 ? d.cur : '<span style="color:var(--muted)">—</span>') + '</td>';
     });
     h += '</tr>';
   });
@@ -2102,15 +2097,7 @@ function renderOverview() {
     h += '<tr><td class="ov-label">' + item + '</td>';
     chars.forEach(ch => {
       const d = (ch.data || {})[item] || {cur:0,target:0};
-      if (d.cur > 0 || d.target > 0) {
-        const r = autoCalc(item, d.cur, d.target);
-        const goldStr = r.gold > 0 ? fmtGold(r.gold) : '';
-        h += '<td class="ov-val">' + d.cur + '→' + d.target;
-        if (goldStr) h += ' <span style="color:var(--muted);font-size:.65rem">' + goldStr + '</span>';
-        h += '</td>';
-      } else {
-        h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
-      }
+      h += '<td class="ov-val">' + (d.cur > 0 ? d.cur : '<span style="color:var(--muted)">—</span>') + '</td>';
     });
     h += '</tr>';
   });
@@ -2121,16 +2108,7 @@ function renderOverview() {
     h += '<tr><td class="ov-label">' + item + '</td>';
     chars.forEach(ch => {
       const d = (ch.data || {})[item] || {cur:0,target:0};
-      if (d.cur > 0 || d.target > 0) {
-        const r = autoCalc(item, d.cur, d.target);
-        const goldStr = r.gold > 0 ? fmtGold(r.gold) : '';
-        const fruitStr = r.fruitCount > 0 ? ' 🍎' + r.fruitCount : '';
-        h += '<td class="ov-val">' + d.cur + '→' + d.target;
-        if (goldStr || fruitStr) h += '<span style="color:var(--muted);font-size:.65rem">' + goldStr + fruitStr + '</span>';
-        h += '</td>';
-      } else {
-        h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
-      }
+      h += '<td class="ov-val">' + (d.cur > 0 ? d.cur : '<span style="color:var(--muted)">—</span>') + '</td>';
     });
     h += '</tr>';
   });
@@ -2143,13 +2121,7 @@ function renderOverview() {
       h += '<tr><td class="ov-label">' + esc(a.name) + '<span style="color:var(--muted);font-size:.6rem"> (max' + maxLv + ')</span></td>';
       chars.forEach(ch => {
         const d = (ch.data || {})[a.name] || {cur:0,target:0};
-        if (d.cur > 0 || d.target > 0) {
-          h += '<td class="ov-val">' + d.cur + '/' + maxLv;
-          if (d.target > d.cur) h += ' →' + d.target;
-          h += '</td>';
-        } else {
-          h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
-        }
+        h += '<td class="ov-val">' + (d.cur > 0 ? d.cur + '/' + maxLv : '<span style="color:var(--muted)">—</span>') + '</td>';
       });
       h += '</tr>';
     });
@@ -2169,11 +2141,7 @@ function renderOverview() {
       h += '<tr><td class="ov-label">' + item + '</td>';
       chars.forEach(ch => {
         const d = (ch.data || {})[item] || {cur:0,target:0};
-        if (d.cur > 0 || d.target > 0) {
-          h += '<td class="ov-val">' + d.cur + '→' + d.target + '</td>';
-        } else {
-          h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
-        }
+        h += '<td class="ov-val">' + (d.cur > 0 ? d.cur : '<span style="color:var(--muted)">—</span>') + '</td>';
       });
       h += '</tr>';
     });
