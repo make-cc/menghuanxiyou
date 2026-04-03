@@ -1884,12 +1884,12 @@ function calcAllGems() {
 
     // 价格行
     html += '<tr class="price-row"><td>单价</td>';
-    for (let i = 0; i < 9; i++) html += '<td>' + fmtGemPriceStr(prices[i]) + '万</td>';
+    for (let i = 0; i < 9; i++) html += '<td>' + fmtGemPriceStr(prices[i]) + '</td>';
     html += '</tr>';
 
     // 累计行
     html += '<tr class="total-row"><td>累计</td>';
-    for (let i = 1; i <= 9; i++) html += '<td>' + fmtGemPriceStr(cumulative[i]) + '万</td>';
+    for (let i = 1; i <= 9; i++) html += '<td>' + fmtGemPriceStr(cumulative[i]) + '</td>';
     html += '</tr>';
 
     html += '</tbody></table></div>';
