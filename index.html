@@ -1856,7 +1856,7 @@ function fmtGemPriceStr(n) {
   if (ratio <= 0) return goldStr;
   // RMB部分：保留2位小数
   var rmbStr = rmb < 0.01 ? '<0.01' : rmb.toFixed(2);
-  return goldStr + '/' + rmbStr + '元';
+  return goldStr + '/' + rmbStr;
 }
 
 function calcAllGems() {
