@@ -1885,7 +1885,7 @@ function renderGemInputs() {
     html += '<h3>' + gem.name + (gem.merge === 3 ? '（3合1）' : '（2合1）') +
       '　<input type="number" data-gem="' + gem.name + '" style="width:70px;font-size:.8rem;padding:2px 4px;border:1px solid #ccc;border-radius:4px;" ' +
       'value="' + base + '" min="0.01" step="0.1" ' +
-      'oninput="appData.gemPrices[\'' + gem.name + '\']=parseFloat(this.value)||0;updateGemTables()">' +
+      'oninput="var v=parseFloat(this.value);if(!isNaN(v)&&v>0)appData.gemPrices[\'' + gem.name + '\']=v;updateGemTables()">' +
       ' <span style="font-size:.8rem;color:var(--muted)">万两/级</span></h3>';
     html += '<div id="gem-table-' + idx + '"></div>';
     html += '</div>';
