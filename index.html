@@ -136,6 +136,37 @@ input[type="number"] { width: 65px; }
 .grand-total-item .value { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
 
 /* === Fabao (法宝) === */
+.fabao-filter-bar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 10px 16px 2px; border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.filter-label { font-size: .8rem; color: var(--muted); }
+.filter-btn {
+  font-size: .75rem; padding: 3px 10px; border-radius: 12px;
+  border: 1px solid #d1d5db; background: #fff; color: var(--text);
+  cursor: pointer; transition: all .15s;
+}
+.filter-btn:hover { border-color: var(--blue); color: var(--blue); }
+.filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.fabao-item.locked {
+  opacity: .35;
+}
+.fabao-item.locked .fabao-icon, .fabao-item.locked .fabao-icon-emoji {
+  filter: grayscale(1);
+}
+.fabao-sect-tag {
+  font-size: .58rem; padding: 0 3px; border-radius: 2px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.fabao-item.locked .fabao-sect-tag {
+  background: rgba(0,0,0,.08); color: #999;
+}
+.fabao-sect-tag.mine {
+  background: rgba(139,92,246,.12); color: #7c3aed;
+}
+.fabao-sect-tag.other {
+  background: rgba(0,0,0,.07); color: #888;
+}
 .fabao-grid {
   padding: 16px;
 }
@@ -395,6 +426,12 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       </div>
     </div>
     <div class="card">
+      <div class="fabao-filter-bar" id="fabao-filter-bar">
+        <span class="filter-label">筛选：</span>
+        <button class="filter-btn active" onclick="setFabaoFilter('all')" id="fb-btn-all">全部</button>
+        <button class="filter-btn" onclick="setFabaoFilter('usable')" id="fb-btn-usable">本门派可用</button>
+        <button class="filter-btn" onclick="setFabaoFilter('exclusive')" id="fb-btn-exclusive">本门派专属</button>
+      </div>
       <div class="fabao-grid" id="fabao-grid"></div>
     </div>
   </div>
@@ -716,27 +753,27 @@ const FABAO_DATA = {
     ['五色旗盒','辅助'],['嗜血幡','攻击'],['神行飞剑','辅助'],['织女扇','辅助'],
     ['定风珠','辅助'],['迷魂灯','辅助'],['幽灵珠','辅助']
   ],
-  2: [ // 二级法宝 (80级)
-    ['分水','恢复'],['赤焰','恢复'],['宝烛','恢复'],['玄冰面具','辅助'],
-    ['捆仙绳','辅助'],['聚妖铃','辅助'],['万鬼幡','辅助'],['罗汉珠','辅助'],
-    ['附灵玉','辅助'],['神木宝鼎','辅助'],['天煞','辅助'],['云雷鼓','辅助'],
-    ['琉璃灯','辅助'],['镇妖珠','辅助'],['明心玉','辅助'],['断线木偶','防御'],
-    ['五彩娃娃','防御'],['降魔斗篷','防御'],['现形符','诅咒'],['七杀','诅咒'],
-    ['摄魂','诅咒'],['发瘟匣','诅咒'],['番天印','诅咒'],['梦魂香囊','诅咒'],
-    ['金刚杵','攻击'],['兽王令','攻击'],['铸兵锤','攻击'],['驱风宝诰','镇妖'],
-    ['止风神剑','镇妖']
+  2: [ // 二级法宝 (80级)  [名,类型,专属门派(''=通用)]
+    ['分水','恢复','龙宫'],['赤焰','恢复','魔王寨'],['宝烛','恢复','无底洞'],['玄冰面具','辅助',''],
+    ['捆仙绳','辅助',''],['聚妖铃','辅助',''],['万鬼幡','辅助',''],['罗汉珠','辅助','化生寺'],
+    ['附灵玉','辅助',''],['神木宝鼎','辅助','神木林'],['天煞','辅助','凌波城'],['云雷鼓','辅助','女魃墓'],
+    ['琉璃灯','辅助','花果山'],['镇妖珠','辅助',''],['明心玉','辅助','东海渊'],['断线木偶','防御',''],
+    ['五彩娃娃','防御',''],['降魔斗篷','防御',''],['现形符','诅咒',''],['七杀','诅咒','大唐官府'],
+    ['摄魂','诅咒','阴曹地府'],['发瘟匣','诅咒',''],['番天印','诅咒',''],['梦魂香囊','诅咒',''],
+    ['金刚杵','攻击','普陀山'],['兽王令','攻击','狮驼岭'],['铸兵锤','攻击','九黎城'],['驱风宝诰','镇妖',''],
+    ['止风神剑','镇妖','']
   ],
-  3: [ // 三级法宝 (100级)
-    ['慈悲','恢复'],['救命毫毛','恢复'],['普渡','恢复'],['九幽','恢复'],
-    ['金蟾','恢复'],['神木面具','辅助'],['缚龙索','辅助'],['鬼泣','辅助'],
-    ['灵光宝匣','辅助'],['缩地尺','辅助'],['影蛊','辅助'],['混元伞','辅助'],
-    ['落宝金钱','辅助'],['通灵宝玉','辅助'],['聚宝盆','辅助'],['七宝玲珑灯','辅助'],
-    ['驭魔笼','辅助'],['无魂傀儡','防御'],['苍白纸人','防御'],['奇门五行令','防御'],
-    ['失心钹','防御'],['神匠袍','防御'],['照妖镜','诅咒'],['乾坤玄火塔','诅咒'],
-    ['忘情','诅咒'],['无尘扇','诅咒'],['无字经','诅咒'],['曼陀罗','诅咒'],
-    ['落雨金钱','攻击'],['干将莫邪','攻击'],['伏魔天书','攻击'],['镇海珠','攻击'],
-    ['五火神焰印','攻击'],['月影','攻击'],['斩魔','攻击'],['葬龙笛','攻击'],
-    ['金箍棒','攻击'],['虫蛙号角','攻击']
+  3: [ // 三级法宝 (100级)  [名,类型,专属门派(''=通用)]
+    ['慈悲','恢复','化生寺'],['救命毫毛','恢复','方寸山'],['普渡','恢复','普陀山'],['九幽','恢复','阴曹地府'],
+    ['金蟾','恢复','无底洞'],['神木面具','辅助',''],['缚龙索','辅助',''],['鬼泣','辅助',''],
+    ['灵光宝匣','辅助',''],['缩地尺','辅助',''],['影蛊','辅助',''],['混元伞','辅助',''],
+    ['落宝金钱','辅助',''],['通灵宝玉','辅助',''],['聚宝盆','辅助',''],['七宝玲珑灯','辅助',''],
+    ['驭魔笼','辅助','九黎城'],['无魂傀儡','防御',''],['苍白纸人','防御',''],['奇门五行令','防御','五庄观'],
+    ['失心钹','防御','狮驼岭'],['神匠袍','防御','天机城'],['照妖镜','诅咒',''],['乾坤玄火塔','诅咒',''],
+    ['忘情','诅咒','盘丝洞'],['无尘扇','诅咒',''],['无字经','诅咒',''],['曼陀罗','诅咒','女儿村'],
+    ['落雨金钱','攻击',''],['干将莫邪','攻击','大唐官府'],['伏魔天书','攻击','天宫'],['镇海珠','攻击','龙宫'],
+    ['五火神焰印','攻击','魔王寨'],['月影','攻击','神木林'],['斩魔','攻击','凌波城'],['葬龙笛','攻击','女魃墓'],
+    ['金箍棒','攻击','花果山'],['虫蛙号角','攻击','东海渊']
   ],
   4: [ // 四级法宝 (120级)
     ['炽焰丹珠','恢复'],['翡翠芝兰','恢复'],['太虚玉液','恢复'],['归元圣印','恢复'],
@@ -1604,41 +1641,125 @@ function setFabaoLevel(lv) {
   renderFabaoGrid();
   scheduleSave();
 }
+// 门派专属法宝映射（由FABAO_DATA动态构建）
+function getFabaoSectMap() {
+  var map = {};
+  [2,3].forEach(function(lv) {
+    FABAO_DATA[lv].forEach(function(item) {
+      var sect = item[2] || '';
+      if (sect) {
+        if (!map[sect]) map[sect] = new Set();
+        map[sect].add(item[0]);
+      }
+    });
+  });
+  return map;
+}
+
+// 角色名→门派（角色名=门派名，支持模糊包含）
+var SECT_NAMES = ['无底洞','化生寺','普陀山','阴曹地府','龙宫','魔王寨','狮驼岭',
+  '大唐官府','神木林','凌波城','女魃墓','花果山','东海渊','九黎城','天机城',
+  '方寸山','女儿村','盘丝洞','五庄观','天宫'];
+
+function charSect(ch) {
+  var name = (ch.name || '').trim();
+  if (SECT_NAMES.indexOf(name) >= 0) return name;
+  for (var i=0; i<SECT_NAMES.length; i++) {
+    if (name.indexOf(SECT_NAMES[i]) >= 0) return SECT_NAMES[i];
+  }
+  return '';
+}
+
+var fabaoFilter = 'all';
+function setFabaoFilter(f) {
+  fabaoFilter = f;
+  ['all','usable','exclusive'].forEach(function(id) {
+    var btn = document.getElementById('fb-btn-' + id);
+    if (btn) btn.className = 'filter-btn' + (id === f ? ' active' : '');
+  });
+  renderFabaoGrid();
+}
+
 function renderFabaoGrid() {
   const ch = appData.characters[appData.fabaoCharIdx];
   if (!ch) return;
   const grid = document.getElementById('fabao-grid');
   const levelNames = {1:'一级法宝', 2:'二级法宝', 3:'三级法宝', 4:'四级法宝'};
   const levelSubs = {1:'60级可用', 2:'80级可用', 3:'100级可用', 4:'120级可用'};
+  const mySect = charSect(ch);
+
+  function isUsable(item) {
+    var sect = item[2] || '';
+    if (!sect) return true;
+    if (!mySect) return true;
+    return sect === mySect;
+  }
+  function isExclusive(item) {
+    return !!(item[2] && item[2] === mySect);
+  }
+
   let html = '';
   for (let lv = 1; lv <= 4; lv++) {
+    var allItems = FABAO_DATA[lv];
+    var visibleItems;
+    if (fabaoFilter === 'usable') {
+      visibleItems = allItems.filter(isUsable);
+    } else if (fabaoFilter === 'exclusive') {
+      if (lv === 1 || lv === 4) {
+        visibleItems = [];
+      } else {
+        visibleItems = allItems.filter(function(item){ return item[2] && item[2] === mySect; });
+      }
+    } else {
+      visibleItems = allItems;
+    }
+    if (visibleItems.length === 0) continue;
+
     html += '<div class="fabao-section lvl' + lv + '">';
     html += '<div class="fabao-section-title"><span class="level-badge">' + levelNames[lv] + '</span>' + levelSubs[lv];
-    var lvTotal = FABAO_DATA[lv].length;
-    var lvCollected = FABAO_DATA[lv].filter(function(item) { return ch.fabao[item[0]]; }).length;
-    html += '<span class="fabao-collection-count"><span class="count-num">' + lvCollected + '</span>/' + lvTotal + '</span></div>';
+    // 收集度：统计本门派可用法宝的收集情况
+    var usableItems = allItems.filter(isUsable);
+    var lvTotal = usableItems.length;
+    var lvCollected = usableItems.filter(function(item) { return ch.fabao[item[0]]; }).length;
+    var countHtml = mySect
+      ? ('<span class="fabao-collection-count"><span class="count-num">' + lvCollected + '/' + lvTotal + '</span><span style="font-size:.68rem;opacity:.6;margin-left:2px">·' + mySect + '</span></span>')
+      : ('<span class="fabao-collection-count"><span class="count-num">' + lvCollected + '</span>/' + lvTotal + '</span>');
+    html += countHtml + '</div>';
     html += '<div class="fabao-section-grid">';
-    FABAO_DATA[lv].forEach(function(item) {
+    visibleItems.forEach(function(item) {
       const f = item[0];
+      const usable = isUsable(item);
+      const sectName = item[2] || '';
+      const isMine = sectName && sectName === mySect;
+      const isOther = sectName && sectName !== mySect;
       const checked = ch.fabao[f] ? 'checked' : '';
-      const cls = ch.fabao[f] ? ' checked' : '';
+      var cls = ch.fabao[f] ? ' checked' : '';
+      if (!usable) cls += ' locked';
       var iconHtml = '';
       var iconKey = FABAO_ICONS[f];
       if (iconKey) {
-        iconHtml = '<img class="fabao-icon" src="' + iconKey + '" loading="lazy" onerror="this.style.display=\x27none\x27">';
+        iconHtml = '<img class="fabao-icon" src="' + iconKey + '" loading="lazy" onerror="this.style.display=\'none\'">';
       } else {
-        iconHtml = '<span class="fabao-icon-emoji">🔮</span>';
+        iconHtml = '<span class="fabao-icon-emoji">\u{1F52E}</span>';
       }
       const typeTag = '<span class="fabao-type-tag">' + item[1] + '</span>';
+      var sectTag = '';
+      if (isMine) {
+        sectTag = '<span class="fabao-sect-tag mine">' + sectName + '</span>';
+      } else if (isOther && fabaoFilter === 'all') {
+        sectTag = '<span class="fabao-sect-tag other">' + sectName + '</span>';
+      }
+      var onchg = usable ? 'onchange="onFabaoChange(\'' + f + '\', this.checked)"' : 'disabled';
       html += '<label class="fabao-item' + cls + '">' +
-        '<input type="checkbox" ' + checked + ' onchange="onFabaoChange(\'' + f + '\', this.checked)">' +
+        '<input type="checkbox" ' + checked + ' ' + onchg + '>' +
         iconHtml +
-        '<span>' + f + '</span>' + typeTag + '</label>';
+        '<span>' + f + '</span>' + typeTag + sectTag + '</label>';
     });
     html += '</div></div>';
   }
   grid.innerHTML = html;
 }
+
 
 function onFabaoChange(name, val) {
   const ch = appData.characters[appData.fabaoCharIdx];
