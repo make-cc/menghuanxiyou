@@ -48,12 +48,12 @@ body {
 /* === Layout === */
 .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
 .tabs {
-  display: flex; gap: 4px; background: var(--card); border-radius: var(--radius);
+  display: flex; gap: 4px; align-items: center; background: var(--card); border-radius: var(--radius);
   padding: 4px; box-shadow: var(--shadow); margin-bottom: 16px; overflow-x: auto;
   position: sticky; top: 0; z-index: 10;
 }
 .tab {
-  flex: 1; min-width: 0; padding: 10px 8px; text-align: center;
+  flex-shrink: 0; padding: 10px 8px; text-align: center;
   border: none; background: none; border-radius: 8px;
   font-size: .85rem; font-weight: 500; color: var(--muted);
   cursor: pointer; transition: all .2s; white-space: nowrap;
@@ -354,15 +354,6 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
 <div class="header">
   <h1>🎮 梦幻西游 · 修炼数据</h1>
   <p>多角色修炼进度追踪 · 云端同步</p>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span id="unsync-hint" style="display:none; color:#f0a030; font-size:12px;cursor:default;">● 有未同步的改动</span>
-    <button class="btn" onclick="saveData()" style="padding:6px 16px;font-size:.85rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.15);">☁️ 同步到云端</button>
-
-    <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer" title="点击管理云端存档">
-      <span class="sync-dot" id="sync-dot"></span>
-      <span id="sync-text">同步中...</span>
-    </div>
-  </div>
 </div>
 
 <!-- 云存档管理面板 -->
@@ -395,6 +386,14 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <button class="tab" onclick="switchTab(3)">💰 汇率换算</button>
     <button class="tab" onclick="switchTab(4)">💎 宝石合成</button>
     <button class="tab" onclick="switchTab(5)">📊 一览</button>
+    <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;">
+      <span id="unsync-hint" style="display:none; color:#f0a030; font-size:11px;cursor:default;">● 未同步</span>
+      <button class="btn" onclick="saveData()" style="padding:5px 12px;font-size:.78rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;">☁️ 同步</button>
+      <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer;margin-top:0;" title="点击管理云端存档">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span id="sync-text">同步中...</span>
+      </div>
+    </span>
   </div>
 
   <!-- ========== TAB 0: 修炼进度 ========== -->
