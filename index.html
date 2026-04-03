@@ -36,28 +36,14 @@ body {
 .sync-dot.off { background: #f87171; }
 
 /* === Overview === */
-.overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
-.overview-card {
-  background: var(--card); border-radius: var(--radius); padding: 16px;
-  box-shadow: var(--shadow); border: 1px solid var(--border);
-}
-.overview-card h3 {
-  font-size: 1rem; margin: 0 0 12px; padding-bottom: 8px;
-  border-bottom: 2px solid var(--blue); display: flex; align-items: center; gap: 8px;
-}
-.overview-card h3 .sect-tag {
-  font-size: .7rem; padding: 2px 8px; border-radius: 10px;
-  background: rgba(79,110,247,.12); color: var(--blue); font-weight: 500;
-}
-.ov-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
-.ov-table th { text-align: left; padding: 4px 6px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
-.ov-table td { padding: 3px 6px; }
-.ov-table .ov-label { color: var(--muted); }
-.ov-table .ov-val { text-align: right; font-weight: 500; }
-.ov-table .ov-dash { color: #ccc; text-align: right; }
-.ov-table .ov-section td { font-weight: 600; padding-top: 8px; color: var(--blue); font-size: .75rem; }
-.ov-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; min-width: 60px; }
-.ov-bar-fill { height: 100%; background: var(--blue); border-radius: 3px; transition: width .3s; }
+.overview-grid { padding: 16px; }
+.ov-compare-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.ov-compare-table th, .ov-compare-table td { padding: 6px 10px; border: 1px solid var(--border); text-align: center; white-space: nowrap; }
+.ov-compare-table th { background: var(--bg); font-weight: 600; position: sticky; top: 0; }
+.ov-th-name { text-align: left !important; min-width: 80px; position: sticky; left: 0; background: var(--card); z-index: 1; }
+.ov-section td { background: var(--blue-light); font-weight: 600; font-size: .75rem; color: var(--blue); }
+.ov-label { text-align: left !important; min-width: 80px; position: sticky; left: 0; background: var(--card); z-index: 1; color: var(--text); }
+.ov-val { min-width: 90px; }
 
 /* === Layout === */
 .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
@@ -2044,96 +2030,176 @@ function migrateSkillKeys() {
 
 // ==================== OVERVIEW ====================
 function renderOverview() {
-  const grid = document.getElementById('overview-grid');
-  if (!grid) return;
-  let html = '';
+  const container = document.getElementById('overview-grid');
+  if (!container) return;
 
-  appData.characters.forEach((ch, idx) => {
-    const sect = charSect(ch);
-    const data = ch.data || {};
-    const skillItems = (ch.skillNames && ch.skillNames.length) ? ch.skillNames : ITEM_GROUPS[0].items;
+  const chars = appData.characters;
+  const n = chars.length;
+  if (n === 0) { container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px">暂无角色数据</p>'; return; }
 
-    html += '<div class="overview-card">';
-    html += '<h3>' + esc(ch.name);
-    if (sect) html += ' <span class="sect-tag">' + esc(sect) + '</span>';
-    html += '</h3>';
-    html += '<table class="ov-table">';
+  // 收集所有技能名(取并集)
+  const allSkillNames = new Set();
+  chars.forEach(ch => {
+    const items = (ch.skillNames && ch.skillNames.length) ? ch.skillNames : ITEM_GROUPS[0].items;
+    items.forEach(name => allSkillNames.add(name));
+  });
+  const skillList = [...allSkillNames];
 
-    // --- 师门技能 ---
-    html += '<tr class="ov-section"><td colspan="2">师门技能</td></tr>';
-    let skillMaxT = 0;
-    skillItems.forEach(item => {
-      const d = data[item] || {cur:0,target:0};
-      const r = autoCalc(item, d.cur, d.target);
-      if (d.target > skillMaxT) skillMaxT = d.target;
-      if (d.cur > 0 || d.target > 0) {
-        const pct = d.target > 0 ? Math.min(100, Math.round(d.cur/d.target*100)) : 0;
-        html += '<tr><td class="ov-label">' + esc(item) + '</td>';
-        html += '<td class="ov-val">' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.7rem">(' + pct + '%)</span></td></tr>';
-      }
+  // 收集有数据的辅助技能
+  const activeAux = [];
+  AUX_SKILLS.forEach(a => {
+    let any = false;
+    chars.forEach(ch => {
+      const d = (ch.data || {})[a.name] || {cur:0,target:0};
+      if (d.cur > 0 || d.target > 0) any = true;
     });
-
-    // --- 人物修炼 ---
-    html += '<tr class="ov-section"><td colspan="2">人物修炼</td></tr>';
-    ['攻法修','防御修','法防修'].forEach(item => {
-      const d = data[item] || {cur:0,target:0};
-      if (d.cur > 0 || d.target > 0) {
-        const r = autoCalc(item, d.cur, d.target);
-        const goldStr = r.gold > 0 ? fmtGold(r.gold) : '—';
-        html += '<tr><td class="ov-label">' + item + '</td>';
-        html += '<td class="ov-val">' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.7rem">' + goldStr + '</span></td></tr>';
-      }
-    });
-
-    // --- 宠物修炼 ---
-    html += '<tr class="ov-section"><td colspan="2">宠物修炼</td></tr>';
-    ['攻修','防修','法修','法抗修'].forEach(item => {
-      const d = data[item] || {cur:0,target:0};
-      if (d.cur > 0 || d.target > 0) {
-        const r = autoCalc(item, d.cur, d.target);
-        const goldStr = r.gold > 0 ? fmtGold(r.gold) : '—';
-        const fruitStr = r.fruitCount > 0 ? '🍎' + r.fruitCount : '';
-        html += '<tr><td class="ov-label">' + item + '</td>';
-        html += '<td class="ov-val">' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.7rem">' + goldStr + ' ' + fruitStr + '</span></td></tr>';
-      }
-    });
-
-    // --- 辅助修炼(只显示有数据的) ---
-    let hasAux = false;
-    AUX_SKILLS.forEach(a => {
-      const d = data[a.name] || {cur:0,target:0};
-      if (d.cur > 0 || d.target > 0) { hasAux = true; }
-    });
-    if (hasAux) {
-      html += '<tr class="ov-section"><td colspan="2">辅助修炼</td></tr>';
-      AUX_SKILLS.forEach(a => {
-        const d = data[a.name] || {cur:0,target:0};
-        if (d.cur > 0 || d.target > 0) {
-          html += '<tr><td class="ov-label">' + esc(a.name) + '</td>';
-          html += '<td class="ov-val">' + d.cur + '/' + a.max + '</td></tr>';
-        }
-      });
-    }
-
-    // --- 乾元丹 / 潜力果 ---
-    const qy = data['乾元丹'] || {cur:0,target:0};
-    const qlg = data['潜力果'] || {cur:0,target:0};
-    if (qy.cur > 0 || qy.target > 0 || qlg.cur > 0 || qlg.target > 0) {
-      html += '<tr class="ov-section"><td colspan="2">其他</td></tr>';
-    }
-    if (qy.cur > 0 || qy.target > 0) {
-      html += '<tr><td class="ov-label">乾元丹</td>';
-      html += '<td class="ov-val">' + qy.cur + '→' + qy.target + '</td></tr>';
-    }
-    if (qlg.cur > 0 || qlg.target > 0) {
-      html += '<tr><td class="ov-label">潜力果</td>';
-      html += '<td class="ov-val">' + qlg.cur + '→' + qlg.target + '</td></tr>';
-    }
-
-    html += '</table></div>';
+    if (any) activeAux.push(a);
   });
 
-  grid.innerHTML = html;
+  const xiulianItems = ['攻法修','防御修','法防修'];
+  const petItems = ['攻修','防修','法修','法抗修'];
+  const otherItems = ['乾元丹','潜力果'];
+
+  // 修炼花费汇总
+  function xiulianCost(ch) {
+    const data = ch.data || {};
+    let totalGold = 0, totalFruit = 0;
+    xiulianItems.concat(petItems).forEach(item => {
+      const d = data[item] || {cur:0,target:0};
+      if (d.cur > 0 || d.target > 0) {
+        const r = autoCalc(item, d.cur, d.target);
+        totalGold += r.gold || 0;
+        totalFruit += r.fruitCount || 0;
+      }
+    });
+    return { gold: totalGold, fruit: totalFruit };
+  }
+
+  let h = '<div style="overflow-x:auto"><table class="ov-compare-table"><thead><tr><th class="ov-th-name">项目</th>';
+  chars.forEach(ch => {
+    const sect = charSect(ch);
+    h += '<th>' + esc(ch.name);
+    if (sect) h += '<br><span class="sect-tag" style="font-size:.65rem">' + esc(sect) + '</span>';
+    h += '</th>';
+  });
+  h += '</tr></thead><tbody>';
+
+  // --- 师门技能 ---
+  h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">师门技能</td></tr>';
+  skillList.forEach(item => {
+    h += '<tr><td class="ov-label">' + esc(item) + '</td>';
+    chars.forEach(ch => {
+      const d = (ch.data || {})[item] || {cur:0,target:0};
+      if (d.cur > 0 || d.target > 0) {
+        const pct = d.target > 0 ? Math.min(100, Math.round(d.cur / d.target * 100)) : 0;
+        h += '<td class="ov-val">' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.65rem">(' + pct + '%)</span></td>';
+      } else {
+        h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
+      }
+    });
+    h += '</tr>';
+  });
+
+  // --- 人物修炼 ---
+  h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">人物修炼</td></tr>';
+  xiulianItems.forEach(item => {
+    h += '<tr><td class="ov-label">' + item + '</td>';
+    chars.forEach(ch => {
+      const d = (ch.data || {})[item] || {cur:0,target:0};
+      if (d.cur > 0 || d.target > 0) {
+        const r = autoCalc(item, d.cur, d.target);
+        const goldStr = r.gold > 0 ? fmtGold(r.gold) : '';
+        h += '<td class="ov-val">' + d.cur + '→' + d.target;
+        if (goldStr) h += ' <span style="color:var(--muted);font-size:.65rem">' + goldStr + '</span>';
+        h += '</td>';
+      } else {
+        h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
+      }
+    });
+    h += '</tr>';
+  });
+
+  // --- 宠物修炼 ---
+  h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">宠物修炼</td></tr>';
+  petItems.forEach(item => {
+    h += '<tr><td class="ov-label">' + item + '</td>';
+    chars.forEach(ch => {
+      const d = (ch.data || {})[item] || {cur:0,target:0};
+      if (d.cur > 0 || d.target > 0) {
+        const r = autoCalc(item, d.cur, d.target);
+        const goldStr = r.gold > 0 ? fmtGold(r.gold) : '';
+        const fruitStr = r.fruitCount > 0 ? ' 🍎' + r.fruitCount : '';
+        h += '<td class="ov-val">' + d.cur + '→' + d.target;
+        if (goldStr || fruitStr) h += '<span style="color:var(--muted);font-size:.65rem">' + goldStr + fruitStr + '</span>';
+        h += '</td>';
+      } else {
+        h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
+      }
+    });
+    h += '</tr>';
+  });
+
+  // --- 辅助修炼 ---
+  if (activeAux.length > 0) {
+    h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">辅助修炼</td></tr>';
+    activeAux.forEach(a => {
+      const maxLv = a.max || '?';
+      h += '<tr><td class="ov-label">' + esc(a.name) + '<span style="color:var(--muted);font-size:.6rem"> (max' + maxLv + ')</span></td>';
+      chars.forEach(ch => {
+        const d = (ch.data || {})[a.name] || {cur:0,target:0};
+        if (d.cur > 0 || d.target > 0) {
+          h += '<td class="ov-val">' + d.cur + '/' + maxLv;
+          if (d.target > d.cur) h += ' →' + d.target;
+          h += '</td>';
+        } else {
+          h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
+        }
+      });
+      h += '</tr>';
+    });
+  }
+
+  // --- 其他 ---
+  let hasOther = false;
+  chars.forEach(ch => {
+    const data = ch.data || {};
+    const qy = data['乾元丹'] || {cur:0,target:0};
+    const qlg = data['潜力果'] || {cur:0,target:0};
+    if (qy.cur > 0 || qy.target > 0 || qlg.cur > 0 || qlg.target > 0) hasOther = true;
+  });
+  if (hasOther) {
+    h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">其他</td></tr>';
+    otherItems.forEach(item => {
+      h += '<tr><td class="ov-label">' + item + '</td>';
+      chars.forEach(ch => {
+        const d = (ch.data || {})[item] || {cur:0,target:0};
+        if (d.cur > 0 || d.target > 0) {
+          h += '<td class="ov-val">' + d.cur + '→' + d.target + '</td>';
+        } else {
+          h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
+        }
+      });
+      h += '</tr>';
+    });
+  }
+
+  // --- 修炼花费汇总 ---
+  h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">修炼花费汇总</td></tr>';
+  h += '<tr><td class="ov-label">修炼总花费</td>';
+  chars.forEach(ch => {
+    const c = xiulianCost(ch);
+    if (c.gold > 0) {
+      h += '<td class="ov-val" style="color:var(--gold)">' + fmtGold(c.gold);
+      if (c.fruit > 0) h += '<br><span style="font-size:.65rem">🍎' + c.fruit + '个</span>';
+      h += '</td>';
+    } else {
+      h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
+    }
+  });
+  h += '</tr>';
+
+  h += '</tbody></table></div>';
+  container.innerHTML = h;
 }
 
 function renderAll() {
