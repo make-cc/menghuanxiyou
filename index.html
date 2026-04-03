@@ -2037,13 +2037,7 @@ function renderOverview() {
   const n = chars.length;
   if (n === 0) { container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px">暂无角色数据</p>'; return; }
 
-  // 收集所有技能名(取并集)
-  const allSkillNames = new Set();
-  chars.forEach(ch => {
-    const items = (ch.skillNames && ch.skillNames.length) ? ch.skillNames : ITEM_GROUPS[0].items;
-    items.forEach(name => allSkillNames.add(name));
-  });
-  const skillList = [...allSkillNames];
+  const skillList = ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7'];
 
   // 收集有数据的辅助技能
   const activeAux = [];
@@ -2086,13 +2080,15 @@ function renderOverview() {
 
   // --- 师门技能 ---
   h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">师门技能</td></tr>';
-  skillList.forEach(item => {
-    h += '<tr><td class="ov-label">' + esc(item) + '</td>';
+  skillList.forEach((item, si) => {
+    h += '<tr><td class="ov-label">' + item + '</td>';
     chars.forEach(ch => {
+      const names = (ch.skillNames && ch.skillNames.length) ? ch.skillNames : ITEM_GROUPS[0].items;
+      const label = names[si] || item;
       const d = (ch.data || {})[item] || {cur:0,target:0};
       if (d.cur > 0 || d.target > 0) {
         const pct = d.target > 0 ? Math.min(100, Math.round(d.cur / d.target * 100)) : 0;
-        h += '<td class="ov-val">' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.65rem">(' + pct + '%)</span></td>';
+        h += '<td class="ov-val">' + label + ' ' + d.cur + '→' + d.target + ' <span style="color:var(--muted);font-size:.65rem">(' + pct + '%)</span></td>';
       } else {
         h += '<td class="ov-val"><span style="color:var(--muted)">—</span></td>';
       }
