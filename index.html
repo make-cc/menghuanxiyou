@@ -412,9 +412,9 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.82rem;">
           <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">🎭 装备套</div>
           <!-- 属性套（变身术） -->
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
             <span style="color:var(--muted);white-space:nowrap;">属性套：</span>
-            <select id="suit-attr-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+            <select id="suit-attr-type" onchange="onSuitAttrTypeChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
               <option value="">无</option>
               <option value="体质">体质</option>
               <option value="魔力">魔力</option>
@@ -422,10 +422,8 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
               <option value="耐力">耐力</option>
               <option value="敏捷">敏捷</option>
             </select>
-            <select id="suit-attr-tier" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="sx1">一线</option>
-              <option value="sx2">二线</option>
-              <option value="sx3">三线</option>
+            <select id="suit-attr-name" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">选择套装</option>
             </select>
             <select id="suit-attr-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
               <option value="0">无</option>
@@ -433,10 +431,10 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
               <option value="4">4件</option>
               <option value="5">5件</option>
             </select>
-            <span id="suit-attr-result" style="color:var(--accent);font-weight:600;"></span>
+            <span id="suit-attr-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
           </div>
           <!-- 状态套（附加状态） -->
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
             <span style="color:var(--muted);white-space:nowrap;">状态套：</span>
             <select id="suit-status-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
               <option value="">无</option>
@@ -459,10 +457,10 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
               <option value="4">4件</option>
               <option value="5">5件</option>
             </select>
-            <span id="suit-status-result" style="color:var(--accent);font-weight:600;"></span>
+            <span id="suit-status-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
           </div>
           <!-- 4孔数量 -->
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
             <span style="color:var(--muted);white-space:nowrap;">4孔装备：</span>
             <select id="suit-hole4" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
               <option value="0">0件</option>
@@ -1573,11 +1571,122 @@ function fmtGold(n) { return fmtWan(n); }
 function fmtExp(n) { return fmtWan(n); }
 
 // ==================== SUIT PANEL ====================
-const SUIT_ATTR_FORMULA = {
-  sx1: { label: '一线', f3: function(lv){ return Math.floor(lv/3+15); }, f5: function(lv){ return Math.floor(lv/3+25); } },
-  sx2: { label: '二线', f3: function(lv){ return Math.floor(lv/4+15); }, f5: function(lv){ return Math.floor(lv/4+25); } },
-  sx3: { label: '三线', f3: function(lv){ return Math.floor(lv/4+10); }, f5: function(lv){ return Math.floor(lv/4+20); } }
+// 变身术套装完整数据（来源：梦幻小助手 mh.ycccx.cn）
+// 格式: [名称, 描述, 3件公式, 3件变身率, 5件公式, 5件变身率]
+const SUIT_DATA_RAW = {
+  ml: [
+    ["巨蛙","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["小龙女","驱鬼，-5%伤害", "LV/6+5", 10, "LV/6+10", 30],
+    ["蝴蝶仙子","魔之心，-10%防御", "LV/5+10", 7, "LV/5+15", 20],
+    ["花妖","慧根", "LV/6+5", 17, "LV/6+10", 50],
+    ["蜘蛛精","毒，-10%防御", "LV/5+10", 8, "LV/5+15", 25],
+    ["古代瑞兽","反震，-10%气血", "LV/5+10", 7, "LV/5+15", 20],
+    ["蛟龙","永恒或感知", "LV/4+10", 5, "LV/4+15", 15],
+    ["如意仙子","速度+8%，灵力+20", "LV/4+10", 3, "LV/4+15", 10],
+    ["星灵仙子","慧根，灵力+10", "LV/4+10", 3, "LV/4+15", 10],
+    ["雨师","灵力+20", "LV/4+10", 5, "LV/4+15", 15],
+    ["净瓶女娲","高永恒，-5%防御", "LV/4+10", 3, "LV/4+15", 10],
+    ["灵符女娲","魔之心", "LV/4+10", 3, "LV/4+15", 10],
+    ["灵鹤","高魔心，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["炎魔神","高魔心，-15%气血", "LV/4+15", 3, "LV/4+25", 10],
+    ["葫芦宝贝","慧根，+5%气血", "LV/4+15", 3, "LV/4+25", 10],
+    ["混沌兽","高魔心，-12%气血", "LV/3+5", 3, "LV/3+15", 10],
+    ["蜃气妖","魔之心，+30防御", "LV/3+5", 3, "LV/3+15", 10],
+    ["长眉灵猴","法术暴击，-10%气血", "LV/3+5", 3, "LV/3+15", 10]
+  ],
+  ll: [
+    ["强盗","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["狂豹","高飞行，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["地狱战神","连击，-5%气血", "LV/5+10", 5, "LV/5+15", 15],
+    ["老虎","强力，-10%速度", "LV/6+5", 5, "LV/6+10", 17],
+    ["海毛虫","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["巡游天神","必杀，-20%速度", "LV/4+10", 3, "LV/4+15", 10],
+    ["马面","必杀，-8%伤害", "LV/5+10", 8, "LV/5+15", 25],
+    ["蛤蟆精","毒，-15%防御", "LV/6+5", 17, "LV/6+10", 50],
+    ["巨力神猿","高强力，-5%灵力", "LV/3+5", 3, "LV/3+15", 10],
+    ["天将","强力，-8%灵力", "LV/5+10", 5, "LV/5+15", 15],
+    ["夜罗刹","高夜战，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["修罗傀儡鬼","夜战，+150气血", "LV/3+15", 3, "LV/3+15", 10],
+    ["鬼将","高必杀，-10%伤害", "LV/4+10", 3, "LV/4+15", 10],
+    ["噬天虎","高强力，-10%速度", "LV/4+15", 3, "LV/4+25", 10]
+  ],
+  mj: [
+    ["赌徒","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["狼","偷袭，-10气血", "LV/6+5", 10, "LV/6+10", 30],
+    ["骷髅怪","夜战，-20%气血", "LV/6+5", 17, "LV/6+10", 50],
+    ["虾兵","必杀，-10%伤害", "LV/6+5", 10, "LV/6+10", 30],
+    ["风伯","敏捷，-5%防御", "LV/5+10", 5, "LV/5+15", 15],
+    ["大蝙蝠","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["凤凰","飞行", "LV/4+10", 5, "LV/4+15", 15],
+    ["狐狸精","感知，-5%气血", "LV/6+5", 17, "LV/6+10", 50],
+    ["兔子怪","敏捷，-10%气血", "LV/5+10", 8, "LV/5+15", 25],
+    ["幽灵","高夜战", "LV/4+10", 3, "LV/4+15", 10],
+    ["雷鸟人","飞行，-10%气血", "LV/5+10", 7, "LV/5+15", 20],
+    ["吸血鬼","偷袭，-5%速度", "LV/4+10", 3, "LV/4+15", 10],
+    ["画魂","高幸运", "LV/4+10", 3, "LV/4+15", 10],
+    ["雾中仙","高敏捷，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["机关鸟","高再生，-5%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["巴蛇","高毒", "LV/4+15", 3, "LV/4+25", 10],
+    ["猫灵","敏捷，速度+10", "LV/4+15", 3, "LV/4+25", 10],
+    ["修罗傀儡妖","必杀", "LV/3+5", 3, "LV/3+15", 10]
+  ],
+  nl: [
+    ["护卫","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["羊头怪","幸运，-10%气血", "LV/6+5", 17, "LV/6+10", 50],
+    ["律法女娲","高反击，-10%速度", "LV/4+10", 3, "LV/4+15", 10],
+    ["牛妖","反击，-5%防御", "LV/6+5", 10, "LV/6+10", 30],
+    ["龙龟","",  "LV/4+15", 3, "LV/4+25", 10],
+    ["幽莹娃娃","防御，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["蟹将","连击，-12%速度", "LV/6+5", 10, "LV/6+10", 30],
+    ["连弩车","高强力，-10%气血", "LV/4+15", 3, "LV/4+25", 10],
+    ["红萼仙子","速度+5%，气血+5%", "LV/4+15", 3, "LV/4+25", 10],
+    ["牛头","招架", "LV/5+10", 8, "LV/5+15", 25],
+    ["蝎子精","高反震，-10%气血", "LV/3+5", 3, "LV/3+15", 10],
+    ["曼珠沙华","高敏捷，-9%防御", "LV/3+5", 3, "LV/3+15", 10],
+    ["天兵","防御，+5%速度", "LV/5+10", 5, "LV/5+15", 15],
+    ["芙蓉仙子","再生，防御-30", "LV/4+10", 3, "LV/4+15", 10]
+  ],
+  tz: [
+    ["树怪","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["白熊","迟钝", "LV/5+10", 7, "LV/5+15", 20],
+    ["机关兽","速度+10%", "LV/4+15", 3, "LV/4+25", 10],
+    ["山贼","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["大海龟","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["黑山老妖","偷袭，-10%速度", "LV/5+10", 7, "LV/5+15", 20],
+    ["野猪","",  "LV/6+5", 33, "LV/6+10", 100],
+    ["龟丞相","气血+7%，防御+10", "LV/5+10", 8, "LV/5+15", 25],
+    ["大力金刚","高防御，-5%灵力", "LV/4+15", 3, "LV/4+25", 10],
+    ["黑熊","防御，-5%灵力", "LV/6+5", 17, "LV/6+10", 50],
+    ["黑熊精","反震，-10%防御", "LV/5+10", 8, "LV/5+15", 25],
+    ["金身罗汉","气血+10%，+50魔法", "LV/3+5", 3, "LV/3+15", 10],
+    ["野鬼","夜战，-5%灵力", "LV/6+5", 10, "LV/6+10", 30],
+    ["踏云兽","气血+10%，+50魔法", "LV/4+15", 3, "LV/4+25", 10],
+    ["藤蔓妖花","毒，命中+100", "LV/3+5", 3, "LV/3+15", 10],
+    ["僵尸","弱电雷，+10%气血", "LV/5+10", 8, "LV/5+15", 25]
+  ]
 };
+
+// 属性类型key映射
+const SUIT_ATTR_KEYS = { '体质':'tz', '魔力':'ml', '力量':'ll', '耐力':'nl', '敏捷':'mj' };
+const SUIT_ATTR_NAMES = { 'tz':'体质', 'ml':'魔力', 'll':'力量', 'nl':'耐力', 'mj':'敏捷' };
+
+// 根据公式判断几线
+function suitTierLabel(formula3) {
+  if (/LV\/3\+5/.test(formula3)) return '一线';
+  if (/LV\/3\+15/.test(formula3)) return '一线';
+  if (/LV\/4\+15/.test(formula3)) return '二线';
+  if (/LV\/4\+10/.test(formula3)) return '三线';
+  if (/LV\/5\+10/.test(formula3)) return '四线';
+  if (/LV\/6\+5/.test(formula3)) return '五线';
+  return '';
+}
+
+// 计算公式值
+function evalSuitFormula(formula, lv) {
+  try {
+    return Math.floor(eval(formula.replace(/LV/gi, lv)));
+  } catch(e) { return 0; }
+}
 
 const STATUS_SKILL_MAP = {
   '定心术': { desc: '提灵', effect: function(lv,n5){ return '+' + (n5 ? Math.floor((lv+10)*1.5) : Math.floor((lv-10)*1.5)) + '灵力'; } },
@@ -1600,12 +1709,41 @@ function getCharLevel() {
   return (ch.data && ch.data['等级']) ? (ch.data['等级'].cur || 0) : 0;
 }
 
+function buildSuitNameOptions(attrType) {
+  // 只填充下拉选项，不触发onSuitChange
+  var nameSelect = document.getElementById('suit-attr-name');
+  nameSelect.innerHTML = '<option value="">选择套装</option>';
+  if (!attrType) return;
+  var key = SUIT_ATTR_KEYS[attrType];
+  var list = SUIT_DATA_RAW[key];
+  if (!list) return;
+  var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
+  var sorted = list.slice().sort(function(a,b){
+    return (tierOrder[suitTierLabel(a[2])]||9) - (tierOrder[suitTierLabel(b[2])]||9);
+  });
+  for (var i = 0; i < sorted.length; i++) {
+    var item = sorted[i];
+    var tier = suitTierLabel(item[2]);
+    var opt = document.createElement('option');
+    opt.value = item[0];
+    opt.textContent = item[0] + ' [' + tier + ']' + (item[1] ? ' -' + item[1] : '');
+    nameSelect.appendChild(opt);
+  }
+}
+
+function onSuitAttrTypeChange() {
+  var attrType = document.getElementById('suit-attr-type').value;
+  buildSuitNameOptions(attrType);
+  onSuitChange();
+}
+
 function renderSuitPanel() {
   var ch = appData.characters[appData.activeCharIdx];
   if (!ch || !ch.suitData) return;
   var s = ch.suitData;
   document.getElementById('suit-attr-type').value = s.attrType || '';
-  document.getElementById('suit-attr-tier').value = s.attrTier || 'sx2';
+  buildSuitNameOptions(s.attrType);
+  document.getElementById('suit-attr-name').value = s.attrName || '';
   document.getElementById('suit-attr-pieces').value = s.attrPieces || 0;
   document.getElementById('suit-status-type').value = s.statusType || '';
   document.getElementById('suit-status-pieces').value = s.statusPieces || 0;
@@ -1616,9 +1754,9 @@ function renderSuitPanel() {
 function onSuitChange() {
   var ch = appData.characters[appData.activeCharIdx];
   if (!ch) return;
-  if (!ch.suitData) ch.suitData = { attrType:'', attrTier:'sx2', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 };
+  if (!ch.suitData) ch.suitData = { attrType:'', attrName:'', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 };
   ch.suitData.attrType = document.getElementById('suit-attr-type').value;
-  ch.suitData.attrTier = document.getElementById('suit-attr-tier').value;
+  ch.suitData.attrName = document.getElementById('suit-attr-name').value;
   ch.suitData.attrPieces = parseInt(document.getElementById('suit-attr-pieces').value) || 0;
   ch.suitData.statusType = document.getElementById('suit-status-type').value;
   ch.suitData.statusPieces = parseInt(document.getElementById('suit-status-pieces').value) || 0;
@@ -1635,11 +1773,22 @@ function calcSuitResult() {
 
   // 属性套计算
   var attrEl = document.getElementById('suit-attr-result');
-  if (s.attrType && s.attrPieces > 0 && lv > 0) {
-    var tier = SUIT_ATTR_FORMULA[s.attrTier] || SUIT_ATTR_FORMULA.sx2;
-    var val = s.attrPieces >= 5 ? tier.f5(lv) : tier.f3(lv);
-    attrEl.textContent = tier.label + ' ' + s.attrPieces + '件 → +' + val + s.attrType + (s.attrPieces >= 5 ? '' : '（3/4件同效果）');
-  } else if (s.attrType && s.attrPieces > 0) {
+  if (s.attrType && s.attrName && s.attrPieces > 0 && lv > 0) {
+    var key = SUIT_ATTR_KEYS[s.attrType];
+    var list = SUIT_DATA_RAW[key];
+    var item = null;
+    for (var i = 0; i < list.length; i++) { if (list[i][0] === s.attrName) { item = list[i]; break; } }
+    if (item) {
+      var tier = suitTierLabel(item[2]);
+      var formula3 = item[2], formula5 = item[4];
+      var is5 = s.attrPieces >= 5;
+      var val = evalSuitFormula(is5 ? formula5 : formula3, lv);
+      var rate = is5 ? item[5] : item[3];
+      attrEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 → +' + val + s.attrType + '（变身' + rate + '%）';
+    } else {
+      attrEl.textContent = '';
+    }
+  } else if (s.attrType && s.attrName && s.attrPieces > 0) {
     attrEl.textContent = '请先填写等级';
   } else {
     attrEl.textContent = '';
