@@ -476,6 +476,63 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       </div>
       <div id="wp-results"></div>
     </div>
+
+    <!-- 防乱敏配速 -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-header"><h2>⚡ 人物配速计算（防乱敏）</h2></div>
+      <p style="font-size:.8rem;color:var(--muted);margin:0 0 12px;">乱敏波动 ±5%，防乱敏需 快方面板 ≥ 慢方 × 1.105（+1保底）。输入角色速度，自动推算达标值与差值。</p>
+      <!-- 选项行 -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px;">
+        <label style="font-size:.85rem;">阵法：</label>
+        <select id="spd-zhen" onchange="calcSpeed()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;">
+          <option value="0.9">天覆阵（人物×0.9）</option>
+          <option value="1">无阵法（人物×1.0）</option>
+        </select>
+        <label style="font-size:.85rem;margin-left:8px;">模式：</label>
+        <select id="spd-mode" onchange="calcSpeed()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;">
+          <option value="normal">正常（2速无迟钝）</option>
+          <option value="chidun">迟钝（2速组×0.8后仍>化生）</option>
+        </select>
+      </div>
+      <!-- 角色速度输入 -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px;">
+        <div style="text-align:center;">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:2px;">天宫（1速）</div>
+          <input type="number" id="spd-tg" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:2px;">无底洞（2速）</div>
+          <input type="number" id="spd-wdd" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:2px;">女儿村（2速）</div>
+          <input type="number" id="spd-en" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:2px;">普陀（2速）</div>
+          <input type="number" id="spd-pt" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:2px;">化生（3速）</div>
+          <input type="number" id="spd-hs" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        </div>
+      </div>
+      <div id="spd-results"></div>
+      <!-- 速度提升参考 -->
+      <details style="margin-top:10px;">
+        <summary style="font-size:.8rem;color:var(--accent);cursor:pointer;">常见加速度方式参考</summary>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.8;padding:6px 0;">
+          <b>敏捷</b>：每点敏捷约0.7速度（受等级影响）<br>
+          <b>腰带/鞋子</b>：附加速度属性<br>
+          <b>黑宝石</b>：每级+8速度（打在腰带/鞋子上）<br>
+          <b>符石</b>：附加速度属性<br>
+          <b>灵饰</b>：戒指/配饰速度属性<br>
+          <b>钟灵石</b>：附加速度<br>
+          <b>神速</b>：辅助修炼，每级+1.5速度（奇数级+1偶数级+2）<br>
+          <b>装备属性</b>：头盔/项链/武器等附加速度
+        </div>
+      </details>
+    </div>
   </div>
 
   <!-- ========== TAB 3: 汇率换算 ========== -->
@@ -1231,7 +1288,7 @@ function switchTab(idx) {
     if (el) el.style.display = i === idx ? '' : 'none';
   });
   if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
-  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); }
+  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); calcSpeed(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
 }
@@ -1932,6 +1989,132 @@ function renderWeaponList() {
   html += '</tbody></table>';
   html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">属性法伤（体耐力魔贡献）: ' + base.toFixed(1) + '　·　元/点 = 价格÷总法伤</p>';
   div.innerHTML = html;
+}
+
+// ==================== SPEED CALC ====================
+var SPD_ROLES = [
+  { key:'tg', name:'天宫', tier:1 },
+  { key:'wdd', name:'无底洞', tier:2 },
+  { key:'en', name:'女儿村', tier:2 },
+  { key:'pt', name:'普陀', tier:2 },
+  { key:'hs', name:'化生', tier:3 }
+];
+
+function getSpdInputs() {
+  var data = {};
+  SPD_ROLES.forEach(function(r) {
+    var el = document.getElementById('spd-' + r.key);
+    var v = el ? parseFloat(el.value) : NaN;
+    data[r.key] = isNaN(v) ? 0 : v;
+  });
+  return data;
+}
+
+function calcSpeed() {
+  var zhen = parseFloat(document.getElementById('spd-zhen').value);
+  var mode = document.getElementById('spd-mode').value;
+  var inputs = getSpdInputs();
+  var RATIO = 1.1053;
+  var CHIDUN = 0.8;
+
+  var hasInput = SPD_ROLES.some(function(r) { return inputs[r.key] > 0; });
+  if (!hasInput) {
+    document.getElementById('spd-results').innerHTML =
+      '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:8px 0;">输入任意角色的面板速度开始计算</p>';
+    return;
+  }
+
+  var tier1Input = inputs.tg;
+  var tier2Inputs = [inputs.wdd, inputs.en, inputs.pt].filter(function(v) { return v > 0; });
+  var tier3Input = inputs.hs;
+  var tier1, tier2, tier3;
+
+  if (mode === 'chidun') {
+    if (tier3Input > 0) {
+      tier3 = tier3Input;
+      tier2 = Math.ceil(tier3 * RATIO / CHIDUN);
+      tier1 = Math.ceil(tier2 * RATIO);
+    } else if (tier2Inputs.length > 0) {
+      tier2 = Math.max.apply(null, tier2Inputs);
+      tier1 = Math.ceil(tier2 * RATIO);
+      tier3 = Math.floor(tier2 * CHIDUN / RATIO);
+    } else if (tier1Input > 0) {
+      tier1 = tier1Input;
+      tier2 = Math.floor(tier1 / RATIO);
+      tier3 = Math.floor(tier2 * CHIDUN / RATIO);
+    }
+  } else {
+    if (tier3Input > 0) {
+      tier3 = tier3Input;
+      tier2 = Math.ceil(tier3 * RATIO);
+      tier1 = Math.ceil(tier2 * RATIO);
+    } else if (tier2Inputs.length > 0) {
+      tier2 = Math.max.apply(null, tier2Inputs);
+      tier1 = Math.ceil(tier2 * RATIO);
+      tier3 = Math.floor(tier2 / RATIO);
+    } else if (tier1Input > 0) {
+      tier1 = tier1Input;
+      tier2 = Math.floor(tier1 / RATIO);
+      tier3 = Math.floor(tier2 / RATIO);
+    }
+  }
+
+  tier1 = tier1 + 1;
+  tier2 = tier2 + 1;
+  tier3 = tier3 + 1;
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:.85rem;">';
+  html += '<thead><tr style="background:var(--bg);">';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">角色</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">档位</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">当前速度</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">达标速度</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">差值</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">战斗速度</th>';
+  html += '</tr></thead><tbody>';
+
+  var rows = [
+    { key:'tg', name:'天宫', tier:'1速', current:inputs.tg, target:tier1 },
+    { key:'wdd', name:'无底洞', tier:'2速', current:inputs.wdd, target:tier2 },
+    { key:'en', name:'女儿村', tier:'2速', current:inputs.en, target:tier2 },
+    { key:'pt', name:'普陀', tier:'2速', current:inputs.pt, target:tier2 },
+    { key:'hs', name:'化生', tier:'3速', current:inputs.hs, target:tier3 }
+  ];
+
+  rows.forEach(function(r) {
+    var diff = r.current > 0 ? (r.target - r.current) : 0;
+    var diffStr = r.current > 0 ? (diff > 0 ? '<span style="color:#e53e3e;">+' + diff + '</span>' :
+      diff === 0 ? '<span style="color:#38a169;">达标</span>' :
+      '<span style="color:#38a169;">余' + (-diff) + '</span>') : '<span style="color:var(--muted);">--</span>';
+    var combatSpd = r.current > 0 ? Math.floor(r.current * zhen) : null;
+    var combatTarget = Math.floor(r.target * zhen);
+    var rowStyle = r.current > 0 && diff > 0 ? 'background:#fff5f5;' : 'background:var(--card);';
+
+    html += '<tr style="' + rowStyle + '">';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.name + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.tier + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (r.current > 0 ? r.current : '--') + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;font-weight:600;">' + r.target + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + diffStr + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">';
+    if (combatSpd !== null) {
+      html += combatSpd + '<span style="color:var(--muted);font-size:.75rem;"> →' + combatTarget + '</span>';
+    } else {
+      html += combatTarget;
+    }
+    html += '</td></tr>';
+  });
+
+  html += '</tbody></table>';
+
+  var modeText = mode === 'chidun' ? '迟钝模式：2速x0.8后仍需防乱敏>化生' : '正常模式：各档位直接防乱敏';
+  html += '<p style="font-size:.75rem;color:var(--muted);margin:6px 0 0;">' + modeText + ' · 阵法系数 ' + zhen + ' · 达标值已含+1保底 · 战斗速度=面板x阵法</p>';
+
+  if (mode === 'normal') {
+    html += '<p style="font-size:.75rem;color:#dd6b20;margin:4px 0 0;">如果2速组可能卡迟钝，请切换到「迟钝」模式查看更严格的达标要求</p>';
+  }
+
+  document.getElementById('spd-results').innerHTML = html;
 }
 
 // ==================== GEM SYNTHESIS ====================
