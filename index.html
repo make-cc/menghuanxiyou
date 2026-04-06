@@ -407,6 +407,76 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
           <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
         </div>
       </div>
+      <!-- 装备套选择 -->
+      <div id="suit-panel" style="padding:0 16px 8px;">
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.82rem;">
+          <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">🎭 装备套</div>
+          <!-- 属性套（变身术） -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);white-space:nowrap;">属性套：</span>
+            <select id="suit-attr-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">无</option>
+              <option value="体质">体质</option>
+              <option value="魔力">魔力</option>
+              <option value="力量">力量</option>
+              <option value="耐力">耐力</option>
+              <option value="敏捷">敏捷</option>
+            </select>
+            <select id="suit-attr-tier" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="sx1">一线</option>
+              <option value="sx2">二线</option>
+              <option value="sx3">三线</option>
+            </select>
+            <select id="suit-attr-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="0">无</option>
+              <option value="3">3件</option>
+              <option value="4">4件</option>
+              <option value="5">5件</option>
+            </select>
+            <span id="suit-attr-result" style="color:var(--accent);font-weight:600;"></span>
+          </div>
+          <!-- 状态套（附加状态） -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);white-space:nowrap;">状态套：</span>
+            <select id="suit-status-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">无</option>
+              <option value="定心术">定心术</option>
+              <option value="金刚护法">金刚护法</option>
+              <option value="逆鳞">逆鳞</option>
+              <option value="生命之泉">生命之泉</option>
+              <option value="幽冥鬼眼">幽冥鬼眼</option>
+              <option value="盘丝阵">盘丝阵</option>
+              <option value="楚楚可怜">楚楚可怜</option>
+              <option value="百毒不侵">百毒不侵</option>
+              <option value="极度疯狂">极度疯狂</option>
+              <option value="魔王回首">魔王回首</option>
+              <option value="明光宝烛">明光宝烛</option>
+              <option value="变身">变身(狮驼)</option>
+            </select>
+            <select id="suit-status-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="0">无</option>
+              <option value="3">3件</option>
+              <option value="4">4件</option>
+              <option value="5">5件</option>
+            </select>
+            <span id="suit-status-result" style="color:var(--accent);font-weight:600;"></span>
+          </div>
+          <!-- 4孔数量 -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <span style="color:var(--muted);white-space:nowrap;">4孔装备：</span>
+            <select id="suit-hole4" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="0">0件</option>
+              <option value="1">1件</option>
+              <option value="2">2件</option>
+              <option value="3">3件</option>
+              <option value="4">4件</option>
+              <option value="5">5件</option>
+            </select>
+            <span style="font-size:.75rem;color:var(--muted);">4孔可多开1个符石组合</span>
+          </div>
+        </div>
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead id="progress-thead">
@@ -1077,7 +1147,8 @@ const DEFAULT_CHAR = () => ({
   data: buildEmptyData(),
   fabao: {},
   skillNames: ['师门技能1','师门技能2','师门技能3','师门技能4','师门技能5','师门技能6','师门技能7'],
-  hiddenItems: []
+  hiddenItems: [],
+  suitData: { attrType:'', attrTier:'sx2', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 }
 });
 
 function buildEmptyData() {
@@ -1450,6 +1521,7 @@ function selectChar(idx) {
   appData.activeCharIdx = idx;
   renderCharTabs();
   renderProgressTable();
+  renderSuitPanel();
 }
 
 function selectFabaoChar(idx) {
@@ -1499,6 +1571,95 @@ function fmtWan(n) {
 function fmtGold(n) { return fmtWan(n); }
 
 function fmtExp(n) { return fmtWan(n); }
+
+// ==================== SUIT PANEL ====================
+const SUIT_ATTR_FORMULA = {
+  sx1: { label: '一线', f3: function(lv){ return Math.floor(lv/3+15); }, f5: function(lv){ return Math.floor(lv/3+25); } },
+  sx2: { label: '二线', f3: function(lv){ return Math.floor(lv/4+15); }, f5: function(lv){ return Math.floor(lv/4+25); } },
+  sx3: { label: '三线', f3: function(lv){ return Math.floor(lv/4+10); }, f5: function(lv){ return Math.floor(lv/4+20); } }
+};
+
+const STATUS_SKILL_MAP = {
+  '定心术': { desc: '提灵', effect: function(lv,n5){ return '+' + (n5 ? Math.floor((lv+10)*1.5) : Math.floor((lv-10)*1.5)) + '灵力'; } },
+  '金刚护法': { desc: '物伤', effect: function(lv,n5){ var s=n5?lv+10:lv-10; return '+' + Math.floor(s*0.6) + '伤害 +' + Math.floor(s*0.2) + '命中'; } },
+  '逆鳞': { desc: '法伤', effect: function(lv,n5){ var s=n5?lv+10:lv-10; return '+' + Math.floor(s*0.7) + '灵力 +' + Math.floor(s*0.4) + '伤害'; } },
+  '生命之泉': { desc: '回血', effect: function(lv,n5){ var s=n5?lv+10:lv-10; return '每回合+' + Math.floor(s*2.5) + '血'; } },
+  '幽冥鬼眼': { desc: '感知抗封', effect: function(lv,n5){ return '技能' + (n5?lv+10:lv-10) + '级,感知'; } },
+  '盘丝阵': { desc: '加防', effect: function(lv,n5){ var s=n5?lv+10:lv-10; return '+' + Math.floor(s*0.4) + '防御'; } },
+  '楚楚可怜': { desc: '隐身', effect: function(lv,n5){ return '隐身,技能' + (n5?lv+10:lv-10) + '级'; } },
+  '百毒不侵': { desc: '抗毒', effect: function(lv,n5){ return '抗毒,技能' + (n5?lv+10:lv-10) + '级'; } },
+  '极度疯狂': { desc: '反击', effect: function(lv,n5){ return '反击,技能' + (n5?lv+10:lv-10) + '级'; } },
+  '魔王回首': { desc: '反击', effect: function(lv,n5){ return '反击,技能' + (n5?lv+10:lv-10) + '级'; } },
+  '明光宝烛': { desc: '抗封', effect: function(lv,n5){ return '抗封,技能' + (n5?lv+10:lv-10) + '级'; } },
+  '变身': { desc: '变身(狮驼)', effect: function(lv,n5){ return '变身,技能' + (n5?lv+10:lv-10) + '级'; } }
+};
+
+function getCharLevel() {
+  var ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return 0;
+  return (ch.data && ch.data['等级']) ? (ch.data['等级'].cur || 0) : 0;
+}
+
+function renderSuitPanel() {
+  var ch = appData.characters[appData.activeCharIdx];
+  if (!ch || !ch.suitData) return;
+  var s = ch.suitData;
+  document.getElementById('suit-attr-type').value = s.attrType || '';
+  document.getElementById('suit-attr-tier').value = s.attrTier || 'sx2';
+  document.getElementById('suit-attr-pieces').value = s.attrPieces || 0;
+  document.getElementById('suit-status-type').value = s.statusType || '';
+  document.getElementById('suit-status-pieces').value = s.statusPieces || 0;
+  document.getElementById('suit-hole4').value = s.hole4Count || 0;
+  calcSuitResult();
+}
+
+function onSuitChange() {
+  var ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  if (!ch.suitData) ch.suitData = { attrType:'', attrTier:'sx2', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 };
+  ch.suitData.attrType = document.getElementById('suit-attr-type').value;
+  ch.suitData.attrTier = document.getElementById('suit-attr-tier').value;
+  ch.suitData.attrPieces = parseInt(document.getElementById('suit-attr-pieces').value) || 0;
+  ch.suitData.statusType = document.getElementById('suit-status-type').value;
+  ch.suitData.statusPieces = parseInt(document.getElementById('suit-status-pieces').value) || 0;
+  ch.suitData.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
+  scheduleSave();
+  calcSuitResult();
+}
+
+function calcSuitResult() {
+  var lv = getCharLevel();
+  var ch = appData.characters[appData.activeCharIdx];
+  if (!ch || !ch.suitData) return;
+  var s = ch.suitData;
+
+  // 属性套计算
+  var attrEl = document.getElementById('suit-attr-result');
+  if (s.attrType && s.attrPieces > 0 && lv > 0) {
+    var tier = SUIT_ATTR_FORMULA[s.attrTier] || SUIT_ATTR_FORMULA.sx2;
+    var val = s.attrPieces >= 5 ? tier.f5(lv) : tier.f3(lv);
+    attrEl.textContent = tier.label + ' ' + s.attrPieces + '件 → +' + val + s.attrType + (s.attrPieces >= 5 ? '' : '（3/4件同效果）');
+  } else if (s.attrType && s.attrPieces > 0) {
+    attrEl.textContent = '请先填写等级';
+  } else {
+    attrEl.textContent = '';
+  }
+
+  // 状态套计算
+  var statusEl = document.getElementById('suit-status-result');
+  if (s.statusType && s.statusPieces > 0 && lv > 0) {
+    var info = STATUS_SKILL_MAP[s.statusType];
+    var n5 = s.statusPieces >= 5;
+    var skillLv = n5 ? (lv + 10) : (lv - 10);
+    var rounds = n5 ? 15 : 4;
+    var effText = info ? info.effect(lv, n5) : '技能' + skillLv + '级';
+    statusEl.textContent = (n5 ? '5件' : s.statusPieces + '件') + ' → 技能' + skillLv + '级/' + rounds + '回合 (' + effText + ')';
+  } else if (s.statusType && s.statusPieces > 0) {
+    statusEl.textContent = '请先填写等级';
+  } else {
+    statusEl.textContent = '';
+  }
+}
 
 // ==================== PROGRESS TABLE ====================
 function renderProgressTable() {
@@ -1650,6 +1811,7 @@ function renderProgressTable() {
   document.getElementById('gt-gold').textContent = totalGold > 0 ? fmtGold(totalGold) : '—';
   document.getElementById('gt-exp').textContent = totalExp > 0 ? fmtExp(totalExp) : '—';
   document.getElementById('gt-bang').textContent = totalBang > 0 ? fmtNum(totalBang) : '—';
+  calcSuitResult();
 }
 
 function onFruitPriceChange() {
@@ -2555,6 +2717,7 @@ function renderOverview() {
 function renderAll() {
   renderCharTabs();
   renderProgressTable();
+  renderSuitPanel();
   renderFabaoCharTabs();
   renderFabaoGrid();
   restoreCalcUI();
