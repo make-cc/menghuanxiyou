@@ -382,7 +382,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
   <div class="tabs" id="main-tabs">
     <button class="tab active" onclick="switchTab(0)">📋 修炼进度</button>
     <button class="tab" onclick="switchTab(1)">🔮 法宝</button>
-    <button class="tab" onclick="switchTab(2)">📢 喊话</button>
+    <button class="tab" onclick="switchTab(2)">📋 综合</button>
     <button class="tab" onclick="switchTab(3)">💰 汇率换算</button>
     <button class="tab" onclick="switchTab(4)">💎 宝石合成</button>
     <button class="tab" onclick="switchTab(5)">📊 一览</button>
@@ -448,11 +448,32 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     </div>
   </div>
 
-  <!-- ========== TAB 2: 喊话 ========== -->
+  <!-- ========== TAB 2: 综合 ========== -->
   <div id="tab-chat" style="display:none">
     <div class="card">
       <div class="card-header"><h2>📢 常用喊话 · 点击复制</h2></div>
       <div class="chat-grid" id="chat-grid"></div>
+    </div>
+
+    <!-- 武器对比 -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-header"><h2>⚔️ 武器法伤对比</h2></div>
+      <p style="font-size:.8rem;color:var(--muted);margin:0 0 12px;">法伤 = 体×0.3 + 耐×0.2 + 力×0.4 + 魔×0.7 + (武器伤害 - 锻炼等级×8) / 4</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
+        <label style="font-size:.85rem;">属性点：</label>
+        <span style="display:inline-flex;align-items:center;gap:4px;">体<input type="number" id="wp-ti" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">耐<input type="number" id="wp-nai" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">力<input type="number" id="wp-li" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">魔<input type="number" id="wp-mo" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <span style="display:inline-flex;align-items:center;gap:4px;">武器伤害<input type="number" id="wp-dmg" value="380" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">锻炼等级<input type="number" id="wp-duan" value="0" min="0" max="16" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">名称<input type="text" id="wp-name" placeholder="可选" style="width:100px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
+        <button class="btn" onclick="addWeapon()" style="padding:6px 16px;font-size:.85rem;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;">+ 添加</button>
+        <button class="btn" onclick="clearWeapons()" style="padding:6px 12px;font-size:.8rem;background:var(--muted);color:#fff;border:none;border-radius:8px;cursor:pointer;">清空</button>
+      </div>
+      <div id="wp-results"></div>
     </div>
   </div>
 
@@ -1209,7 +1230,7 @@ function switchTab(idx) {
     if (el) el.style.display = i === idx ? '' : 'none';
   });
   if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
-  if (TAB_IDS[idx] === 'chat') renderChatGrid();
+  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
 }
@@ -1828,6 +1849,81 @@ function copyChat(idx) {
     document.body.removeChild(ta);
     showToast('已复制 ✓');
   });
+}
+
+// ============ 武器法伤对比 ============
+function getWpStats() {
+  const ti = parseFloat(document.getElementById('wp-ti').value) || 0;
+  const nai = parseFloat(document.getElementById('wp-nai').value) || 0;
+  const li = parseFloat(document.getElementById('wp-li').value) || 0;
+  const mo = parseFloat(document.getElementById('wp-mo').value) || 0;
+  return { ti, nai, li, mo, base: ti * 0.3 + nai * 0.2 + li * 0.4 + mo * 0.7 };
+}
+
+function calcWeaponDamage(dmg, duan) {
+  const baseDmg = dmg - duan * 8;
+  return Math.max(0, baseDmg) / 4;
+}
+
+function addWeapon() {
+  if (!appData.weaponList) appData.weaponList = [];
+  const dmg = parseFloat(document.getElementById('wp-dmg').value) || 0;
+  const duan = parseInt(document.getElementById('wp-duan').value) || 0;
+  const name = document.getElementById('wp-name').value.trim() || ('武器' + (appData.weaponList.length + 1));
+  appData.weaponList.push({ name, dmg, duan });
+  scheduleSave();
+  renderWeaponList();
+}
+
+function removeWeapon(idx) {
+  if (!appData.weaponList) return;
+  appData.weaponList.splice(idx, 1);
+  scheduleSave();
+  renderWeaponList();
+}
+
+function clearWeapons() {
+  appData.weaponList = [];
+  scheduleSave();
+  renderWeaponList();
+}
+
+function renderWeaponList() {
+  const div = document.getElementById('wp-results');
+  if (!appData.weaponList || !appData.weaponList.length) {
+    div.innerHTML = '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:8px 0;">暂无武器，点击上方「添加」按钮</p>';
+    return;
+  }
+  const { base } = getWpStats();
+  let rows = appData.weaponList.map((w, i) => {
+    const wpFashang = calcWeaponDamage(w.dmg, w.duan);
+    const total = (base + wpFashang).toFixed(1);
+    return { name: w.name, dmg: w.dmg, duan: w.duan, wpFashang: wpFashang.toFixed(1), total, idx: i };
+  });
+  // 按法伤从高到低排序
+  rows.sort((a, b) => b.total - a.total);
+
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:.85rem;">';
+  html += '<thead><tr style="background:var(--bg);"><th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">排名</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">名称</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">武器伤害</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">锻炼</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">武器法伤</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">总法伤</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">操作</th></tr></thead><tbody>';
+  rows.forEach((r, i) => {
+    const color = i === 0 ? 'color:#e53e3e;font-weight:700;' : '';
+    html += '<tr style="background:var(--card);"><td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (i + 1) + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.name + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.dmg + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.duan + '级</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.wpFashang + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;' + color + '">' + r.total + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;"><button onclick="removeWeapon(' + r.idx + ')" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.8rem;">✕ 删除</button></td></tr>';
+  });
+  html += '</tbody></table>';
+  html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">属性法伤（体耐力魔贡献）: ' + base.toFixed(1) + '</p>';
+  div.innerHTML = html;
 }
 
 // ==================== GEM SYNTHESIS ====================
