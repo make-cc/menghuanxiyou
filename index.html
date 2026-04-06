@@ -524,7 +524,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
           <label style="font-size:.78rem;color:var(--muted);">敏捷属性点：<input type="number" id="spd-tg-agi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> x0.7</label>
           <label style="font-size:.78rem;color:var(--muted);">黑宝石等级：<input type="number" id="spd-tg-gem" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> (+8/级)</label>
-          <label style="font-size:.78rem;color:var(--muted);">神速等级：<input type="number" id="spd-tg-shensu" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> (+1.5/级)</label>
+          <label style="font-size:.78rem;color:var(--muted);">神速等级：<input type="number" id="spd-tg-shensu" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="每级+1.5，奇数级+1偶数级+2"><span id="spd-tg-shensu-val" style="color:var(--accent);">+0</span></label>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
           <label style="font-size:.78rem;color:var(--muted);">腰带速度：<input type="number" id="spd-tg-ydai" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
@@ -535,6 +535,16 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
           <label style="font-size:.78rem;color:var(--muted);">灵饰速度：<input type="number" id="spd-tg-ling" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
           <label style="font-size:.78rem;color:var(--muted);">钟灵石速度：<input type="number" id="spd-tg-zhong" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
           <label style="font-size:.78rem;color:var(--muted);">装备速度：<input type="number" id="spd-tg-equip" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
+          <label style="font-size:.78rem;color:var(--muted);">法宝：<select id="spd-tg-fabao" onchange="calcSpeed()" style="padding:2px 4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;">
+            <option value="0">无</option>
+            <option value="25">风袋 9层 (+25)</option>
+            <option value="40">凌波仙符 18层 (+40)</option>
+            <option value="45">凌波仙符 18层 金属性 (+45)</option>
+            <option value="50">双风袋 9层 (+50)</option>
+            <option value="70">风袋9层 + 凌波18层金 (+70)</option>
+          </select></label>
         </div>
         <div style="font-size:.8rem;padding:6px 0 0;border-top:1px dashed var(--border);margin-top:4px;">
           <span style="color:var(--muted);">面板速度 = 基础</span>
@@ -2017,33 +2027,47 @@ function getSpdVal(id) {
   return isNaN(v) ? 0 : v;
 }
 
+function calcShensuSpd(level) {
+  // 神速每级+1.5，奇数级+1偶数级+2
+  var total = 0;
+  for (var i = 1; i <= level; i++) {
+    total += (i % 2 === 1) ? 1 : 2;
+  }
+  return total;
+}
+
 function calcTgSpeed() {
-  // 天宫面板速度 = 基础 + 敏捷x0.7 + 黑宝石x8 + 神速x1.5 + 各项装备速度
   var base = getSpdVal('spd-tg-base');
   var agi = getSpdVal('spd-tg-agi') * 0.7;
   var gem = getSpdVal('spd-tg-gem') * 8;
-  var shensu = getSpdVal('spd-tg-shensu') * 1.5;
+  var shensuLv = Math.floor(getSpdVal('spd-tg-shensu'));
+  var shensuSpd = calcShensuSpd(shensuLv);
   var ydai = getSpdVal('spd-tg-ydai');
   var xiezi = getSpdVal('spd-tg-xiezi');
   var fushi = getSpdVal('spd-tg-fushi');
   var ling = getSpdVal('spd-tg-ling');
   var zhong = getSpdVal('spd-tg-zhong');
   var equip = getSpdVal('spd-tg-equip');
+  var fabao = getSpdVal('spd-tg-fabao');
 
-  var bonus = Math.floor(agi) + gem + Math.floor(shensu) + ydai + xiezi + fushi + ling + zhong + equip;
+  var bonus = Math.floor(agi) + gem + shensuSpd + ydai + xiezi + fushi + ling + zhong + equip + fabao;
   var total = base + bonus;
+
+  // 更新神速显示
+  document.getElementById('spd-tg-shensu-val').textContent = shensuLv > 0 ? '(+' + shensuSpd + ')' : '(+0)';
 
   // 更新明细
   var parts = [];
-  if (getSpdVal('spd-tg-agi') > 0) parts.push('+' + Math.floor(agi) + '(敏捷)');
-  if (getSpdVal('spd-tg-gem') > 0) parts.push('+' + gem + '(黑宝石)');
-  if (getSpdVal('spd-tg-shensu') > 0) parts.push('+' + Math.floor(shensu) + '(神速)');
+  if (getSpdVal('spd-tg-agi') > 0) parts.push('+' + Math.floor(agi) + '(敏)');
+  if (getSpdVal('spd-tg-gem') > 0) parts.push('+' + gem + '(黑宝)');
+  if (shensuLv > 0) parts.push('+' + shensuSpd + '(神速)');
   if (ydai > 0) parts.push('+' + ydai + '(腰带)');
   if (xiezi > 0) parts.push('+' + xiezi + '(鞋子)');
   if (fushi > 0) parts.push('+' + fushi + '(符石)');
   if (ling > 0) parts.push('+' + ling + '(灵饰)');
-  if (zhong > 0) parts.push('+' + zhong + '(钟灵石)');
+  if (zhong > 0) parts.push('+' + zhong + '(钟灵)');
   if (equip > 0) parts.push('+' + equip + '(装备)');
+  if (fabao > 0) parts.push('+' + fabao + '(法宝)');
 
   document.getElementById('spd-tg-detail').textContent = parts.length > 0 ? ' ' + parts.join(' ') + ' ' : '';
   document.getElementById('spd-tg-total').textContent = total > 0 ? total : '--';
@@ -2057,16 +2081,12 @@ function calcSpeed() {
   var RATIO = 1.1053;
   var CHIDUN = 0.8;
 
-  // 读取2速和3速面板
   var wdd = getSpdVal('spd-wdd');
   var en = getSpdVal('spd-en');
   var pt = getSpdVal('spd-pt');
   var hs = getSpdVal('spd-hs');
-
-  // 天宫
   var tg = calcTgSpeed();
 
-  // 2速组最大面板速度
   var tier2Max = Math.max(wdd, en, pt);
   var tier2Names = [];
   if (wdd > 0) tier2Names.push('无底洞');
@@ -2082,21 +2102,14 @@ function calcSpeed() {
     return;
   }
 
-  // 计算天宫达标速度
+  // 天宫达标速度
   var tgTarget = 0;
   if (mode === 'chidun' && tier2Max > 0) {
-    // 迟钝模式：天宫 >= 2速x0.8 x RATIO +1
     tgTarget = Math.ceil(tier2Max * CHIDUN * RATIO) + 1;
   } else if (tier2Max > 0) {
-    // 正常模式：天宫 >= 2速 x RATIO +1
     tgTarget = Math.ceil(tier2Max * RATIO) + 1;
   }
 
-  // 天宫差值 = 达标 - (基础 + 可提升)
-  var tgDiff = tgTarget > 0 && tg.base > 0 ? tgTarget - tg.total : 0;
-  var tgRemain = tg.base > 0 ? tgDiff : 0; // 正数=还差，负数=富余
-
-  // 构建结果
   var html = '<table style="width:100%;border-collapse:collapse;font-size:.85rem;">';
   html += '<thead><tr style="background:var(--bg);">';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">角色</th>';
@@ -2109,7 +2122,8 @@ function calcSpeed() {
 
   // 天宫行
   var tgPanel = tg.base > 0 ? tg.total : 0;
-  var tgRowStyle = tg.base > 0 && tgRemain > 0 ? 'background:#fff5f5;' : (tg.base > 0 ? 'background:#f0fff4;' : 'background:var(--card);');
+  var tgDiff = tgTarget > 0 && tg.base > 0 ? tgTarget - tg.total : 0;
+  var tgRowStyle = tg.base > 0 && tgDiff > 0 ? 'background:#fff5f5;' : (tg.base > 0 ? 'background:#f0fff4;' : 'background:var(--card);');
   html += '<tr style="' + tgRowStyle + '">';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;font-weight:600;">天宫</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">1速</td>';
@@ -2119,12 +2133,10 @@ function calcSpeed() {
     (tgTarget > 0 ? tgTarget : '--') + '</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">';
   if (tg.base > 0 && tgTarget > 0) {
-    if (tgRemain > 0) html += '<span style="color:#e53e3e;font-weight:600;">还差' + tgRemain + '</span>';
-    else if (tgRemain === 0) html += '<span style="color:#38a169;">达标</span>';
-    else html += '<span style="color:#38a169;">余' + (-tgRemain) + '</span>';
-  } else {
-    html += '--';
-  }
+    if (tgDiff > 0) html += '<span style="color:#e53e3e;font-weight:600;">还差' + tgDiff + '</span>';
+    else if (tgDiff === 0) html += '<span style="color:#38a169;">达标</span>';
+    else html += '<span style="color:#38a169;">余' + (-tgDiff) + '</span>';
+  } else { html += '--'; }
   html += '</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">';
   if (tg.base > 0) html += Math.floor(tg.total * zhen);
@@ -2135,8 +2147,7 @@ function calcSpeed() {
   // 2速行
   html += '<tr style="background:var(--card);">';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;" colspan="2">' + tier2Label + '</td>';
-  html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' +
-    (tier2Max > 0 ? tier2Max : '--') + '</td>';
+  html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (tier2Max > 0 ? tier2Max : '--') + '</td>';
   if (mode === 'chidun') {
     var chidunSpd = tier2Max > 0 ? Math.floor(tier2Max * CHIDUN) : '--';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' +
@@ -2147,28 +2158,22 @@ function calcSpeed() {
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">--</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">';
   if (tier2Max > 0) {
-    var combatSpd2 = mode === 'chidun' ? Math.floor(tier2Max * CHIDUN * zhen) : Math.floor(tier2Max * zhen);
-    html += combatSpd2;
-  } else {
-    html += '--';
-  }
+    html += (mode === 'chidun' ? Math.floor(tier2Max * CHIDUN * zhen) : Math.floor(tier2Max * zhen));
+  } else { html += '--'; }
   html += '</td></tr>';
 
   // 化生行
   html += '<tr style="background:var(--card);">';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;font-weight:600;">化生</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">3速</td>';
-  html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' +
-    (hs > 0 ? hs : '--') + '</td>';
+  html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (hs > 0 ? hs : '--') + '</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">--</td>';
   html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">--</td>';
-  html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' +
-    (hs > 0 ? Math.floor(hs * zhen) : '--') + '</td>';
+  html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (hs > 0 ? Math.floor(hs * zhen) : '--') + '</td>';
   html += '</tr>';
 
   html += '</tbody></table>';
 
-  // 说明
   var modeText = mode === 'chidun'
     ? '2速变身迟钝：天宫达标 = 2速x0.8x1.105+1'
     : '正常模式：天宫达标 = 2速x1.105+1';
