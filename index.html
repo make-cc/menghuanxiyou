@@ -315,9 +315,9 @@ input[type="number"] { width: 65px; }
 
 /* === Gem Synthesis === */
 .gem-box { padding: 16px; }
-.gem-section { margin-bottom: 16px; }
+.gem-section { margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .gem-section h3 { font-size: .88rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
-.gem-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.gem-table { width: 100%; border-collapse: collapse; font-size: .78rem; min-width: 600px; }
 .gem-table th { background: #f0f1f3; padding: 6px 8px; font-size: .75rem; }
 .gem-table td { padding: 5px 8px; }
 .gem-table .price-row td { color: var(--blue); font-weight: 500; }
