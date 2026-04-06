@@ -542,6 +542,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
               <input type="number" id="spd-tg-attr-mj" placeholder="敏" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="敏捷">
               <span style="font-size:.7rem;color:var(--muted);">(体力耐x0.1 敏x0.7)</span>
             </label>
+            <label style="font-size:.78rem;color:var(--muted);">临时符：<input type="number" id="spd-tg-linshi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="临时符增加的速度"></label>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
           <label style="font-size:.78rem;color:var(--muted);">法宝：<select id="spd-tg-fabao" onchange="calcSpeed()" style="padding:2px 4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;">
@@ -2061,9 +2062,10 @@ function calcTgSpeed() {
   var attrNd = getSpdVal('spd-tg-attr-nd') * 0.1;
   var attrMj = getSpdVal('spd-tg-attr-mj') * 0.7;
   var attrSpd = Math.floor(attrTz + attrLl + attrNd + attrMj);
+  var linshi = getSpdVal('spd-tg-linshi');
   var fabao = getSpdVal('spd-tg-fabao');
 
-  var bonus = Math.floor(agi) + gem + shensuSpd + ydai + xiezi + fushi + ling + zhong + attrSpd + fabao;
+  var bonus = Math.floor(agi) + gem + shensuSpd + ydai + xiezi + fushi + ling + zhong + attrSpd + linshi + fabao;
   var total = base + bonus;
 
   // 更新神速显示
@@ -2080,6 +2082,7 @@ function calcTgSpeed() {
   if (ling > 0) parts.push('+' + ling + '(灵饰)');
   if (zhong > 0) parts.push('+' + zhong + '(钟灵)');
   if (attrSpd > 0) parts.push('+' + attrSpd + '(装备属性)');
+  if (linshi > 0) parts.push('+' + linshi + '(临时符)');
   if (fabao > 0) parts.push('+' + fabao + '(法宝)');
 
   document.getElementById('spd-tg-detail').textContent = parts.length > 0 ? ' ' + parts.join(' ') + ' ' : '';
