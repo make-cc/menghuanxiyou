@@ -469,6 +469,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
         <span style="display:inline-flex;align-items:center;gap:4px;">武器伤害<input type="number" id="wp-dmg" value="380" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
         <span style="display:inline-flex;align-items:center;gap:4px;">锻炼等级<input type="number" id="wp-duan" value="0" min="0" max="16" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">价格(RMB)<input type="number" id="wp-price" value="0" min="0" step="0.01" style="width:80px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
         <span style="display:inline-flex;align-items:center;gap:4px;">名称<input type="text" id="wp-name" placeholder="可选" style="width:100px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
         <button class="btn" onclick="addWeapon()" style="padding:6px 16px;font-size:.85rem;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;">+ 添加</button>
         <button class="btn" onclick="clearWeapons()" style="padding:6px 12px;font-size:.8rem;background:var(--muted);color:#fff;border:none;border-radius:8px;cursor:pointer;">清空</button>
@@ -1869,8 +1870,9 @@ function addWeapon() {
   if (!appData.weaponList) appData.weaponList = [];
   const dmg = parseFloat(document.getElementById('wp-dmg').value) || 0;
   const duan = parseInt(document.getElementById('wp-duan').value) || 0;
+  const price = parseFloat(document.getElementById('wp-price').value) || 0;
   const name = document.getElementById('wp-name').value.trim() || ('武器' + (appData.weaponList.length + 1));
-  appData.weaponList.push({ name, dmg, duan });
+  appData.weaponList.push({ name, dmg, duan, price });
   scheduleSave();
   renderWeaponList();
 }
@@ -1897,8 +1899,10 @@ function renderWeaponList() {
   const { base } = getWpStats();
   let rows = appData.weaponList.map((w, i) => {
     const wpFashang = calcWeaponDamage(w.dmg, w.duan);
-    const total = (base + wpFashang).toFixed(1);
-    return { name: w.name, dmg: w.dmg, duan: w.duan, wpFashang: wpFashang.toFixed(1), total, idx: i };
+    const total = base + wpFashang;
+    const price = w.price || 0;
+    const costPerPoint = total > 0 && price > 0 ? (price / total).toFixed(2) : '—';
+    return { name: w.name, dmg: w.dmg, duan: w.duan, price, wpFashang: wpFashang.toFixed(1), total: total.toFixed(1), costPerPoint, idx: i };
   });
   // 按法伤从高到低排序
   rows.sort((a, b) => b.total - a.total);
@@ -1906,10 +1910,12 @@ function renderWeaponList() {
   let html = '<table style="width:100%;border-collapse:collapse;font-size:.85rem;">';
   html += '<thead><tr style="background:var(--bg);"><th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">排名</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">名称</th>';
-  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">武器伤害</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">伤害</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">锻炼</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">价格</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">武器法伤</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">总法伤</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">元/点</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">操作</th></tr></thead><tbody>';
   rows.forEach((r, i) => {
     const color = i === 0 ? 'color:#e53e3e;font-weight:700;' : '';
@@ -1917,12 +1923,14 @@ function renderWeaponList() {
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.name + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.dmg + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.duan + '级</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (r.price > 0 ? '¥' + r.price : '—') + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.wpFashang + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;' + color + '">' + r.total + '</td>';
-    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;"><button onclick="removeWeapon(' + r.idx + ')" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.8rem;">✕ 删除</button></td></tr>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;' + color + '">' + r.costPerPoint + '</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;"><button onclick="removeWeapon(' + r.idx + ')" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.8rem;">✕</button></td></tr>';
   });
   html += '</tbody></table>';
-  html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">属性法伤（体耐力魔贡献）: ' + base.toFixed(1) + '</p>';
+  html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">属性法伤（体耐力魔贡献）: ' + base.toFixed(1) + '　·　元/点 = 价格÷总法伤</p>';
   div.innerHTML = html;
 }
 
