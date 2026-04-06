@@ -2859,6 +2859,59 @@ function renderOverview() {
   });
   h += '</tr>';
 
+  // --- 装备套 ---
+  var hasAnySuit = false;
+  chars.forEach(function(ch){
+    if(ch.suitData && (ch.suitData.attrName || ch.suitData.statusType || (ch.suitData.hole4Count||0)>0)) hasAnySuit = true;
+  });
+  if (hasAnySuit) {
+    h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">装备套</td></tr>';
+    // 属性套
+    h += '<tr><td class="ov-label">属性套</td>';
+    chars.forEach(function(ch){
+      var sd = ch.suitData || {};
+      if (sd.attrName) {
+        // 找几线
+        var tierText = '';
+        var attrKey = SUIT_ATTR_KEYS[sd.attrType] || '';
+        var list = SUIT_DATA_RAW[attrKey] || [];
+        for(var i=0;i<list.length;i++){
+          if(list[i][0]===sd.attrName){
+            tierText = ' [' + suitTierLabel(list[i][2]) + ']';
+            break;
+          }
+        }
+        h += '<td class="ov-val">' + esc(sd.attrName) + tierText;
+        if(sd.attrPieces>0) h += '<br><span style="font-size:.65rem">' + sd.attrPieces + '件</span>';
+        h += '</td>';
+      } else {
+        h += '<td class="ov-val"><span style="color:var(--muted)">无</span></td>';
+      }
+    });
+    h += '</tr>';
+    // 状态套
+    h += '<tr><td class="ov-label">状态套</td>';
+    chars.forEach(function(ch){
+      var sd = ch.suitData || {};
+      if (sd.statusType) {
+        h += '<td class="ov-val">' + esc(sd.statusType);
+        if(sd.statusPieces>0) h += '<br><span style="font-size:.65rem">' + sd.statusPieces + '件</span>';
+        h += '</td>';
+      } else {
+        h += '<td class="ov-val"><span style="color:var(--muted)">无</span></td>';
+      }
+    });
+    h += '</tr>';
+    // 4孔数
+    h += '<tr><td class="ov-label">4孔数</td>';
+    chars.forEach(function(ch){
+      var sd = ch.suitData || {};
+      var hole4 = sd.hole4Count || 0;
+      h += '<td class="ov-val">' + (hole4 > 0 ? hole4 : '<span style="color:var(--muted)">无</span>') + '</td>';
+    });
+    h += '</tr>';
+  }
+
   h += '</tbody></table></div>';
   container.innerHTML = h;
 }
