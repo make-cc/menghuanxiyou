@@ -386,6 +386,8 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <button class="tab" onclick="switchTab(3)">💰 汇率换算</button>
     <button class="tab" onclick="switchTab(4)">💎 宝石合成</button>
     <button class="tab" onclick="switchTab(5)">📊 一览</button>
+    <button class="tab" onclick="switchTab(6)">📒 记账</button>
+    <button class="tab" onclick="switchTab(7)">⚡ 固伤</button>
     <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;">
       <span id="unsync-hint" style="display:none; color:#f0a030; font-size:11px;cursor:default;">● 未同步</span>
       <button class="btn" onclick="saveData()" style="padding:5px 12px;font-size:.78rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;">☁️ 同步</button>
@@ -691,6 +693,109 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <div class="card-header"><h2>💎 宝石合成价格计算</h2></div>
       <div class="gem-box">
         <div id="gem-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 6: 收入记账 ========== -->
+  <div id="tab-ledger" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <h2>📒 收入记账</h2>
+        <span style="font-size:.7rem;color:var(--muted);margin-left:auto;">自动保存到本地</span>
+      </div>
+      <!-- 顶部工具栏 -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
+        <label style="font-size:.78rem;color:var(--muted);">万两/RMB：<input type="number" id="ledger-scale" placeholder="3000" oninput="saveLedgerData()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+        <div style="display:flex;gap:4px;">
+          <button onclick="ledgerDkStart()" id="ledger-dk-btn" style="font-size:.75rem;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);cursor:pointer;">开始计时</button>
+          <label style="font-size:.75rem;color:var(--muted);">点卡：<input type="number" id="ledger-dk-bl" value="5" style="width:50px;padding:2px;font-size:.75rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="每点点卡价格(元)"></label>
+          <label style="font-size:.75rem;color:var(--muted);">角色：<input type="number" id="ledger-dk-roles" value="5" style="width:40px;padding:2px;font-size:.75rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+        </div>
+        <div id="ledger-dk-info" style="font-size:.75rem;color:var(--muted);"></div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span style="font-size:.85rem;font-weight:700;">今日：<span id="ledger-total" style="color:var(--accent);">0</span>万</span>
+          <span id="ledger-rmb" style="font-size:.85rem;font-weight:700;color:#e74c3c;"></span>
+          <button onclick="clearTodayLedger()" style="font-size:.72rem;padding:3px 8px;border:1px solid #e74c3c;border-radius:var(--radius);background:transparent;color:#e74c3c;cursor:pointer;">清空</button>
+        </div>
+      </div>
+      <!-- 物品价格网格 -->
+      <div id="ledger-price-grid" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;"></div>
+      <!-- 设置固定物价按钮 -->
+      <details style="margin-bottom:12px;">
+        <summary style="cursor:pointer;font-size:.78rem;color:var(--muted);">设置固定物价</summary>
+        <div id="ledger-price-setting" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </details>
+      <!-- 非固定物品输入 -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        <select id="ledger-nf-type" style="padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;"></select>
+        <input type="number" id="ledger-nf-price" placeholder="单价(万)" style="width:90px;padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        <input type="number" id="ledger-nf-count" value="1" min="1" style="width:50px;padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="数量">
+        <input type="text" id="ledger-nf-desc" placeholder="备注(选填)" style="width:120px;padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;">
+        <button onclick="ledgerAddNonFixed()" style="font-size:.78rem;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;">添加</button>
+      </div>
+      <!-- 账单列表 -->
+      <div style="max-height:400px;overflow-y:auto;">
+        <table id="ledger-table" style="width:100%;border-collapse:collapse;font-size:.8rem;">
+          <thead><tr style="background:var(--bg);position:sticky;top:0;">
+            <th style="padding:4px 6px;border:1px solid var(--border);">物品</th>
+            <th style="padding:4px 6px;border:1px solid var(--border);width:50px;">数量</th>
+            <th style="padding:4px 6px;border:1px solid var(--border);width:80px;">收入(万)</th>
+            <th style="padding:4px 6px;border:1px solid var(--border);width:50px;">操作</th>
+          </tr></thead>
+          <tbody id="ledger-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 7: 固伤计算器 ========== -->
+  <div id="tab-gushang" style="display:none">
+    <div class="card">
+      <div class="card-header"><h2>⚡ 固伤计算器</h2></div>
+      <div style="max-width:700px;margin:0 auto;">
+        <!-- 门派选择 -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="gs-sect-btn active" onclick="gsSelectSect(0,this)">无底洞</button>
+          <button class="gs-sect-btn" onclick="gsSelectSect(1,this)">普陀山</button>
+          <button class="gs-sect-btn" onclick="gsSelectSect(2,this)">地府</button>
+          <button class="gs-sect-btn" onclick="gsSelectSect(3,this)">女儿村</button>
+        </div>
+        <!-- 输入区 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:12px;">
+          <label style="font-size:.78rem;color:var(--muted);">师门技能等级：<input type="number" id="gs-skill" value="175" oninput="calcGushang()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">敏捷：<input type="number" id="gs-agi" value="1200" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">装备伤害(全身)：<input type="number" id="gs-dmg" value="400" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">灵饰固伤加成：<input type="number" id="gs-fushi" value="100" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">武器伤害(仅武器)：<input type="number" id="gs-wpn" value="200" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" id="gs-wpn-label"></label>
+          <label style="font-size:.78rem;color:var(--muted);">暗器技巧等级：<input type="number" id="gs-throw" value="160" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">人修等级：<input type="number" id="gs-renxiu" value="25" oninput="calcGushang()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">怪抗法术等级：<input type="number" id="gs-guai" value="15" oninput="calcGushang()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">神木符伤害：<input type="number" id="gs-shenmu" value="0" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+          <label style="font-size:.78rem;color:var(--muted);">阵法加成：<select id="gs-zhen" onchange="calcGushang()" style="padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+            <option value="0">无阵法 (1.0)</option>
+            <option value="1">天覆阵 (1.15)</option>
+            <option value="2">雷绝阵 (1.2)</option>
+            <option value="3">地载阵 (1.05)</option>
+          </select></label>
+          <label style="font-size:.78rem;color:var(--muted);">分灵数：<input type="number" id="gs-fenling" value="3" min="1" max="10" oninput="calcGushang()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="同时秒几个单位"></label>
+        </div>
+        <!-- 女儿村特殊 -->
+        <div id="gs-nver-extra" style="display:none;margin-bottom:12px;padding:8px;background:var(--bg);border-radius:var(--radius);">
+          <label style="font-size:.78rem;color:var(--muted);margin-right:12px;">计算方式：
+            <select id="gs-nver-mode" onchange="calcGushang()" style="padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="rain">雨落寒沙(法术)</option>
+              <option value="throw">暗器(含暗器伤害)</option>
+            </select>
+          </label>
+        </div>
+        <!-- 结果区 -->
+        <div id="gs-result" style="padding:12px;background:var(--bg);border-radius:var(--radius);font-size:.85rem;line-height:1.8;"></div>
+        <!-- 公式说明 -->
+        <details style="margin-top:12px;font-size:.75rem;color:var(--muted);">
+          <summary style="cursor:pointer;font-weight:500;">公式说明</summary>
+          <div id="gs-formula-note" style="margin-top:6px;white-space:pre-wrap;line-height:1.6;"></div>
+        </details>
       </div>
     </div>
   </div>
@@ -1394,7 +1499,7 @@ function copyBlobId() {
 }
 
 // ==================== TABS ====================
-const TAB_IDS = ['progress','fabao','chat','calc','gem','overview'];
+const TAB_IDS = ['progress','fabao','chat','calc','gem','overview','ledger','gushang'];
 
 function switchTab(idx) {
   document.querySelectorAll('#main-tabs .tab').forEach((t, i) => {
@@ -1408,6 +1513,8 @@ function switchTab(idx) {
   if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); calcSpeed(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
+  if (TAB_IDS[idx] === 'ledger') renderLedger();
+  if (TAB_IDS[idx] === 'gushang') renderGushang();
 }
 
 // ==================== CHARACTER TABS ====================
@@ -2914,6 +3021,475 @@ function renderOverview() {
 
   h += '</tbody></table></div>';
   container.innerHTML = h;
+}
+
+
+// ==================== LEDGER (收入记账) ====================
+var LEDGER_GOODS = {
+  1:"60环-武器",2:"70环-武器",3:"80环-武器",
+  4:"60环-防具",5:"70环-防具",6:"80环-防具",
+  7:"金刚",8:"定魂",9:"龙鳞",10:"夜光珠",11:"避水珠",
+  12:"特赦令牌",13:"金柳露",14:"超级金柳露",15:"净瓶玉露",
+  16:"超级净瓶玉露",17:"修炼果",
+  18:"1级黑宝石",19:"1级月亮石",20:"1级舍利子",
+  21:"1级红玛瑙",22:"1级太阳石",23:"1级光芒石",
+  24:"1级星辉石",25:"1级翡翠石",
+  26:"笛子",27:"竖琴",28:"喇叭",29:"编钟",30:"木鱼",31:"琵琶",
+  32:"康乃馨",33:"玫瑰花",34:"百合",35:"摇钱树",
+  36:"法宝任务书",37:"1级符石",38:"符石卷轴",39:"金银锦盒",
+  40:"分解符",41:"强化石",42:"储灵袋",43:"玄天残卷",
+  44:"碧藕",45:"海马",46:"月华露",47:"彩果",
+  48:"灵犀之屑",49:"未鉴定灵犀玉",
+  148:"魔石·绿",149:"魔石·红",150:"魔石·黄",151:"魔石·紫",
+  152:"魔石·蓝",153:"魔石·黑",154:"魔石·白",
+  155:"玄灵珠-回春",156:"玄灵珠-破军",157:"仙露小丸子",
+  158:"神兽涎",159:"五色灵尘",
+  10001:"低兽决",10002:"高级兽决",10003:"低级内丹",10004:"高级内丹",
+  10005:"元灵晶石",10006:"灵饰指南书",10007:"如意丹",10008:"附魔宝珠",
+  10009:"珍珠",10010:"归墟之证",10011:"炼妖石",10012:"上古锻造图策",
+  10013:"变身卡",10014:"残卷",10015:"九转金丹",10016:"精魄灵石",
+  10017:"装备书",10018:"铁",
+  10100:"其他",10101:"成本"
+};
+
+// 固定价格区物品 (1-18 + 100,101)
+var LEDGER_FIXED_IDS = [];
+for(var _li=1;_li<=18;_li++) LEDGER_FIXED_IDS.push(_li);
+LEDGER_FIXED_IDS.push(100,101);
+
+// 非固定物品 (供下拉选择)
+var LEDGER_NON_FIXED_IDS = [10001,10002,10003,10004,10005,10006,10007,10008,10009,10010,10011,10012,10013,10014,10015,10016,10017,10018,10100,10101];
+
+var ledgerData = {scale:null, dk:{isStart:false,start:null,end:null}, ledger:[]};
+var ledgerPrices = {}; // {物品ID: 单价(万)}
+
+function getLedgerKey() {
+  var d = new Date();
+  return '' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+}
+
+function loadLedgerData() {
+  try {
+    var raw = localStorage.getItem('dream_ledger');
+    if (raw) {
+      var all = JSON.parse(raw);
+      var key = getLedgerKey();
+      if (all[key]) ledgerData = all[key];
+      else { ledgerData = {scale:null, dk:{isStart:false,start:null,end:null}, ledger:[]}; }
+      // 继承昨天的汇率
+      if (!ledgerData.scale) {
+        var yesterday = new Date(Date.now() - 86400000);
+        var yKey = '' + yesterday.getFullYear() + String(yesterday.getMonth()+1).padStart(2,'0') + String(yesterday.getDate()).padStart(2,'0');
+        if (all[yKey] && all[yKey].scale) ledgerData.scale = all[yKey].scale;
+      }
+    }
+  } catch(e) {}
+  try {
+    var pr = localStorage.getItem('dream_ledger_prices');
+    if (pr) ledgerPrices = JSON.parse(pr);
+  } catch(e) {}
+}
+
+function saveLedgerData() {
+  var key = getLedgerKey();
+  ledgerData.scale = parseFloat(document.getElementById('ledger-scale').value) || null;
+  try {
+    var raw = localStorage.getItem('dream_ledger') || '{}';
+    var all = JSON.parse(raw);
+    all[key] = ledgerData;
+    localStorage.setItem('dream_ledger', JSON.stringify(all));
+  } catch(e) {}
+}
+
+function saveLedgerPrices() {
+  try {
+    localStorage.setItem('dream_ledger_prices', JSON.stringify(ledgerPrices));
+  } catch(e) {}
+}
+
+function ledgerTodayTotal() {
+  var total = 0;
+  ledgerData.ledger.forEach(function(item) { total += item.price; });
+  return total;
+}
+
+function renderLedger() {
+  loadLedgerData();
+  // 汇率
+  document.getElementById('ledger-scale').value = ledgerData.scale || '';
+  // 渲染价格网格
+  renderLedgerPriceGrid();
+  // 渲染非固定下拉
+  renderLedgerNonFixedSelect();
+  // 渲染设置物价面板
+  renderLedgerPriceSetting();
+  // 渲染账单表
+  renderLedgerTable();
+  // 渲染点卡状态
+  renderLedgerDkStatus();
+  // 更新汇总
+  updateLedgerSummary();
+}
+
+function renderLedgerPriceGrid() {
+  var wrap = document.getElementById('ledger-price-grid');
+  var h = '';
+  // 只显示有价格的物品
+  LEDGER_FIXED_IDS.forEach(function(id) {
+    if (id > 100 && !LEDGER_GOODS[id]) return;
+    var price = ledgerPrices[id];
+    if (price === undefined) return;
+    var name = LEDGER_GOODS[id] || ('ID'+id);
+    var cls = price > 0 ? '' : 'style="opacity:.4"';
+    h += '<div class="ledger-goods-card" onclick="ledgerAddFixed('+id+')" title="'+esc(name)+' '+price+'万/个'+cls+'">';
+    h += '<div style="font-size:.72rem;text-align:center;line-height:1.2;">'+esc(name)+'</div>';
+    h += '<div style="font-size:.65rem;color:var(--accent);text-align:center;">'+price+'万</div>';
+    h += '</div>';
+  });
+  if (!h) h = '<div style="font-size:.78rem;color:var(--muted);padding:8px;">暂无固定物价，请在下方"设置固定物价"中设置价格</div>';
+  wrap.innerHTML = h;
+}
+
+function renderLedgerPriceSetting() {
+  var wrap = document.getElementById('ledger-price-setting');
+  var h = '';
+  LEDGER_FIXED_IDS.forEach(function(id) {
+    if (id > 100 && !LEDGER_GOODS[id]) return;
+    var name = LEDGER_GOODS[id] || ('ID'+id);
+    var price = ledgerPrices[id] || '';
+    h += '<label style="font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:3px;">';
+    h += '<span style="min-width:60px;display:inline-block;">'+esc(name)+'</span>';
+    h += '<input type="number" value="'+price+'" data-lid="'+id+'" oninput="ledgerSetPrice(this)" style="width:60px;padding:2px;font-size:.72rem;border:1px solid #ccc;border-radius:3px;text-align:center;" placeholder="万">';
+    h += '</label>';
+  });
+  wrap.innerHTML = h;
+}
+
+function ledgerSetPrice(el) {
+  var id = parseInt(el.getAttribute('data-lid'));
+  var val = parseFloat(el.value);
+  ledgerPrices[id] = val > 0 ? val : 0;
+  saveLedgerPrices();
+  renderLedgerPriceGrid();
+}
+
+function renderLedgerNonFixedSelect() {
+  var sel = document.getElementById('ledger-nf-type');
+  var h = '';
+  LEDGER_NON_FIXED_IDS.forEach(function(id) {
+    var name = LEDGER_GOODS[id] || ('ID'+id);
+    h += '<option value="'+id+'">'+esc(name)+'</option>';
+  });
+  sel.innerHTML = h;
+}
+
+function ledgerAddFixed(id) {
+  var price = ledgerPrices[id] || 0;
+  if (price <= 0) return;
+  var name = LEDGER_GOODS[id] || ('ID'+id);
+  // 查重合并
+  var found = false;
+  ledgerData.ledger.forEach(function(item) {
+    if (item.type === id && item.name === name && !item.desc) {
+      item.count++;
+      item.price = +(item.price + price).toFixed(2);
+      found = true;
+    }
+  });
+  if (!found) {
+    ledgerData.ledger.push({type:id, name:name, price:+price.toFixed(2), count:1, desc:''});
+  }
+  saveLedgerData();
+  renderLedgerTable();
+  updateLedgerSummary();
+}
+
+function ledgerAddNonFixed() {
+  var type = parseInt(document.getElementById('ledger-nf-type').value);
+  var price = parseFloat(document.getElementById('ledger-nf-price').value);
+  var count = parseInt(document.getElementById('ledger-nf-count').value) || 1;
+  var desc = document.getElementById('ledger-nf-desc').value.trim();
+  if (isNaN(price) || price <= 0) { showToast('请输入正确价格'); return; }
+  // 成本用负数
+  if (type === 10101) price = -Math.abs(price);
+  var name = LEDGER_GOODS[type] || '其他';
+  // 查重
+  var found = false;
+  ledgerData.ledger.forEach(function(item) {
+    if (item.type === type && item.name === name && item.desc === desc) {
+      item.count += count;
+      item.price = +(item.price + price * count).toFixed(2);
+      found = true;
+    }
+  });
+  if (!found) {
+    ledgerData.ledger.push({type:type, name:name, price:+(price*count).toFixed(2), count:count, desc:desc});
+  }
+  document.getElementById('ledger-nf-price').value = '';
+  document.getElementById('ledger-nf-desc').value = '';
+  document.getElementById('ledger-nf-count').value = '1';
+  saveLedgerData();
+  renderLedgerTable();
+  updateLedgerSummary();
+}
+
+function ledgerRemove(idx) {
+  ledgerData.ledger.splice(idx, 1);
+  saveLedgerData();
+  renderLedgerTable();
+  updateLedgerSummary();
+}
+
+function renderLedgerTable() {
+  var tbody = document.getElementById('ledger-tbody');
+  if (!ledgerData.ledger || !ledgerData.ledger.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px;">暂无记录，点击上方物品或手动添加</td></tr>';
+    return;
+  }
+  var h = '';
+  ledgerData.ledger.forEach(function(item, idx) {
+    var costStyle = item.price < 0 ? 'color:#e74c3c;' : '';
+    h += '<tr>';
+    h += '<td style="padding:3px 6px;border:1px solid var(--border);">';
+    h += esc(item.name);
+    if (item.desc) h += '<br><span style="font-size:.65rem;color:var(--muted);">'+esc(item.desc)+'</span>';
+    h += '</td>';
+    h += '<td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">'+item.count+'</td>';
+    h += '<td style="padding:3px 6px;border:1px solid var(--border);text-align:right;'+costStyle+'">';
+    if (item.price < 0) h += item.price.toFixed(2);
+    else h += item.price.toFixed(2);
+    h += '</td>';
+    h += '<td style="padding:3px 6px;border:1px solid var(--border);text-align:center;"><button onclick="ledgerRemove('+idx+')" style="border:none;background:none;color:#e74c3c;cursor:pointer;font-size:.75rem;">✕</button></td>';
+    h += '</tr>';
+  });
+  // 汇总行
+  var total = ledgerTodayTotal();
+  var totalStyle = total < 0 ? 'color:#e74c3c;' : 'color:var(--accent);';
+  h += '<tr style="background:var(--bg);font-weight:700;">';
+  h += '<td style="padding:4px 6px;border:1px solid var(--border);" colspan="2">合计</td>';
+  h += '<td style="padding:4px 6px;border:1px solid var(--border);text-align:right;'+totalStyle+'">'+total.toFixed(2)+'万</td>';
+  h += '<td style="padding:4px 6px;border:1px solid var(--border);"></td>';
+  h += '</tr>';
+  tbody.innerHTML = h;
+}
+
+function updateLedgerSummary() {
+  var total = ledgerTodayTotal();
+  document.getElementById('ledger-total').textContent = total.toFixed(2);
+  var scale = parseFloat(document.getElementById('ledger-scale').value);
+  var rmbEl = document.getElementById('ledger-rmb');
+  if (scale && scale > 0) {
+    var rmb = (total * scale / 3000).toFixed(2);
+    rmbEl.textContent = '(' + rmb + '元)';
+  } else {
+    rmbEl.textContent = '';
+  }
+}
+
+function clearTodayLedger() {
+  if (!confirm('确定清空今日所有记账记录？')) return;
+  ledgerData.ledger = [];
+  saveLedgerData();
+  renderLedgerTable();
+  updateLedgerSummary();
+}
+
+// 点卡计时
+function ledgerDkStart() {
+  if (ledgerData.dk.isStart) {
+    // 结束
+    ledgerData.dk.end = Date.now();
+    ledgerData.dk.isStart = false;
+    document.getElementById('ledger-dk-btn').textContent = '开始计时';
+  } else {
+    ledgerData.dk.start = Date.now();
+    ledgerData.dk.end = null;
+    ledgerData.dk.isStart = true;
+    document.getElementById('ledger-dk-btn').textContent = '结束计时';
+  }
+  saveLedgerData();
+  renderLedgerDkStatus();
+}
+
+function renderLedgerDkStatus() {
+  var info = document.getElementById('ledger-dk-info');
+  if (!ledgerData.dk.start) { info.textContent = ''; return; }
+  var start = new Date(ledgerData.dk.start);
+  var startStr = String(start.getHours()).padStart(2,'0')+':'+String(start.getMinutes()).padStart(2,'0');
+  var endStr = '';
+  if (ledgerData.dk.end) {
+    var end = new Date(ledgerData.dk.end);
+    endStr = String(end.getHours()).padStart(2,'0')+':'+String(end.getMinutes()).padStart(2,'0');
+  }
+  var duration = ledgerData.dk.end ? (ledgerData.dk.end - ledgerData.dk.start) : (Date.now() - ledgerData.dk.start);
+  var mins = Math.floor(duration / 60000);
+  var bl = parseFloat(document.getElementById('ledger-dk-bl').value) || 5;
+  var roles = parseInt(document.getElementById('ledger-dk-roles').value) || 5;
+  var dkCost = (mins / roles) * bl;
+  var h = '<span>' + startStr;
+  if (endStr) h += ' → ' + endStr;
+  h += ' (' + mins + '分钟) 点卡≈' + dkCost.toFixed(1) + '元</span>';
+  info.innerHTML = h;
+}
+
+// ==================== GUSHANG (固伤计算器) ====================
+var GS_SECTS = [
+  {name:'无底洞', skill:'夺命咒', formula:'夺命咒'},
+  {name:'普陀山', skill:'五行法术', formula:'日光华/靛沧海/苍灵击'},
+  {name:'地府',   skill:'阎罗令', formula:'阎罗令'},
+  {name:'女儿村', skill:'雨落寒沙', formula:'雨落寒沙/暗器'}
+];
+var gsCurSect = 0;
+
+function gsSelectSect(idx, btn) {
+  gsCurSect = idx;
+  document.querySelectorAll('.gs-sect-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  // 女儿村显示额外选项
+  document.getElementById('gs-nver-extra').style.display = idx===3?'':'none';
+  calcGushang();
+}
+
+function calcGushang() {
+  var sect = gsCurSect;
+  var skill = parseInt(document.getElementById('gs-skill').value) || 0;
+  var agi = parseInt(document.getElementById('gs-agi').value) || 0;
+  var dmg = parseInt(document.getElementById('gs-dmg').value) || 0;
+  var fushi = parseInt(document.getElementById('gs-fushi').value) || 0;
+  var wpn = parseInt(document.getElementById('gs-wpn').value) || 0;
+  var throwSkill = parseInt(document.getElementById('gs-throw').value) || 0;
+  var renxiu = parseInt(document.getElementById('gs-renxiu').value) || 0;
+  var guai = parseInt(document.getElementById('gs-guai').value) || 0;
+  var shenmu = parseInt(document.getElementById('gs-shenmu').value) || 0;
+  var zhenIdx = parseInt(document.getElementById('gs-zhen').value) || 0;
+  var fenling = parseInt(document.getElementById('gs-fenling').value) || 3;
+
+  var zhenVals = [1.0, 1.15, 1.2, 1.05]; // 无/天/雷/地
+  var zhen = zhenVals[zhenIdx] || 1.0;
+
+  var xiulvDiff = renxiu - guai;
+  var xiulvPct = 1 + xiulvDiff * 0.02; // 修炼百分比
+  var xiulvFixed = xiulvDiff * 5;       // 修炼固定值
+
+  // 分灵系数: 第1个1.1, 第2个1.0, 第3个0.9...
+  var flCoeffs = [];
+  for (var i = 0; i < fenling; i++) {
+    var c = 1.1 - 0.1 * i;
+    if (sect === 2) c = 1.0; // 地府点选聚伤，暂时按1.0算
+    flCoeffs.push(Math.max(c, 0.55));
+  }
+
+  var baseBase = 0, agiPart = 0, dmgPart = 0, fushiPart = 0, wpnPart = 0;
+  var sectName = GS_SECTS[sect].name;
+  var formulaNote = '';
+
+  if (sect === 0) {
+    // 无底洞 夺命咒
+    baseBase = skill * 1.5 + 20;
+    agiPart = agi * 0.7;
+    dmgPart = dmg * 0.125;
+    fushiPart = fushi * 1.0;
+    formulaNote = '【无底洞·夺命咒】公式：\n';
+    formulaNote += '基础 = 师门技能×1.5 + 20\n';
+    formulaNote += '敏捷加成 = 敏捷 × 0.7\n';
+    formulaNote += '伤害加成 = 装备伤害 × 0.125\n';
+    formulaNote += '灵饰固伤 = 灵饰固伤 × 1.0（直接加）\n';
+    formulaNote += '\n主秒 = (基础+敏捷×0.7+伤害×0.125+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符 + 武器伤害/2\n';
+    formulaNote += '副秒 = (基础+敏捷×0.7+伤害×0.125+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符';
+  } else if (sect === 1) {
+    // 普陀山 五行法术
+    baseBase = skill * 3 + 50;
+    agiPart = agi * 0.7;
+    wpnPart = wpn * 0.24; // 仅武器伤害
+    fushiPart = fushi * 1.0;
+    formulaNote = '【普陀山·五行法术】公式：\n';
+    formulaNote += '基础 = 师门技能 × 3 + 50\n';
+    formulaNote += '敏捷加成 = 敏捷 × 0.7\n';
+    formulaNote += '伤害加成 = 武器伤害 × 0.24（仅武器，非全身）\n';
+    formulaNote += '灵饰固伤 = 灵饰固伤 × 1.0（直接加）\n';
+    formulaNote += '\n主秒 = (基础+敏捷×0.7+武器×0.24+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符\n';
+    formulaNote += '副秒 = (基础+敏捷×0.7+武器×0.24+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符';
+  } else if (sect === 2) {
+    // 地府 阎罗令
+    baseBase = skill * 1.5 + 30;
+    agiPart = agi * 0.35;
+    dmgPart = dmg * 0.15;
+    fushiPart = fushi * 0.5;
+    formulaNote = '【地府·阎罗令】公式：\n';
+    formulaNote += '基础 = (师门技能×1.5 + 30) × 1.3（黑夜加成）\n';
+    formulaNote += '敏捷加成 = 敏捷 × 0.35\n';
+    formulaNote += '伤害加成 = 装备伤害 × 0.15\n';
+    formulaNote += '灵饰固伤 = 灵饰固伤 × 0.5\n';
+    formulaNote += '\n主秒 = (基础×1.3 + 敏捷×0.35 + 伤害×0.15 + 灵饰×0.5) × 阵法 × 1.0 × 修炼% + 修炼固定 + 神木符\n';
+    formulaNote += '注：点选时聚伤 = 1 + (最大秒数-当前) × 0.1，这里按1.0计算';
+  } else if (sect === 3) {
+    // 女儿村
+    var nverMode = document.getElementById('gs-nver-mode').value;
+    if (nverMode === 'rain') {
+      baseBase = skill * skill / 400 + skill / 2;
+      agiPart = agi * 0.5;
+      dmgPart = dmg * 0.18;
+      fushiPart = fushi * 0.83;
+      formulaNote = '【女儿村·雨落寒沙】公式：\n';
+      formulaNote += '基础 = 技能²/400 + 技能/2\n';
+      formulaNote += '敏捷加成 = 敏捷 × 0.5\n';
+      formulaNote += '伤害加成 = 装备伤害 × 0.18\n';
+      formulaNote += '灵饰固伤 = 灵饰固伤 × 0.83\n';
+      formulaNote += '\n主秒 = (基础+敏捷×0.5+伤害×0.18+灵饰×0.83) × 阵法(1.25天/1.14雷) × 分灵 × 修炼% + 修炼固定 + 神木符';
+    } else {
+      baseBase = throwSkill * throwSkill / 150 + throwSkill / 2;
+      agiPart = agi * 0.3;
+      fushiPart = fushi * 0.8;
+      dmgPart = 0; // 暗器用暗器命中
+      // 暗器额外伤害 = 暗器命中 + 50，这里简化为0
+      formulaNote = '【女儿村·暗器】公式：\n';
+      formulaNote += '基础 = 暗器技巧²/150 + 暗器技巧/2\n';
+      formulaNote += '敏捷加成 = 敏捷 × 0.3\n';
+      formulaNote += '伤害加成 = 暗器命中 + 50（需单独输入暗器命中值）\n';
+      formulaNote += '灵饰固伤 = 灵饰固伤 × 0.8\n';
+      formulaNote += '\n注：暗器命中额外伤害未在此处计算，请手动加上';
+    }
+    // 女儿阵法特殊
+    if (zhenIdx === 1) zhen = 1.25; // 天阵女儿
+    else if (zhenIdx === 2) zhen = 1.14; // 雷阵女儿
+  }
+
+  // 地府黑夜1.3倍
+  var nightMulti = (sect === 2) ? 1.3 : 1.0;
+  var base = baseBase * nightMulti + agiPart + dmgPart + wpnPart + fushiPart;
+
+  // 计算结果
+  var h = '<div style="margin-bottom:8px;font-weight:700;color:var(--accent);">'+sectName+' · '+GS_SECTS[sect].formula+'</div>';
+  h += '<div style="font-size:.78rem;color:var(--muted);margin-bottom:8px;">基础值='+Math.round(baseBase*nightMulti)+' 敏捷加成='+Math.round(agiPart)+' 伤害加成='+Math.round(dmgPart);
+  if (wpnPart) h += ' 武器加成='+Math.round(wpnPart);
+  h += ' 灵饰='+Math.round(fushiPart)+' 合计='+Math.round(base)+'</div>';
+
+  h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">';
+  h += '<tr style="background:var(--bg);"><th style="padding:4px 8px;border:1px solid var(--border);">目标</th><th style="padding:4px 8px;border:1px solid var(--border);">分灵</th><th style="padding:4px 8px;border:1px solid var(--border);">伤害</th></tr>';
+
+  for (var i = 0; i < fenling; i++) {
+    var fl = flCoeffs[i];
+    var raw = base * zhen * fl;
+    var result = Math.floor(raw * xiulvPct) + xiulvFixed + shenmu;
+    if (sect === 0) result += Math.floor(wpn / 2); // 无底洞+武器伤害/2
+    if (result < 0) result = 0;
+    var label = i === 0 ? '主秒' : '副秒'+i;
+    h += '<tr><td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">'+label+'</td>';
+    h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">'+fl.toFixed(1)+'</td>';
+    h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--accent);">'+result+'</td>';
+    h += '</tr>';
+  }
+  h += '</table>';
+
+  // 修炼信息
+  h += '<div style="font-size:.75rem;color:var(--muted);">修炼差='+(renxiu-guai)+' 修炼%='+Math.round(xiulvPct*100)+'% 修炼固定='+(xiulvDiff>=0?'+':'')+xiulvFixed+'</div>';
+
+  document.getElementById('gs-result').innerHTML = h;
+  document.getElementById('gs-formula-note').textContent = formulaNote;
+}
+
+function renderGushang() {
+  calcGushang();
 }
 
 function renderAll() {
