@@ -513,55 +513,73 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
           <input type="number" id="spd-hs" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
         </div>
       </div>
-      <!-- 天宫区域 -->
-      <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
-        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;">
-          <span style="font-size:.85rem;font-weight:600;">天宫（1速）</span>
-          <label style="font-size:.78rem;color:var(--muted);">基础面板速度：</label>
-          <input type="number" id="spd-tg-base" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+      <!-- 天宫输入+结果表格 左右并排 -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+        <!-- 左侧：天宫输入 -->
+        <div style="flex:1;min-width:300px;">
+          <div style="border:1px solid var(--border);border-radius:8px;padding:12px;">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;">
+              <span style="font-size:.85rem;font-weight:600;">天宫（1速）</span>
+              <label style="font-size:.78rem;color:var(--muted);">基础面板速度：</label>
+              <input type="number" id="spd-tg-base" placeholder="--" oninput="calcSpeed()" style="width:80px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+            </div>
+            <div style="font-size:.78rem;color:var(--accent);margin-bottom:8px;">可提升速度项（填写当前已有数值）：</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
+              <label style="font-size:.78rem;color:var(--muted);">敏捷属性点：<input type="number" id="spd-tg-agi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> x0.7</label>
+              <label style="font-size:.78rem;color:var(--muted);">黑宝石等级：<input type="number" id="spd-tg-gem" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> (+8/级)</label>
+              <label style="font-size:.78rem;color:var(--muted);">神速等级：<input type="number" id="spd-tg-shensu" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="每级+1.5，奇数级+1偶数级+2"><span id="spd-tg-shensu-val" style="color:var(--accent);">+0</span></label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
+              <label style="font-size:.78rem;color:var(--muted);">腰带速度：<input type="number" id="spd-tg-ydai" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+              <label style="font-size:.78rem;color:var(--muted);">鞋子速度：<input type="number" id="spd-tg-xiezi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+              <label style="font-size:.78rem;color:var(--muted);">符石速度：<input type="number" id="spd-tg-fushi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
+              <label style="font-size:.78rem;color:var(--muted);">灵饰速度：<input type="number" id="spd-tg-ling" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+              <label style="font-size:.78rem;color:var(--muted);">钟灵石速度：<input type="number" id="spd-tg-zhong" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
+              <label style="font-size:.78rem;color:var(--muted);">装备属性：
+                  <input type="number" id="spd-tg-attr-tz" placeholder="体" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="体质">
+                  <input type="number" id="spd-tg-attr-ml" placeholder="魔" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="魔力(不加速度)">
+                  <input type="number" id="spd-tg-attr-ll" placeholder="力" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="力量">
+                  <input type="number" id="spd-tg-attr-nd" placeholder="耐" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="耐力">
+                  <input type="number" id="spd-tg-attr-mj" placeholder="敏" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="敏捷">
+                  <span style="font-size:.7rem;color:var(--muted);">(体力耐x0.1 敏x0.7)</span>
+                </label>
+                <label style="font-size:.78rem;color:var(--muted);">临时符：<input type="number" id="spd-tg-linshi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="临时符增加的速度"></label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
+              <label style="font-size:.78rem;color:var(--muted);">法宝：<select id="spd-tg-fabao" onchange="calcSpeed()" style="padding:2px 4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;">
+                <option value="0">无</option>
+                <option value="25">风袋 9层 (+25)</option>
+                <option value="40">凌波仙符 18层 (+40)</option>
+                <option value="45">凌波仙符 18层 金属性 (+45)</option>
+                <option value="50">双风袋 9层 (+50)</option>
+                <option value="70">风袋9层 + 凌波18层金 (+70)</option>
+              </select></label>
+            </div>
+            <div style="font-size:.8rem;padding:6px 0 0;border-top:1px dashed var(--border);margin-top:4px;">
+              <span style="color:var(--muted);">面板速度 = 基础</span>
+              <span id="spd-tg-detail" style="color:var(--accent);">--</span>
+              <span style="color:var(--muted);">= </span>
+              <span id="spd-tg-total" style="font-weight:700;">--</span>
+            </div>
+          </div>
+          <!-- 符石组合备注 -->
+          <details style="margin-top:8px;font-size:.75rem;color:var(--muted);">
+            <summary style="cursor:pointer;font-weight:500;">符石组合参考（加速度）</summary>
+            <table style="width:100%;border-collapse:collapse;margin-top:4px;font-size:.72rem;">
+              <tr style="background:var(--bg);"><th style="padding:3px 6px;border:1px solid var(--border);">组合名</th><th style="padding:3px 6px;border:1px solid var(--border);">部位</th><th style="padding:3px 6px;border:1px solid var(--border);">符石颜色</th><th style="padding:3px 6px;border:1px solid var(--border);">速度加成</th></tr>
+              <tr><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">天降灵猿</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">鞋子</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">红黄蓝绿紫</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">1级+1.5 / 2级+3 / 3级+4.5 / 4级+6</td></tr>
+              <tr><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">百无禁忌</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">鞋子</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">黑白紫蓝绿</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">1级+1.5 / 2级+3 / 3级+4.5 / 4级+6</td></tr>
+              <tr><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">云随风舞</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">鞋子</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">红蓝绿黑白</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">1级+1.5 / 2级+3 / 3级+4.5 / 4级+6</td></tr>
+              <tr><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">万里横行</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">武器</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">红黄白蓝绿</td><td style="padding:3px 6px;border:1px solid var(--border);text-align:center;">3级+4.5</td></tr>
+            </table>
+            <p style="margin:4px 0 0;font-size:.7rem;">提示：符石组合效果可叠加，同种组合在同一件装备上只生效一个。</p>
+          </details>
         </div>
-        <div style="font-size:.78rem;color:var(--accent);margin-bottom:8px;">可提升速度项（填写当前已有数值）：</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
-          <label style="font-size:.78rem;color:var(--muted);">敏捷属性点：<input type="number" id="spd-tg-agi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> x0.7</label>
-          <label style="font-size:.78rem;color:var(--muted);">黑宝石等级：<input type="number" id="spd-tg-gem" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"> (+8/级)</label>
-          <label style="font-size:.78rem;color:var(--muted);">神速等级：<input type="number" id="spd-tg-shensu" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="每级+1.5，奇数级+1偶数级+2"><span id="spd-tg-shensu-val" style="color:var(--accent);">+0</span></label>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
-          <label style="font-size:.78rem;color:var(--muted);">腰带速度：<input type="number" id="spd-tg-ydai" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">鞋子速度：<input type="number" id="spd-tg-xiezi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">符石速度：<input type="number" id="spd-tg-fushi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
-          <label style="font-size:.78rem;color:var(--muted);">灵饰速度：<input type="number" id="spd-tg-ling" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">钟灵石速度：<input type="number" id="spd-tg-zhong" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">装备属性：
-              <input type="number" id="spd-tg-attr-tz" placeholder="体" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="体质">
-              <input type="number" id="spd-tg-attr-ml" placeholder="魔" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="魔力(不加速度)">
-              <input type="number" id="spd-tg-attr-ll" placeholder="力" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="力量">
-              <input type="number" id="spd-tg-attr-nd" placeholder="耐" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="耐力">
-              <input type="number" id="spd-tg-attr-mj" placeholder="敏" oninput="calcSpeed()" style="width:44px;padding:3px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="敏捷">
-              <span style="font-size:.7rem;color:var(--muted);">(体力耐x0.1 敏x0.7)</span>
-            </label>
-            <label style="font-size:.78rem;color:var(--muted);">临时符：<input type="number" id="spd-tg-linshi" placeholder="0" oninput="calcSpeed()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="临时符增加的速度"></label>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px;">
-          <label style="font-size:.78rem;color:var(--muted);">法宝：<select id="spd-tg-fabao" onchange="calcSpeed()" style="padding:2px 4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;">
-            <option value="0">无</option>
-            <option value="25">风袋 9层 (+25)</option>
-            <option value="40">凌波仙符 18层 (+40)</option>
-            <option value="45">凌波仙符 18层 金属性 (+45)</option>
-            <option value="50">双风袋 9层 (+50)</option>
-            <option value="70">风袋9层 + 凌波18层金 (+70)</option>
-          </select></label>
-        </div>
-        <div style="font-size:.8rem;padding:6px 0 0;border-top:1px dashed var(--border);margin-top:4px;">
-          <span style="color:var(--muted);">面板速度 = 基础</span>
-          <span id="spd-tg-detail" style="color:var(--accent);">--</span>
-          <span style="color:var(--muted);">= </span>
-          <span id="spd-tg-total" style="font-weight:700;">--</span>
-        </div>
+        <!-- 右侧：计算结果 -->
+        <div id="spd-results" style="flex:1;min-width:320px;position:sticky;top:12px;"></div>
       </div>
-      <div id="spd-results"></div>
     </div>
   </div>
 
