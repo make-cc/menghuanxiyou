@@ -2412,7 +2412,9 @@ function onChatReplaceChange(val) {
 }
 
 function getChatText(idx) {
-  var text = appData.chatPresets[idx] || '';
+  var item = appData.chatPresets[idx];
+  if (!item) return '';
+  var text = (typeof item === 'object') ? (item.text || '') : item;
   if (chatReplaceVal && text) {
     return text.replace(/XXXXXXX/g, chatReplaceVal);
   }
@@ -2422,7 +2424,8 @@ function getChatText(idx) {
 function renderChatGrid() {
   var grid = document.getElementById('chat-grid');
   var html = '';
-  appData.chatPresets.forEach(function(text, i) {
+  appData.chatPresets.forEach(function(item, i) {
+    var text = (typeof item === 'object') ? (item.text || '') : item;
     html += '<div class="chat-item">' +
       '<span class="chat-label">' + (i+1) + '</span>' +
       '<input type="text" value="' + esc(text) + '" oninput="onChatChange(' + i + ', this.value)" onfocus="this.select()">' +
@@ -2434,7 +2437,12 @@ function renderChatGrid() {
 }
 
 function onChatChange(idx, val) {
-  appData.chatPresets[idx] = val;
+  // 如果当前是对象格式，只改 text 字段；否则直接替换
+  if (typeof appData.chatPresets[idx] === 'object') {
+    appData.chatPresets[idx].text = val;
+  } else {
+    appData.chatPresets[idx] = val;
+  }
   scheduleSave();
 }
 
