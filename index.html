@@ -349,7 +349,7 @@ body.locked .btn-add-char { display: none; }
 body.locked #btn-lock { background: var(--red); color: #fff; }
 </style>
 </head>
-<body>
+<body class="locked">
 
 <div class="header">
   <h1>🎮 梦幻西游 · 修炼数据</h1>
@@ -405,7 +405,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <!-- 操作栏 -->
       <div style="padding: 8px 16px; display:flex; gap:8px; justify-content: space-between; align-items:center; flex-wrap:wrap;">
         <div style="display:flex; gap:8px;">
-          <button class="btn btn-ghost" id="btn-lock" onclick="toggleLock()">🔒 锁定</button>
+          <button class="btn btn-ghost" id="btn-lock" onclick="toggleLock()">🔓 解锁</button>
           <button class="btn btn-red" onclick="deleteCurrentChar()">🗑️ 删除角色</button>
         </div>
       </div>
