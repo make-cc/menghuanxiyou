@@ -1803,7 +1803,7 @@ function onSuitTypeChange() {
         var tier = suitTierLabel(item[2]);
         allSuits.push({
           attrName: attrName, suitName: item[0], tier: tier,
-          tierNum: tierOrder[tier] || 9,
+          tierNum: tierOrder[tier] ?? 9,
           formula3: item[2], rate3: item[3], formula5: item[4], rate5: item[5], desc: item[1]
         });
       });
@@ -1813,8 +1813,7 @@ function onSuitTypeChange() {
       if (ai !== bi) return ai - bi;
       return a.tierNum - b.tierNum;
     });
-    console.log('[TIER-DEBUG] Sorted suits:');
-    allSuits.forEach(function(s){ console.log('  ' + s.tierNum + ' ' + s.tier + ' ' + s.suitName); });
+
     var lastAttr = '';
     allSuits.forEach(function(s) {
       if (s.attrName !== lastAttr) {
