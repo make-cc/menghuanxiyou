@@ -2024,15 +2024,25 @@ function onSuitTypeChange() {
         });
       });
     });
+    // 先按属性分组，同属性内按线级排序
     allSuits.sort(function(a, b) {
-      if (a.tierNum !== b.tierNum) return a.tierNum - b.tierNum;
-      return ATTR_ORDER.indexOf(a.attrName) - ATTR_ORDER.indexOf(b.attrName);
+      var ai = ATTR_ORDER.indexOf(a.attrName), bi = ATTR_ORDER.indexOf(b.attrName);
+      if (ai !== bi) return ai - bi;
+      return a.tierNum - b.tierNum;
     });
+    // 用optgroup按属性分组显示
+    var lastAttr = '';
     allSuits.forEach(function(s) {
+      if (s.attrName !== lastAttr) {
+        var g = document.createElement('optgroup');
+        g.label = s.attrName;
+        nameEl.appendChild(g);
+        lastAttr = s.attrName;
+      }
       var opt = document.createElement('option');
       opt.value = s.attrName + '|' + s.suitName + '|' + s.formula3 + '|' + s.rate3 + '|' + s.formula5 + '|' + s.rate5;
-      opt.textContent = s.suitName + '【' + s.tier + s.attrName + '】';
-      nameEl.appendChild(opt);
+      opt.textContent = s.suitName + '【' + s.tier + '】';
+      nameEl.lastElementChild.appendChild(opt);
     });
     nameEl.style.display = 'inline-block';
     piecesEl.style.display = 'inline-block';
