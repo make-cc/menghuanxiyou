@@ -375,6 +375,14 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <button onclick="applyBlobId()" style="padding:5px 12px;border:none;border-radius:6px;background:var(--blue);color:#fff;cursor:pointer;font-size:.82rem;white-space:nowrap;">✅ 切换</button>
   </div>
   <p style="color:var(--muted);font-size:.75rem;margin:8px 0 0;">💡 新设备打开后，粘贴存档ID点"切换"即可同步数据。Token只需填一次。</p>
+  <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <span style="font-size:13px;font-weight:bold;color:var(--text)">📚 历史备份（7天内）</span>
+    <button onclick="renderBackupList()" style="font-size:11px;padding:2px 8px;background:var(--bg);color:var(--muted);border:1px solid var(--border);border-radius:4px;cursor:pointer">刷新列表</button>
+  </div>
+  <div id="backup-list-container" style="max-height:200px;overflow-y:auto;font-size:12px">
+    <span style="color:var(--muted);font-size:12px">点击"刷新列表"加载历史备份</span>
+  </div>
 </div>
 
 <div class="container">
@@ -390,7 +398,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <button class="tab" onclick="switchTab(7)">⚡ 固伤</button>
     <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;">
       <span id="unsync-hint" style="display:none; color:#f0a030; font-size:11px;cursor:default;">● 未同步</span>
-      <button class="btn" onclick="saveData()" style="padding:5px 12px;font-size:.78rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;">☁️ 同步</button>
+      <button class="btn" onclick="saveData()" style="padding:5px 12px;font-size:.78rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;">☁️ 同步到云端</button>
       <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer;margin-top:0;" title="点击管理云端存档">
         <span class="sync-dot" id="sync-dot"></span>
         <span id="sync-text">同步中...</span>
@@ -1322,15 +1330,37 @@ async function loadCloud(isManualRetry) {
     var st2 = document.getElementById('sync-text2');
     if(st) st.textContent = '连接中...';
     if(st2) st2.textContent = '同步中...';
+    // Electron环境提示
+    if (window.location && window.location.protocol === 'file:' && !GITHUB_TOKEN) {
+      if(st) st.textContent = '请配置Token';
+    }
   }
   try {
-    // Read data.json from same origin - works everywhere including WeChat!
-    const controller = new AbortController();
-    const fetchTimeout = setTimeout(function() { controller.abort(); }, 10000);
-    const resp = await fetch(DATA_URL + '?t=' + Date.now(), { signal: controller.signal });
-    clearTimeout(fetchTimeout);
-    if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
-    const d = await resp.json();
+    let d;
+    // 检测是否在Electron(file://)环境中运行，此时fetch本地文件会失败
+    const isElectron = window.location && window.location.protocol === 'file:';
+    if (isElectron && GITHUB_TOKEN) {
+      // Electron环境且有token：直接从GitHub API获取
+      const ghResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+      if (!ghResp.ok) throw new Error('GitHub API failed: ' + ghResp.status);
+      const ghData = await ghResp.json();
+      const decoded = atob(ghData.content.replace(/\n/g, ''));
+      const bytes = new Uint8Array(decoded.length);
+      for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
+      d = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+      dataSha = ghData.sha;
+    } else if (isElectron && !GITHUB_TOKEN) {
+      // Electron环境但无token：直接用本地存档，不报错
+      throw new Error('no-token-use-local');
+    } else {
+      // 正常网页环境：fetch同源data.json
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(function() { controller.abort(); }, 10000);
+      const resp = await fetch(DATA_URL + '?t=' + Date.now(), { signal: controller.signal });
+      clearTimeout(fetchTimeout);
+      if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
+      d = await resp.json();
+    }
     // Merge cloud data into appData
     if (d.characters && d.characters.length) {
       appData.characters = d.characters;
@@ -1394,10 +1424,133 @@ async function loadCloud(isManualRetry) {
     if (syncRetryCount < SYNC_MAX_RETRY && !isManualRetry) {
       setTimeout(function(){ loadCloud(false); }, SYNC_RETRY_DELAY);
     } else if (isManualRetry) {
-      showToast('读取失败，已从本地恢复数据');
+      if (e.message !== 'no-token-use-local') {
+        showToast('读取失败，已从本地恢复数据');
+      } else {
+        showToast('未配置Token，使用本地数据');
+      }
     }
   }
   renderAll();
+}
+
+// 备份API路径前缀
+const BACKUP_API = 'https://api.github.com/repos/make-cc/menghuanxiyou/contents/backup/';
+
+// 备份当前云端数据到 backup/YYYY-MM-DD_HH.json（7天历史）
+async function backupCloudData(oldContent, oldSha) {
+  try {
+    var now = new Date();
+    var pad = n => String(n).padStart(2,'0');
+    var dateStr = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'_'+pad(now.getHours());
+    var backupPath = BACKUP_API + dateStr + '.json';
+    // 先检查是否已存在同名备份（同一小时内不重复备份）
+    var checkResp = await fetch(backupPath + '?ref=main', { headers: ghHeaders() });
+    var checkSha = '';
+    if (checkResp.ok) {
+      var checkData = await checkResp.json();
+      checkSha = checkData.sha; // 已存在，更新它
+    }
+    var bPayload = { message: 'backup ' + dateStr, content: btoa(unescape(encodeURIComponent(oldContent))), branch: 'main' };
+    if (checkSha) bPayload.sha = checkSha;
+    await fetch(backupPath, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(bPayload) });
+    // 清理7天前的备份
+    await cleanOldBackups();
+  } catch(e) {
+    console.warn('backup failed (non-critical):', e);
+  }
+}
+
+// 删除7天前的备份文件
+async function cleanOldBackups() {
+  try {
+    var listResp = await fetch(BACKUP_API + '?ref=main', { headers: ghHeaders() });
+    if (!listResp.ok) return;
+    var files = await listResp.json();
+    var cutoff = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+    for (var f of files) {
+      // 文件名格式 YYYY-MM-DD_HH.json
+      var m = f.name.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})\.json$/);
+      if (!m) continue;
+      var fDate = new Date(+m[1], +m[2]-1, +m[3], +m[4]);
+      if (fDate < cutoff) {
+        await fetch(BACKUP_API + f.name, { method: 'DELETE', headers: ghHeaders(), body: JSON.stringify({ message: 'cleanup old backup', sha: f.sha, branch: 'main' }) });
+      }
+    }
+  } catch(e) { console.warn('cleanOldBackups:', e); }
+}
+
+// 获取备份文件列表
+async function fetchBackupList() {
+  try {
+    var listResp = await fetch(BACKUP_API + '?ref=main', { headers: ghHeaders() });
+    if (!listResp.ok) return [];
+    var files = await listResp.json();
+    return files.filter(f => f.name.match(/^\d{4}-\d{2}-\d{2}_\d{2}\.json$/))
+                .sort((a,b) => b.name.localeCompare(a.name));
+  } catch(e) { return []; }
+}
+
+// 从某个备份恢复
+async function restoreFromBackup(filename) {
+  if (!confirm('确认从备份 ' + filename + ' 恢复数据？\n当前云端数据会被先备份，然后替换。')) return;
+  showToast('恢复中...');
+  try {
+    var resp = await fetch(BACKUP_API + filename + '?ref=main', { headers: ghHeaders() });
+    if (!resp.ok) throw new Error('读取备份失败');
+    var data = await resp.json();
+    var decoded = new TextDecoder('utf-8').decode(new Uint8Array(Array.from(atob(data.content.replace(/\n/g,'')), c=>c.charCodeAt(0))));
+    var parsed = JSON.parse(decoded);
+    // 先把当前云端数据备份一次
+    var curResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+    if (curResp.ok) {
+      var curData = await curResp.json();
+      var curContent = new TextDecoder('utf-8').decode(new Uint8Array(Array.from(atob(curData.content.replace(/\n/g,'')), c=>c.charCodeAt(0))));
+      dataSha = curData.sha;
+      await backupCloudData(curContent, curData.sha);
+    }
+    // 写入恢复数据
+    var payload = JSON.stringify({ message: 'restore from ' + filename, content: btoa(unescape(encodeURIComponent(decoded))), sha: dataSha, branch: 'main' });
+    var putResp = await fetch(GH_API, { method: 'PUT', headers: ghHeaders(), body: payload });
+    if (!putResp.ok) throw new Error('写入失败');
+    var result = await putResp.json();
+    dataSha = result.content.sha;
+    // 应用到本地
+    if (parsed.characters && parsed.characters.length) appData.characters = parsed.characters;
+    if (parsed.activeCharIdx !== undefined) appData.activeCharIdx = parsed.activeCharIdx;
+    if (parsed.rate) appData.rate = parsed.rate;
+    if (parsed.fruitPrice !== undefined) appData.fruitPrice = parsed.fruitPrice;
+    if (parsed.gemPrices) appData.gemPrices = parsed.gemPrices;
+    if (parsed.ledger) appData.ledger = parsed.ledger;
+    if (parsed.ledgerPrices) appData.ledgerPrices = parsed.ledgerPrices;
+    localStorage.setItem('dream_local_data', JSON.stringify(appData));
+    syncOK = true; hasUnsyncedChanges = false; updateSyncUI();
+    initAll();
+    showToast('✅ 恢复成功！数据来自：' + filename);
+    renderBackupList(); // 刷新备份列表
+  } catch(e) {
+    showToast('恢复失败: ' + e.message);
+  }
+}
+
+// 渲染备份列表到云端面板
+async function renderBackupList() {
+  var container = document.getElementById('backup-list-container');
+  if (!container) return;
+  container.innerHTML = '<span style="color:#aaa;font-size:12px">加载中...</span>';
+  var files = await fetchBackupList();
+  if (!files.length) { container.innerHTML = '<span style="color:#aaa;font-size:12px">暂无备份</span>'; return; }
+  var html = '';
+  for (var f of files) {
+    var name = f.name.replace('.json','');
+    var parts = name.split('_');
+    var display = parts[0] + ' ' + parts[1] + ':00';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333">';
+    html += '<span style="font-size:13px">📅 ' + display + '</span>';
+    html += '<button onclick="restoreFromBackup(\'' + f.name + '\')" style="font-size:12px;padding:2px 8px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer">恢复</button>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
 }
 
 async function saveToCloud(retryCount) {
@@ -1407,23 +1560,57 @@ async function saveToCloud(retryCount) {
   // Also save locally immediately
   localStorage.setItem('dream_local_data', JSON.stringify(appData));
   try {
-    // Only fetch SHA if we don't have one (or after 409 conflict)
-    if (!dataSha) {
-      var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
-      if (shaResp.status === 401) {
-        GITHUB_TOKEN = '';
-        localStorage.removeItem('dream_gh_token');
-        showToast('Token无效或已过期，请重新在云端设置中输入');
-        syncOK = false; updateSyncUI(); return false;
-      }
-      if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
+    // 获取当前云端数据（用于SHA + 备份 + 数据量检查）
+    var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+    if (shaResp.status === 401) {
+      GITHUB_TOKEN = '';
+      localStorage.removeItem('dream_gh_token');
+      showToast('Token无效或已过期，请重新在云端设置中输入');
+      syncOK = false; updateSyncUI(); return false;
+    }
+    if (!shaResp.ok && shaResp.status !== 404) throw new Error('get SHA failed: ' + shaResp.status);
+    
+    var oldContent = '';
+    var oldCharCount = 0;
+    if (shaResp.ok) {
       var shaData = await shaResp.json();
       dataSha = shaData.sha;
+      // 解码旧数据，做数据量安全检查
+      try {
+        oldContent = new TextDecoder('utf-8').decode(new Uint8Array(Array.from(atob(shaData.content.replace(/\n/g,'')), c=>c.charCodeAt(0))));
+        var oldParsed = JSON.parse(oldContent);
+        oldCharCount = (oldParsed.characters || []).length;
+      } catch(e) {}
+    }
+    
+    // === 数据量安全检查 ===
+    var newStr = JSON.stringify(appData);
+    var newCharCount = (appData.characters || []).length;
+    var oldLen = oldContent.length || 0;
+    var newLen = newStr.length;
+    // 如果旧数据有角色，而新数据角色数量少于一半，弹确认
+    if (oldCharCount > 0 && newCharCount < oldCharCount * 0.5) {
+      if (!confirm('⚠️ 警告：即将上传的数据只有 ' + newCharCount + ' 个角色，而云端有 ' + oldCharCount + ' 个角色。\n数据可能不完整，确认继续上传？')) {
+        showToast('已取消，云端数据未改变');
+        return false;
+      }
+    }
+    // 如果新数据大小不到旧数据的30%，也要确认
+    if (oldLen > 500 && newLen < oldLen * 0.3) {
+      if (!confirm('⚠️ 警告：即将上传的数据量（' + newLen + '字节）远小于云端数据量（' + oldLen + '字节）。\n可能会丢失大量数据，确认继续？')) {
+        showToast('已取消，云端数据未改变');
+        return false;
+      }
+    }
+    
+    // === 备份旧数据 ===
+    if (oldContent && oldCharCount > 0) {
+      backupCloudData(oldContent, dataSha); // 异步执行，不阻塞保存
     }
 
     var payload = JSON.stringify({
       message: 'update data',
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))),
+      content: btoa(unescape(encodeURIComponent(newStr))),
       sha: dataSha,
       branch: 'main'
     });
@@ -1432,7 +1619,6 @@ async function saveToCloud(retryCount) {
 
     if (!resp.ok) {
       if (resp.status === 409 && retryCount < 3) {
-        // SHA stale — clear cache and retry with fresh SHA
         dataSha = '';
         console.log('409 conflict, refetching SHA and retry #' + (retryCount + 1));
         await new Promise(r => setTimeout(r, 500));
@@ -1443,7 +1629,6 @@ async function saveToCloud(retryCount) {
     }
 
     var result = await resp.json();
-    // Cache the new SHA for next save (no need to re-fetch)
     if (result.content && result.content.sha) { dataSha = result.content.sha; }
     syncOK = true; hasUnsyncedChanges = false; updateSyncUI();
     showToast('已保存 ✓');
@@ -1474,6 +1659,7 @@ function toggleCloudPanel() {
   if (show) {
     document.getElementById('gist-token-input').value = GITHUB_TOKEN;
     document.getElementById('blob-id-input').value = '数据自动同步（同仓库存储）';
+    if (GITHUB_TOKEN) renderBackupList();
   }
 }
 
