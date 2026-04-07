@@ -422,60 +422,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.82rem;">
           <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">🎭 装备套</div>
           <!-- 属性套（变身术） -->
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
-            <span style="color:var(--muted);white-space:nowrap;">属性套：</span>
-            <select id="suit-attr-combo" onchange="onSuitComboChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;max-width:200px;">
-              <option value="">无</option>
-            </select>
-            <select id="suit-attr-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="0">无</option>
-              <option value="3">3件</option>
-              <option value="4">4件</option>
-              <option value="5">5件</option>
-            </select>
-            <span id="suit-attr-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
-          </div>
-          <!-- 状态套（附加状态） -->
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
-            <span style="color:var(--muted);white-space:nowrap;">状态套：</span>
-            <select id="suit-status-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="">无</option>
-              <option value="定心术">定心术</option>
-              <option value="金刚护法">金刚护法</option>
-              <option value="逆鳞">逆鳞</option>
-              <option value="生命之泉">生命之泉</option>
-              <option value="幽冥鬼眼">幽冥鬼眼</option>
-              <option value="盘丝阵">盘丝阵</option>
-              <option value="楚楚可怜">楚楚可怜</option>
-              <option value="百毒不侵">百毒不侵</option>
-              <option value="极度疯狂">极度疯狂</option>
-              <option value="魔王回首">魔王回首</option>
-              <option value="明光宝烛">明光宝烛</option>
-              <option value="变身">变身(狮驼)</option>
-            </select>
-            <select id="suit-status-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="0">无</option>
-              <option value="3">3件</option>
-              <option value="4">4件</option>
-              <option value="5">5件</option>
-            </select>
-            <span id="suit-status-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
-          </div>
-          <!-- 4孔数量 -->
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-            <span style="color:var(--muted);white-space:nowrap;">4孔装备：</span>
-            <select id="suit-hole4" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="0">0件</option>
-              <option value="1">1件</option>
-              <option value="2">2件</option>
-              <option value="3">3件</option>
-              <option value="4">4件</option>
-              <option value="5">5件</option>
-            </select>
-            <span style="font-size:.75rem;color:var(--muted);">4孔可多开1个符石组合</span>
-          </div>
-        </div>
-      </div>
+          
 
       <div class="table-wrap">
         <table>
@@ -2014,75 +1961,105 @@ function getCharLevel() {
 }
 
 // 构建属性套combo下拉（所有属性类型套装合并，按线数+属性分组）
-function buildSuitComboOptions() {
-  var sel = document.getElementById('suit-attr-combo');
-  sel.innerHTML = '<option value="">无</option>';
-  var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
-  var ATTR_ORDER = ['魔力','力量','耐力','敏捷','体质'];
-  ATTR_ORDER.forEach(function(attrName) {
-    var key = SUIT_ATTR_KEYS[attrName];
-    var list = SUIT_DATA_RAW[key];
-    if (!list) return;
-    var grp = document.createElement('optgroup');
-    grp.label = '── ' + attrName + ' ──';
-    var sorted = list.slice().sort(function(a,b){
-      return (tierOrder[suitTierLabel(a[2])]||9) - (tierOrder[suitTierLabel(b[2])]||9);
-    });
-    sorted.forEach(function(item) {
-      var tier = suitTierLabel(item[2]);
-      var opt = document.createElement('option');
-      opt.value = attrName + '|' + item[0];
-      var desc = item[1] ? '  ' + item[1] : '';
-      opt.textContent = item[0] + '  [' + tier + ']' + desc;
-      grp.appendChild(opt);
-    });
-    sel.appendChild(grp);
-  });
-}
 
-function onSuitComboChange() {
+
+// 套装类型切换
+function onSuitTypeChange() {
+  var typeEl = document.getElementById('suit-type-select');
+  var nameEl = document.getElementById('suit-name-select');
+  var piecesEl = document.getElementById('suit-pieces-select');
+  var type = typeEl.value;
+
+  nameEl.innerHTML = '<option value="">请选择套装</option>';
+
+  if (type === 'attr') {
+    // 填充属性套选项（按线数排序）
+    var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
+    var allSuits = [];
+    var ATTR_ORDER = ['魔力','力量','耐力','敏捷','体质'];
+    ATTR_ORDER.forEach(function(attrName) {
+      var key = SUIT_ATTR_KEYS[attrName];
+      var list = SUIT_DATA_RAW[key];
+      if (!list) return;
+      list.forEach(function(item) {
+        var tier = suitTierLabel(item[2]);
+        allSuits.push({
+          attrName: attrName,
+          suitName: item[0],
+          tier: tier,
+          tierNum: tierOrder[tier] || 9,
+          formula3: item[2],
+          rate3: item[3],
+          formula5: item[4],
+          rate5: item[5],
+          desc: item[1]
+        });
+      });
+    });
+    allSuits.sort(function(a, b) {
+      if (a.tierNum !== b.tierNum) return a.tierNum - b.tierNum;
+      return ATTR_ORDER.indexOf(a.attrName) - ATTR_ORDER.indexOf(b.attrName);
+    });
+    allSuits.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s.attrName + '|' + s.suitName + '|' + s.formula3 + '|' + s.rate3 + '|' + s.formula5 + '|' + s.rate5;
+      opt.textContent = s.suitName + '【' + s.tier + s.attrName + '】';
+      nameEl.appendChild(opt);
+    });
+    nameEl.style.display = 'inline-block';
+    piecesEl.style.display = 'inline-block';
+  } else if (type === 'status') {
+    // 填充状态套选项
+    Object.keys(STATUS_SKILL_MAP).forEach(function(skill) {
+      var opt = document.createElement('option');
+      opt.value = skill;
+      var info = STATUS_SKILL_MAP[skill];
+      opt.textContent = skill + '（' + info.desc + '）';
+      nameEl.appendChild(opt);
+    });
+    nameEl.style.display = 'inline-block';
+    piecesEl.style.display = 'inline-block';
+  } else {
+    nameEl.style.display = 'none';
+    piecesEl.style.display = 'none';
+  }
+  document.getElementById('suit-result').textContent = '';
   onSuitChange();
 }
 
-function renderSuitPanel() {
-  var ch = appData.characters[appData.activeCharIdx];
-  buildSuitComboOptions();
-  if (!ch || !ch.suitData) return;
-  var s = ch.suitData;
-  if (s.attrCombo) {
-    document.getElementById('suit-attr-combo').value = s.attrCombo;
-  } else if (s.attrType && s.attrName) {
-    document.getElementById('suit-attr-combo').value = s.attrType + '|' + s.attrName;
-  } else {
-    document.getElementById('suit-attr-combo').value = '';
-  }
-  document.getElementById('suit-attr-pieces').value = s.attrPieces || 0;
-  document.getElementById('suit-status-type').value = s.statusType || '';
-  document.getElementById('suit-status-pieces').value = s.statusPieces || 0;
-  document.getElementById('suit-hole4').value = s.hole4Count || 0;
-  calcSuitResult();
+// 套装名切换
+function onSuitNameChange() {
+  onSuitChange();
 }
 
 function onSuitChange() {
   var ch = appData.characters[appData.activeCharIdx];
-  if (!ch) return;
-  if (!ch.suitData) ch.suitData = { attrCombo:'', attrType:'', attrName:'', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 };
-  var combo = document.getElementById('suit-attr-combo').value;
-  ch.suitData.attrCombo = combo;
-  if (combo && combo.indexOf('|') > 0) {
-    var parts = combo.split('|');
-    ch.suitData.attrType = parts[0] || '';
-    ch.suitData.attrName = parts[1] || '';
+  if (!ch || !ch.suitData) ch.suitData = {};
+  var s = ch.suitData;
+  var typeEl = document.getElementById('suit-type-select');
+  var nameEl = document.getElementById('suit-name-select');
+  var piecesEl = document.getElementById('suit-pieces-select');
+  var type = typeEl.value;
+  if (type === 'attr') {
+    var nameVal = nameEl.value;
+    if (nameVal && nameVal.indexOf('|') > 0) {
+      var parts = nameVal.split('|');
+      s.attrType = parts[0]; s.attrName = parts[1];
+      s.formula3 = parts[2]; s.rate3 = parts[3];
+      s.formula5 = parts[4]; s.rate5 = parts[5];
+      s.attrPieces = parseInt(piecesEl.value) || 0;
+      s.statusType = ''; s.statusPieces = 0;
+    } else { s.attrType = ''; s.attrName = ''; s.attrPieces = 0; }
+  } else if (type === 'status') {
+    s.statusType = nameEl.value;
+    s.statusPieces = parseInt(piecesEl.value) || 0;
+    s.attrType = ''; s.attrName = ''; s.attrPieces = 0;
   } else {
-    ch.suitData.attrType = '';
-    ch.suitData.attrName = '';
+    s.attrType = ''; s.attrName = ''; s.attrPieces = 0;
+    s.statusType = ''; s.statusPieces = 0;
   }
-  ch.suitData.attrPieces = parseInt(document.getElementById('suit-attr-pieces').value) || 0;
-  ch.suitData.statusType = document.getElementById('suit-status-type').value;
-  ch.suitData.statusPieces = parseInt(document.getElementById('suit-status-pieces').value) || 0;
-  ch.suitData.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
-  scheduleSave();
   calcSuitResult();
+  scheduleSave();
 }
 
 function calcSuitResult() {
@@ -2090,159 +2067,61 @@ function calcSuitResult() {
   var ch = appData.characters[appData.activeCharIdx];
   if (!ch || !ch.suitData) return;
   var s = ch.suitData;
-
-  // 属性套计算（兼容新combo格式）
-  var attrEl = document.getElementById('suit-attr-result');
-  var _attrType = s.attrType, _attrName = s.attrName;
-  if (s.attrCombo && s.attrCombo.indexOf('|') > 0) {
-    var _cp = s.attrCombo.split('|'); _attrType = _cp[0]; _attrName = _cp[1];
-  }
-  if (_attrType && _attrName && s.attrPieces > 0 && lv > 0) {
-    var key = SUIT_ATTR_KEYS[_attrType];
-    var list = SUIT_DATA_RAW[key];
-    var item = null;
-    for (var i = 0; i < list.length; i++) { if (list[i][0] === _attrName) { item = list[i]; break; } }
-    if (item) {
-      var tier = suitTierLabel(item[2]);
-      var formula3 = item[2], formula5 = item[4];
-      var is5 = s.attrPieces >= 5;
-      var val = evalSuitFormula(is5 ? formula5 : formula3, lv);
-      var rate = is5 ? item[5] : item[3];
-      attrEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 → +' + val + _attrType + '（变身' + rate + '%）';
-    } else {
-      attrEl.textContent = '';
-    }
-  } else if (_attrType && _attrName && s.attrPieces > 0) {
-    attrEl.textContent = '请先填写等级';
-  } else {
-    attrEl.textContent = '';
-  }
-
-  // 状态套计算
-  var statusEl = document.getElementById('suit-status-result');
-  if (s.statusType && s.statusPieces > 0 && lv > 0) {
+  var resultEl = document.getElementById('suit-result');
+  if (s.attrType && s.attrName && s.attrPieces > 0 && lv > 0) {
+    var is5 = s.attrPieces >= 5;
+    var formula = is5 ? s.formula5 : s.formula3;
+    var rate = is5 ? s.rate5 : s.rate3;
+    var val = evalSuitFormula(formula, lv);
+    var tier = suitTierLabel(s.formula3);
+    resultEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 -> +' + val + s.attrType + ' (\u53d8\u8eab' + rate + '%)';
+  } else if (s.statusType && s.statusPieces > 0 && lv > 0) {
     var info = STATUS_SKILL_MAP[s.statusType];
     var n5 = s.statusPieces >= 5;
     var skillLv = n5 ? (lv + 10) : (lv - 10);
     var rounds = n5 ? 15 : 4;
-    var effText = info ? info.effect(lv, n5) : '技能' + skillLv + '级';
-    statusEl.textContent = (n5 ? '5件' : s.statusPieces + '件') + ' → 技能' + skillLv + '级/' + rounds + '回合 (' + effText + ')';
-  } else if (s.statusType && s.statusPieces > 0) {
-    statusEl.textContent = '请先填写等级';
+    var effText = info ? info.effect(lv, n5) : '\u6280\u80fd' + skillLv + '\u7ea7';
+    resultEl.textContent = (n5 ? '5\u4ef6' : s.statusPieces + '\u4ef6') + ' -> \u6280\u80fd' + skillLv + '\u7ea7/' + rounds + '\u56de\u5408 (' + effText + ')';
+  } else if ((s.attrType || s.statusType) && ((s.attrPieces || s.statusPieces) > 0)) {
+    resultEl.textContent = '\u8bf7\u5148\u586b\u5199\u7b49\u7ea7';
   } else {
-    statusEl.textContent = '';
+    resultEl.textContent = '';
   }
 }
 
-// ==================== PROGRESS TABLE ====================
-function renderProgressTable() {
-  const ch = appData.characters[appData.activeCharIdx];
+function renderSuitPanel() {
+  var ch = appData.characters[appData.activeCharIdx];
   if (!ch) return;
-  const thead = document.getElementById('progress-thead');
-  const tbody = document.getElementById('progress-tbody');
-  let html = '';
-  let totalExp=0, totalGold=0, totalBang=0;
-
-  // 各分类表头配置
-  const HEADERS = {
-    skills:  ['项目','当前等级','目标等级','消耗经验','消耗金钱',''],
-    rxiu:    ['项目','当前等级','目标等级','所需修炼经验','消耗金钱','所需帮贡上限'],
-    cxiu:    ['项目','当前等级','目标等级','所需修炼经验','消耗金钱','修炼果个数'],
-    aux:     ['项目','当前等级','目标等级','消耗经验','消耗金钱','消耗帮贡','所需帮贡上限'],
-    other:   ['项目','当前','目标','消耗经验','消耗金钱','']
-  };
-
-  ITEM_GROUPS.forEach(g => {
-    const headers = HEADERS[g.key] || HEADERS.other;
-    const colSpan = headers.length;
-
-    // 分类标题行
-    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label;
-    if (g.key === 'aux') {
-      // Add toggle buttons for hideable items
-      const toggleItems = ['暗器'];
-      toggleItems.forEach(item => {
-        const isHidden = (ch.hiddenItems || []).includes(item);
-        const label = isHidden ? '+ ' + item + '（已隐藏）' : '- ' + item;
-        const color = isHidden ? 'color:var(--muted);' : '';
-        html += ' <span style="cursor:pointer;font-size:.75rem;font-weight:normal;margin-left:8px;' + color + '" onclick="toggleHideItem(\'' + item + '\')" title="点击' + (isHidden ? '显示' : '隐藏') + '">' + label + '</span>';
-      });
+  if (!ch.suitData) ch.suitData = {};
+  var s = ch.suitData;
+  var typeEl = document.getElementById('suit-type-select');
+  var nameEl = document.getElementById('suit-name-select');
+  var piecesEl = document.getElementById('suit-pieces-select');
+  if (s.attrType && s.attrName) {
+    typeEl.value = 'attr';
+    onSuitTypeChange();
+    var targetVal = s.attrType + '|' + s.attrName + '|' + (s.formula3||'') + '|' + (s.rate3||'') + '|' + (s.formula5||'') + '|' + (s.rate5||'');
+    for (var i = 0; i < nameEl.options.length; i++) {
+      if (nameEl.options[i].value === targetVal) { nameEl.selectedIndex = i; break; }
     }
-    html += '</td></tr>';
+    piecesEl.style.display = 'inline-block';
+    piecesEl.value = s.attrPieces || 0;
+  } else if (s.statusType) {
+    typeEl.value = 'status';
+    onSuitTypeChange();
+    nameEl.value = s.statusType;
+    piecesEl.style.display = 'inline-block';
+    piecesEl.value = s.statusPieces || 0;
+  } else {
+    typeEl.value = '';
+    nameEl.style.display = 'none';
+    piecesEl.style.display = 'none';
+  }
+  calcSuitResult();
+}
 
-    // 表头行（每个分类自己的表头）
-    html += '<tr>';
-    headers.forEach(h => { html += '<th>' + h + '</th>'; });
-    html += '</tr>';
+// 件数切换（保留原有函数）
 
-    let subExp=0, subGold=0, subBang=0;
-
-    var items = g.items;
-    if (g.key === 'skills' && ch.skillNames && ch.skillNames.length) {
-      items = ch.skillNames;
-    }
-    items.forEach(item => {
-      // Skip hidden items
-      if ((ch.hiddenItems || []).includes(item)) return;
-      const d = ch.data[item] || { cur:0, target:0 };
-      const k = item;
-      const result = autoCalc(item, d.cur, d.target);
-      const exp = result.exp || 0;
-      const gold = result.gold || 0;
-      const bang = result.bang || 0;
-      const bangReq = result.bangReq || 0;
-      const fruitCount = result.fruitCount || 0;
-      subExp += exp; subGold += gold; subBang += bang;
-      totalExp += exp; totalGold += gold; totalBang += bang;
-
-      // 构建行内容
-      if (g.key === 'skills') {
-        html += '<tr>' +
-          '<td><input type="text" data-key="' + k + '" data-field="name" value="' + esc(item) + '" onchange="onSkillNameChange(this)" onfocus="this.select()" style="width:100%;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);font-size:.85rem;padding:2px 4px;text-align:left;cursor:text;" onmouseover="this.style.borderColor=\'var(--border)\'" onmouseout="if(document.activeElement!==this)this.style.borderColor=\'transparent\'"></td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
-          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
-          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
-          '<td></td>' +
-          '</tr>';
-      } else if (g.key === 'rxiu') {
-        html += '<tr>' +
-          '<td>' + esc(item) + '</td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
-          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
-          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
-          '<td class="auto-val">' + (bangReq > 0 ? fmtNum(bangReq) : '—') + '</td>' +
-          '</tr>';
-      } else if (g.key === 'cxiu') {
-        html += '<tr>' +
-          '<td>' + esc(item) + '</td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
-          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
-          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
-          '<td class="auto-val">' + (fruitCount > 0 ? '🍎' + fruitCount + '个' : '—') + '</td>' +
-          '</tr>';
-      } else if (g.key === 'aux') {
-        html += '<tr>' +
-          '<td>' + esc(item) + '</td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
-          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
-          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
-          '<td class="auto-val">' + (bang > 0 ? fmtNum(bang) : '—') + '</td>' +
-          '<td class="auto-val">' + (bangReq > 0 ? fmtNum(bangReq) : '—') + '</td>' +
-          '</tr>';
-      } else {
-        // other: 乾元丹, 潜力果, 等级
-        html += '<tr>' +
-          '<td>' + esc(item) + '</td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
-          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
-          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
-          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
-          '<td></td>' +
-          '</tr>';
       }
     });
 
