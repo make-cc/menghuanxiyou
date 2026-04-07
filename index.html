@@ -2,9 +2,6 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
 <title>梦幻西游 · 修炼数据记录</title>
 <style>
@@ -378,14 +375,6 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <button onclick="applyBlobId()" style="padding:5px 12px;border:none;border-radius:6px;background:var(--blue);color:#fff;cursor:pointer;font-size:.82rem;white-space:nowrap;">✅ 切换</button>
   </div>
   <p style="color:var(--muted);font-size:.75rem;margin:8px 0 0;">💡 新设备打开后，粘贴存档ID点"切换"即可同步数据。Token只需填一次。</p>
-  <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-    <span style="font-size:13px;font-weight:bold;color:var(--text)">📚 历史备份（7天内）</span>
-    <button onclick="renderBackupList()" style="font-size:11px;padding:2px 8px;background:var(--bg);color:var(--muted);border:1px solid var(--border);border-radius:4px;cursor:pointer">刷新列表</button>
-  </div>
-  <div id="backup-list-container" style="max-height:200px;overflow-y:auto;font-size:12px">
-    <span style="color:var(--muted);font-size:12px">点击"刷新列表"加载历史备份</span>
-  </div>
 </div>
 
 <div class="container">
@@ -401,7 +390,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <button class="tab" onclick="switchTab(7)">⚡ 固伤</button>
     <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;">
       <span id="unsync-hint" style="display:none; color:#f0a030; font-size:11px;cursor:default;">● 未同步</span>
-      <button class="btn" onclick="saveData()" style="padding:5px 12px;font-size:.78rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;">☁️ 同步到云端</button>
+      <button class="btn" onclick="saveData()" style="padding:5px 12px;font-size:.78rem;font-weight:600;background:#fff;color:#4f46e5;border:none;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap;">☁️ 同步</button>
       <div class="sync-badge" onclick="toggleCloudPanel()" style="cursor:pointer;margin-top:0;" title="点击管理云端存档">
         <span class="sync-dot" id="sync-dot"></span>
         <span id="sync-text">同步中...</span>
@@ -424,27 +413,58 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <div id="suit-panel" style="padding:0 16px 8px;">
         <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.82rem;">
           <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">🎭 装备套</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
-            <span style="color:var(--muted);white-space:nowrap;">装备套装：</span>
-            <select id="suit-type-select" onchange="onSuitTypeChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:90px;">
-              <option value="">请选择</option>
-              <option value="attr">属性套</option>
-              <option value="status">状态套</option>
+          <!-- 属性套（变身术） -->
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);white-space:nowrap;">属性套：</span>
+            <select id="suit-attr-type" onchange="onSuitAttrTypeChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">无</option>
+              <option value="体质">体质</option>
+              <option value="魔力">魔力</option>
+              <option value="力量">力量</option>
+              <option value="耐力">耐力</option>
+              <option value="敏捷">敏捷</option>
             </select>
-            <select id="suit-name-select" onchange="onSuitNameChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:120px;display:none;">
-              <option value="">请选择套装</option>
+            <select id="suit-attr-name" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">选择套装</option>
             </select>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-            <select id="suit-pieces-select" onchange="onSuitChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:70px;display:none;">
-              <option value="0">0件</option>
+            <select id="suit-attr-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="0">无</option>
               <option value="3">3件</option>
               <option value="4">4件</option>
               <option value="5">5件</option>
             </select>
-            <span id="suit-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
-            <span style="margin-left:12px;color:var(--muted);white-space:nowrap;">4孔：</span>
-            <select id="suit-hole4" onchange="onSuitChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:60px;">
+            <span id="suit-attr-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
+          </div>
+          <!-- 状态套（附加状态） -->
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);white-space:nowrap;">状态套：</span>
+            <select id="suit-status-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">无</option>
+              <option value="定心术">定心术</option>
+              <option value="金刚护法">金刚护法</option>
+              <option value="逆鳞">逆鳞</option>
+              <option value="生命之泉">生命之泉</option>
+              <option value="幽冥鬼眼">幽冥鬼眼</option>
+              <option value="盘丝阵">盘丝阵</option>
+              <option value="楚楚可怜">楚楚可怜</option>
+              <option value="百毒不侵">百毒不侵</option>
+              <option value="极度疯狂">极度疯狂</option>
+              <option value="魔王回首">魔王回首</option>
+              <option value="明光宝烛">明光宝烛</option>
+              <option value="变身">变身(狮驼)</option>
+            </select>
+            <select id="suit-status-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="0">无</option>
+              <option value="3">3件</option>
+              <option value="4">4件</option>
+              <option value="5">5件</option>
+            </select>
+            <span id="suit-status-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
+          </div>
+          <!-- 4孔数量 -->
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+            <span style="color:var(--muted);white-space:nowrap;">4孔装备：</span>
+            <select id="suit-hole4" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
               <option value="0">0件</option>
               <option value="1">1件</option>
               <option value="2">2件</option>
@@ -452,8 +472,10 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
               <option value="4">4件</option>
               <option value="5">5件</option>
             </select>
+            <span style="font-size:.75rem;color:var(--muted);">4孔可多开1个符石组合</span>
           </div>
         </div>
+      </div>
 
       <div class="table-wrap">
         <table>
@@ -683,9 +705,9 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <span style="font-size:.7rem;color:var(--muted);margin-left:auto;">自动保存到本地</span>
       </div>
       <!-- 顶部工具栏 -->
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
         <label style="font-size:.78rem;color:var(--muted);">万两/RMB：<input type="number" id="ledger-scale" placeholder="3000" oninput="saveLedgerData()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-        <div style="display:flex;gap:4px;align-items:center;">
+        <div style="display:flex;gap:4px;">
           <button onclick="ledgerDkStart()" id="ledger-dk-btn" style="font-size:.75rem;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);cursor:pointer;">开始计时</button>
           <label style="font-size:.75rem;color:var(--muted);">点卡：<input type="number" id="ledger-dk-bl" value="5" style="width:50px;padding:2px;font-size:.75rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="每点点卡价格(元)"></label>
           <label style="font-size:.75rem;color:var(--muted);">角色：<input type="number" id="ledger-dk-roles" value="5" style="width:40px;padding:2px;font-size:.75rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
@@ -697,40 +719,21 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
           <button onclick="clearTodayLedger()" style="font-size:.72rem;padding:3px 8px;border:1px solid #e74c3c;border-radius:var(--radius);background:transparent;color:#e74c3c;cursor:pointer;">清空</button>
         </div>
       </div>
-      <!-- 打坐倒计时 -->
-      <div id="dzcd-bar" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:linear-gradient(135deg,#667eea15,#764ba215);border:1px solid #667eea40;border-radius:8px;margin-bottom:10px;">
-        <span style="font-size:.85rem;white-space:nowrap;">&#x1F9D8; 打坐</span>
-        <div style="flex:1;background:#e0e0e0;border-radius:4px;height:10px;overflow:hidden;">
-          <div id="dzcd-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:4px;transition:width .5s linear;"></div>
-        </div>
-        <span id="dzcd-time" style="font-size:.9rem;font-weight:700;color:#667eea;min-width:40px;text-align:right;">3:00</span>
-        <button id="dzcd-btn" onclick="dzcdToggle()" style="font-size:.75rem;padding:4px 12px;background:#667eea;color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">开始</button>
-        <button onclick="dzcdReset()" style="font-size:.75rem;padding:4px 8px;background:transparent;border:1px solid #ccc;border-radius:6px;cursor:pointer;">重置</button>
-      </div>
-      <!-- 物品图标网格（全部物品，点击记账） -->
-      <div id="ledger-icon-grid" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
-      <!-- 设置物价 -->
-      <details style="margin-bottom:10px;" id="ledger-price-detail">
-        <summary style="cursor:pointer;font-size:.78rem;color:var(--muted);">&#x2699;&#xFE0F; 设置物价</summary>
+      <!-- 物品价格网格 -->
+      <div id="ledger-price-grid" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;"></div>
+      <!-- 设置固定物价按钮 -->
+      <details style="margin-bottom:12px;">
+        <summary style="cursor:pointer;font-size:.78rem;color:var(--muted);">设置固定物价</summary>
         <div id="ledger-price-setting" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
       </details>
-      <!-- 非固定物品弹窗 -->
-      <div id="ledger-nf-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:0 4px 24px #0003;min-width:260px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <span id="ledger-nf-popup-title" style="font-weight:700;font-size:.9rem;"></span>
-          <button onclick="document.getElementById('ledger-nf-popup').style.display='none';document.getElementById('ledger-nf-mask').style.display='none'" style="border:none;background:none;font-size:1.1rem;cursor:pointer;color:var(--muted);">&#x2715;</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <label style="font-size:.8rem;color:var(--muted);">单价(万)：<input type="number" id="ledger-nf-price" placeholder="输入单价" onfocus="this.select()" style="width:100px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;margin-left:4px;"></label>
-          <label style="font-size:.8rem;color:var(--muted);">数量：<input type="number" id="ledger-nf-count" value="1" min="1" onfocus="this.select()" style="width:70px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;text-align:center;margin-left:4px;"></label>
-          <label style="font-size:.8rem;color:var(--muted);">备注：<input type="text" id="ledger-nf-desc" placeholder="选填" style="width:120px;padding:4px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;margin-left:4px;"></label>
-          <input type="hidden" id="ledger-nf-type" value="">
-          <button onclick="ledgerAddNonFixed()" style="font-size:.85rem;padding:6px 0;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;margin-top:4px;">确认记账</button>
-        </div>
+      <!-- 非固定物品输入 -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        <select id="ledger-nf-type" style="padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;"></select>
+        <input type="number" id="ledger-nf-price" placeholder="单价(万)" style="width:90px;padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;">
+        <input type="number" id="ledger-nf-count" value="1" min="1" style="width:50px;padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="数量">
+        <input type="text" id="ledger-nf-desc" placeholder="备注(选填)" style="width:120px;padding:4px;font-size:.78rem;border:1px solid #ccc;border-radius:4px;">
+        <button onclick="ledgerAddNonFixed()" style="font-size:.78rem;padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;">添加</button>
       </div>
-      <div id="ledger-nf-mask" onclick="document.getElementById('ledger-nf-popup').style.display='none';document.getElementById('ledger-nf-mask').style.display='none'" style="display:none;position:fixed;inset:0;z-index:9998;background:#0003;"></div>
-      <!-- 兼容旧DOM -->
-      <div id="ledger-price-grid" style="display:none;"></div>
       <!-- 账单列表 -->
       <div style="max-height:400px;overflow-y:auto;">
         <table id="ledger-table" style="width:100%;border-collapse:collapse;font-size:.8rem;">
@@ -1319,37 +1322,15 @@ async function loadCloud(isManualRetry) {
     var st2 = document.getElementById('sync-text2');
     if(st) st.textContent = '连接中...';
     if(st2) st2.textContent = '同步中...';
-    // Electron环境提示
-    if (window.location && window.location.protocol === 'file:' && !GITHUB_TOKEN) {
-      if(st) st.textContent = '请配置Token';
-    }
   }
   try {
-    let d;
-    // 检测是否在Electron(file://)环境中运行，此时fetch本地文件会失败
-    const isElectron = window.location && window.location.protocol === 'file:';
-    if (isElectron && GITHUB_TOKEN) {
-      // Electron环境且有token：直接从GitHub API获取
-      const ghResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
-      if (!ghResp.ok) throw new Error('GitHub API failed: ' + ghResp.status);
-      const ghData = await ghResp.json();
-      const decoded = atob(ghData.content.replace(/\n/g, ''));
-      const bytes = new Uint8Array(decoded.length);
-      for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
-      d = JSON.parse(new TextDecoder('utf-8').decode(bytes));
-      dataSha = ghData.sha;
-    } else if (isElectron && !GITHUB_TOKEN) {
-      // Electron环境但无token：直接用本地存档，不报错
-      throw new Error('no-token-use-local');
-    } else {
-      // 正常网页环境：fetch同源data.json
-      const controller = new AbortController();
-      const fetchTimeout = setTimeout(function() { controller.abort(); }, 10000);
-      const resp = await fetch(DATA_URL + '?t=' + Date.now(), { signal: controller.signal });
-      clearTimeout(fetchTimeout);
-      if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
-      d = await resp.json();
-    }
+    // Read data.json from same origin - works everywhere including WeChat!
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(function() { controller.abort(); }, 10000);
+    const resp = await fetch(DATA_URL + '?t=' + Date.now(), { signal: controller.signal });
+    clearTimeout(fetchTimeout);
+    if (!resp.ok) throw new Error('data.json not found: ' + resp.status);
+    const d = await resp.json();
     // Merge cloud data into appData
     if (d.characters && d.characters.length) {
       appData.characters = d.characters;
@@ -1413,133 +1394,10 @@ async function loadCloud(isManualRetry) {
     if (syncRetryCount < SYNC_MAX_RETRY && !isManualRetry) {
       setTimeout(function(){ loadCloud(false); }, SYNC_RETRY_DELAY);
     } else if (isManualRetry) {
-      if (e.message !== 'no-token-use-local') {
-        showToast('读取失败，已从本地恢复数据');
-      } else {
-        showToast('未配置Token，使用本地数据');
-      }
+      showToast('读取失败，已从本地恢复数据');
     }
   }
   renderAll();
-}
-
-// 备份API路径前缀
-const BACKUP_API = 'https://api.github.com/repos/make-cc/menghuanxiyou/contents/backup/';
-
-// 备份当前云端数据到 backup/YYYY-MM-DD_HH.json（7天历史）
-async function backupCloudData(oldContent, oldSha) {
-  try {
-    var now = new Date();
-    var pad = n => String(n).padStart(2,'0');
-    var dateStr = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'_'+pad(now.getHours());
-    var backupPath = BACKUP_API + dateStr + '.json';
-    // 先检查是否已存在同名备份（同一小时内不重复备份）
-    var checkResp = await fetch(backupPath + '?ref=main', { headers: ghHeaders() });
-    var checkSha = '';
-    if (checkResp.ok) {
-      var checkData = await checkResp.json();
-      checkSha = checkData.sha; // 已存在，更新它
-    }
-    var bPayload = { message: 'backup ' + dateStr, content: btoa(unescape(encodeURIComponent(oldContent))), branch: 'main' };
-    if (checkSha) bPayload.sha = checkSha;
-    await fetch(backupPath, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(bPayload) });
-    // 清理7天前的备份
-    await cleanOldBackups();
-  } catch(e) {
-    console.warn('backup failed (non-critical):', e);
-  }
-}
-
-// 删除7天前的备份文件
-async function cleanOldBackups() {
-  try {
-    var listResp = await fetch(BACKUP_API + '?ref=main', { headers: ghHeaders() });
-    if (!listResp.ok) return;
-    var files = await listResp.json();
-    var cutoff = new Date(Date.now() - 7 * 24 * 3600 * 1000);
-    for (var f of files) {
-      // 文件名格式 YYYY-MM-DD_HH.json
-      var m = f.name.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})\.json$/);
-      if (!m) continue;
-      var fDate = new Date(+m[1], +m[2]-1, +m[3], +m[4]);
-      if (fDate < cutoff) {
-        await fetch(BACKUP_API + f.name, { method: 'DELETE', headers: ghHeaders(), body: JSON.stringify({ message: 'cleanup old backup', sha: f.sha, branch: 'main' }) });
-      }
-    }
-  } catch(e) { console.warn('cleanOldBackups:', e); }
-}
-
-// 获取备份文件列表
-async function fetchBackupList() {
-  try {
-    var listResp = await fetch(BACKUP_API + '?ref=main', { headers: ghHeaders() });
-    if (!listResp.ok) return [];
-    var files = await listResp.json();
-    return files.filter(f => f.name.match(/^\d{4}-\d{2}-\d{2}_\d{2}\.json$/))
-                .sort((a,b) => b.name.localeCompare(a.name));
-  } catch(e) { return []; }
-}
-
-// 从某个备份恢复
-async function restoreFromBackup(filename) {
-  if (!confirm('确认从备份 ' + filename + ' 恢复数据？\n当前云端数据会被先备份，然后替换。')) return;
-  showToast('恢复中...');
-  try {
-    var resp = await fetch(BACKUP_API + filename + '?ref=main', { headers: ghHeaders() });
-    if (!resp.ok) throw new Error('读取备份失败');
-    var data = await resp.json();
-    var decoded = new TextDecoder('utf-8').decode(new Uint8Array(Array.from(atob(data.content.replace(/\n/g,'')), c=>c.charCodeAt(0))));
-    var parsed = JSON.parse(decoded);
-    // 先把当前云端数据备份一次
-    var curResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
-    if (curResp.ok) {
-      var curData = await curResp.json();
-      var curContent = new TextDecoder('utf-8').decode(new Uint8Array(Array.from(atob(curData.content.replace(/\n/g,'')), c=>c.charCodeAt(0))));
-      dataSha = curData.sha;
-      await backupCloudData(curContent, curData.sha);
-    }
-    // 写入恢复数据
-    var payload = JSON.stringify({ message: 'restore from ' + filename, content: btoa(unescape(encodeURIComponent(decoded))), sha: dataSha, branch: 'main' });
-    var putResp = await fetch(GH_API, { method: 'PUT', headers: ghHeaders(), body: payload });
-    if (!putResp.ok) throw new Error('写入失败');
-    var result = await putResp.json();
-    dataSha = result.content.sha;
-    // 应用到本地
-    if (parsed.characters && parsed.characters.length) appData.characters = parsed.characters;
-    if (parsed.activeCharIdx !== undefined) appData.activeCharIdx = parsed.activeCharIdx;
-    if (parsed.rate) appData.rate = parsed.rate;
-    if (parsed.fruitPrice !== undefined) appData.fruitPrice = parsed.fruitPrice;
-    if (parsed.gemPrices) appData.gemPrices = parsed.gemPrices;
-    if (parsed.ledger) appData.ledger = parsed.ledger;
-    if (parsed.ledgerPrices) appData.ledgerPrices = parsed.ledgerPrices;
-    localStorage.setItem('dream_local_data', JSON.stringify(appData));
-    syncOK = true; hasUnsyncedChanges = false; updateSyncUI();
-    initAll();
-    showToast('✅ 恢复成功！数据来自：' + filename);
-    renderBackupList(); // 刷新备份列表
-  } catch(e) {
-    showToast('恢复失败: ' + e.message);
-  }
-}
-
-// 渲染备份列表到云端面板
-async function renderBackupList() {
-  var container = document.getElementById('backup-list-container');
-  if (!container) return;
-  container.innerHTML = '<span style="color:#aaa;font-size:12px">加载中...</span>';
-  var files = await fetchBackupList();
-  if (!files.length) { container.innerHTML = '<span style="color:#aaa;font-size:12px">暂无备份</span>'; return; }
-  var html = '';
-  for (var f of files) {
-    var name = f.name.replace('.json','');
-    var parts = name.split('_');
-    var display = parts[0] + ' ' + parts[1] + ':00';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333">';
-    html += '<span style="font-size:13px">📅 ' + display + '</span>';
-    html += '<button onclick="restoreFromBackup(\'' + f.name + '\')" style="font-size:12px;padding:2px 8px;background:#e67e22;color:#fff;border:none;border-radius:4px;cursor:pointer">恢复</button>';
-    html += '</div>';
-  }
-  container.innerHTML = html;
 }
 
 async function saveToCloud(retryCount) {
@@ -1549,57 +1407,23 @@ async function saveToCloud(retryCount) {
   // Also save locally immediately
   localStorage.setItem('dream_local_data', JSON.stringify(appData));
   try {
-    // 获取当前云端数据（用于SHA + 备份 + 数据量检查）
-    var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
-    if (shaResp.status === 401) {
-      GITHUB_TOKEN = '';
-      localStorage.removeItem('dream_gh_token');
-      showToast('Token无效或已过期，请重新在云端设置中输入');
-      syncOK = false; updateSyncUI(); return false;
-    }
-    if (!shaResp.ok && shaResp.status !== 404) throw new Error('get SHA failed: ' + shaResp.status);
-    
-    var oldContent = '';
-    var oldCharCount = 0;
-    if (shaResp.ok) {
+    // Only fetch SHA if we don't have one (or after 409 conflict)
+    if (!dataSha) {
+      var shaResp = await fetch(GH_API + '?ref=main', { headers: ghHeaders() });
+      if (shaResp.status === 401) {
+        GITHUB_TOKEN = '';
+        localStorage.removeItem('dream_gh_token');
+        showToast('Token无效或已过期，请重新在云端设置中输入');
+        syncOK = false; updateSyncUI(); return false;
+      }
+      if (!shaResp.ok) throw new Error('get SHA failed: ' + shaResp.status);
       var shaData = await shaResp.json();
       dataSha = shaData.sha;
-      // 解码旧数据，做数据量安全检查
-      try {
-        oldContent = new TextDecoder('utf-8').decode(new Uint8Array(Array.from(atob(shaData.content.replace(/\n/g,'')), c=>c.charCodeAt(0))));
-        var oldParsed = JSON.parse(oldContent);
-        oldCharCount = (oldParsed.characters || []).length;
-      } catch(e) {}
-    }
-    
-    // === 数据量安全检查 ===
-    var newStr = JSON.stringify(appData);
-    var newCharCount = (appData.characters || []).length;
-    var oldLen = oldContent.length || 0;
-    var newLen = newStr.length;
-    // 如果旧数据有角色，而新数据角色数量少于一半，弹确认
-    if (oldCharCount > 0 && newCharCount < oldCharCount * 0.5) {
-      if (!confirm('⚠️ 警告：即将上传的数据只有 ' + newCharCount + ' 个角色，而云端有 ' + oldCharCount + ' 个角色。\n数据可能不完整，确认继续上传？')) {
-        showToast('已取消，云端数据未改变');
-        return false;
-      }
-    }
-    // 如果新数据大小不到旧数据的30%，也要确认
-    if (oldLen > 500 && newLen < oldLen * 0.3) {
-      if (!confirm('⚠️ 警告：即将上传的数据量（' + newLen + '字节）远小于云端数据量（' + oldLen + '字节）。\n可能会丢失大量数据，确认继续？')) {
-        showToast('已取消，云端数据未改变');
-        return false;
-      }
-    }
-    
-    // === 备份旧数据 ===
-    if (oldContent && oldCharCount > 0) {
-      backupCloudData(oldContent, dataSha); // 异步执行，不阻塞保存
     }
 
     var payload = JSON.stringify({
       message: 'update data',
-      content: btoa(unescape(encodeURIComponent(newStr))),
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(appData)))),
       sha: dataSha,
       branch: 'main'
     });
@@ -1608,6 +1432,7 @@ async function saveToCloud(retryCount) {
 
     if (!resp.ok) {
       if (resp.status === 409 && retryCount < 3) {
+        // SHA stale — clear cache and retry with fresh SHA
         dataSha = '';
         console.log('409 conflict, refetching SHA and retry #' + (retryCount + 1));
         await new Promise(r => setTimeout(r, 500));
@@ -1618,6 +1443,7 @@ async function saveToCloud(retryCount) {
     }
 
     var result = await resp.json();
+    // Cache the new SHA for next save (no need to re-fetch)
     if (result.content && result.content.sha) { dataSha = result.content.sha; }
     syncOK = true; hasUnsyncedChanges = false; updateSyncUI();
     showToast('已保存 ✓');
@@ -1648,7 +1474,6 @@ function toggleCloudPanel() {
   if (show) {
     document.getElementById('gist-token-input').value = GITHUB_TOKEN;
     document.getElementById('blob-id-input').value = '数据自动同步（同仓库存储）';
-    if (GITHUB_TOKEN) renderBackupList();
   }
 }
 
@@ -1869,27 +1694,27 @@ const SUIT_DATA_RAW = {
     ["雨师","灵力+20", "LV/4+10", 5, "LV/4+15", 15],
     ["净瓶女娲","高永恒，-5%防御", "LV/4+10", 3, "LV/4+15", 10],
     ["灵符女娲","魔之心", "LV/4+10", 3, "LV/4+15", 10],
-    ["灵鹤","高级魔心，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
-    ["炎魔神","高级魔心，-15%气血", "LV/4+15", 3, "LV/4+25", 10],
+    ["灵鹤","高魔心，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["炎魔神","高魔心，-15%气血", "LV/4+15", 3, "LV/4+25", 10],
     ["葫芦宝贝","慧根，+5%气血", "LV/4+15", 3, "LV/4+25", 10],
-    ["混沌兽","高级魔心，-12%气血", "LV/3+5", 3, "LV/3+15", 10],
+    ["混沌兽","高魔心，-12%气血", "LV/3+5", 3, "LV/3+15", 10],
     ["蜃气妖","魔之心，+30防御", "LV/3+5", 3, "LV/3+15", 10],
     ["长眉灵猴","法术暴击，-10%气血", "LV/3+5", 3, "LV/3+15", 10]
   ],
   ll: [
     ["强盗","",  "LV/6+5", 33, "LV/6+10", 100],
-    ["狂豹","高级飞行，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["狂豹","高飞行，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
     ["地狱战神","连击，-5%气血", "LV/5+10", 5, "LV/5+15", 15],
     ["老虎","强力，-10%速度", "LV/6+5", 5, "LV/6+10", 17],
     ["海毛虫","",  "LV/6+5", 33, "LV/6+10", 100],
     ["巡游天神","必杀，-20%速度", "LV/4+10", 3, "LV/4+15", 10],
     ["马面","必杀，-8%伤害", "LV/5+10", 8, "LV/5+15", 25],
     ["蛤蟆精","毒，-15%防御", "LV/6+5", 17, "LV/6+10", 50],
-    ["巨力神猿","高级强力，-5%灵力", "LV/3+5", 3, "LV/3+15", 10],
+    ["巨力神猿","高强力，-5%灵力", "LV/3+5", 3, "LV/3+15", 10],
     ["天将","强力，-8%灵力", "LV/5+10", 5, "LV/5+15", 15],
-    ["夜罗刹","高级夜战，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["夜罗刹","高夜战，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
     ["修罗傀儡鬼","夜战，+150气血", "LV/3+15", 3, "LV/3+15", 10],
-    ["鬼将","高级必杀，-10%伤害", "LV/4+10", 3, "LV/4+15", 10],
+    ["鬼将","高必杀，-10%伤害", "LV/4+10", 3, "LV/4+15", 10],
     ["噬天虎","高强力，-10%速度", "LV/4+15", 3, "LV/4+25", 10]
   ],
   mj: [
@@ -1902,20 +1727,20 @@ const SUIT_DATA_RAW = {
     ["凤凰","飞行", "LV/4+10", 5, "LV/4+15", 15],
     ["狐狸精","感知，-5%气血", "LV/6+5", 17, "LV/6+10", 50],
     ["兔子怪","敏捷，-10%气血", "LV/5+10", 8, "LV/5+15", 25],
-    ["幽灵","高级夜战", "LV/4+10", 3, "LV/4+15", 10],
+    ["幽灵","高夜战", "LV/4+10", 3, "LV/4+15", 10],
     ["雷鸟人","飞行，-10%气血", "LV/5+10", 7, "LV/5+15", 20],
     ["吸血鬼","偷袭，-5%速度", "LV/4+10", 3, "LV/4+15", 10],
-    ["画魂","高级幸运", "LV/4+10", 3, "LV/4+15", 10],
-    ["雾中仙","高级敏捷，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
-    ["机关鸟","高级再生，-5%防御", "LV/4+15", 3, "LV/4+25", 10],
-    ["巴蛇","高级毒", "LV/4+15", 3, "LV/4+25", 10],
+    ["画魂","高幸运", "LV/4+10", 3, "LV/4+15", 10],
+    ["雾中仙","高敏捷，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["机关鸟","高再生，-5%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["巴蛇","高毒", "LV/4+15", 3, "LV/4+25", 10],
     ["猫灵","敏捷，速度+10", "LV/4+15", 3, "LV/4+25", 10],
     ["修罗傀儡妖","必杀", "LV/3+5", 3, "LV/3+15", 10]
   ],
   nl: [
     ["护卫","",  "LV/6+5", 33, "LV/6+10", 100],
     ["羊头怪","幸运，-10%气血", "LV/6+5", 17, "LV/6+10", 50],
-    ["律法女娲","高级反击，-10%速度", "LV/4+10", 3, "LV/4+15", 10],
+    ["律法女娲","高反击，-10%速度", "LV/4+10", 3, "LV/4+15", 10],
     ["牛妖","反击，-5%防御", "LV/6+5", 10, "LV/6+10", 30],
     ["龙龟","",  "LV/4+15", 3, "LV/4+25", 10],
     ["幽莹娃娃","防御，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
@@ -1923,7 +1748,7 @@ const SUIT_DATA_RAW = {
     ["连弩车","高强力，-10%气血", "LV/4+15", 3, "LV/4+25", 10],
     ["红萼仙子","速度+5%，气血+5%", "LV/4+15", 3, "LV/4+25", 10],
     ["牛头","招架", "LV/5+10", 8, "LV/5+15", 25],
-    ["蝎子精","高级反震，-10%气血", "LV/3+5", 3, "LV/3+15", 10],
+    ["蝎子精","高反震，-10%气血", "LV/3+5", 3, "LV/3+15", 10],
     ["曼珠沙华","高敏捷，-9%防御", "LV/3+5", 3, "LV/3+15", 10],
     ["天兵","防御，+5%速度", "LV/5+10", 5, "LV/5+15", 15],
     ["芙蓉仙子","再生，防御-30", "LV/4+10", 3, "LV/4+15", 10]
@@ -1937,7 +1762,7 @@ const SUIT_DATA_RAW = {
     ["黑山老妖","偷袭，-10%速度", "LV/5+10", 7, "LV/5+15", 20],
     ["野猪","",  "LV/6+5", 33, "LV/6+10", 100],
     ["龟丞相","气血+7%，防御+10", "LV/5+10", 8, "LV/5+15", 25],
-    ["大力金刚","高级防御，-5%灵力", "LV/4+15", 3, "LV/4+25", 10],
+    ["大力金刚","高防御，-5%灵力", "LV/4+15", 3, "LV/4+25", 10],
     ["黑熊","防御，-5%灵力", "LV/6+5", 17, "LV/6+10", 50],
     ["黑熊精","反震，-10%防御", "LV/5+10", 8, "LV/5+15", 25],
     ["金身罗汉","气血+10%，+50魔法", "LV/3+5", 3, "LV/3+15", 10],
@@ -1991,117 +1816,60 @@ function getCharLevel() {
   return (ch.data && ch.data['等级']) ? (ch.data['等级'].cur || 0) : 0;
 }
 
-// 构建属性套combo下拉（所有属性类型套装合并，按线数+属性分组）
-
-
-// 套装类型切换
-function onSuitTypeChange() {
-  var typeEl = document.getElementById('suit-type-select');
-  var nameEl = document.getElementById('suit-name-select');
-  var piecesEl = document.getElementById('suit-pieces-select');
-  var type = typeEl.value;
-
-  nameEl.innerHTML = '<option value="">请选择套装</option>';
-
-  if (type === 'attr') {
-    // 填充属性套选项（按线数排序）
-    var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
-    var allSuits = [];
-    var ATTR_ORDER = ['魔力','力量','耐力','敏捷','体质'];
-    ATTR_ORDER.forEach(function(attrName) {
-      var key = SUIT_ATTR_KEYS[attrName];
-      var list = SUIT_DATA_RAW[key];
-      if (!list) return;
-      list.forEach(function(item) {
-        var tier = suitTierLabel(item[2]);
-        allSuits.push({
-          attrName: attrName,
-          suitName: item[0],
-          tier: tier,
-          tierNum: tierOrder[tier] || 9,
-          formula3: item[2],
-          rate3: item[3],
-          formula5: item[4],
-          rate5: item[5],
-          desc: item[1]
-        });
-      });
-    });
-    // 先按属性分组，同属性内按线级排序
-    allSuits.sort(function(a, b) {
-      var ai = ATTR_ORDER.indexOf(a.attrName), bi = ATTR_ORDER.indexOf(b.attrName);
-      if (ai !== bi) return ai - bi;
-      return a.tierNum - b.tierNum;
-    });
-    // 用optgroup按属性分组显示
-    var lastAttr = '';
-    allSuits.forEach(function(s) {
-      if (s.attrName !== lastAttr) {
-        var g = document.createElement('optgroup');
-        g.label = s.attrName;
-        nameEl.appendChild(g);
-        lastAttr = s.attrName;
-      }
-      var opt = document.createElement('option');
-      opt.value = s.attrName + '|' + s.suitName + '|' + s.formula3 + '|' + s.rate3 + '|' + s.formula5 + '|' + s.rate5;
-      opt.textContent = s.suitName + '【' + s.tier + '】';
-      nameEl.lastElementChild.appendChild(opt);
-    });
-    nameEl.style.display = 'inline-block';
-    piecesEl.style.display = 'inline-block';
-  } else if (type === 'status') {
-    // 填充状态套选项
-    Object.keys(STATUS_SKILL_MAP).forEach(function(skill) {
-      var opt = document.createElement('option');
-      opt.value = skill;
-      var info = STATUS_SKILL_MAP[skill];
-      opt.textContent = skill + '（' + info.desc + '）';
-      nameEl.appendChild(opt);
-    });
-    nameEl.style.display = 'inline-block';
-    piecesEl.style.display = 'inline-block';
-  } else {
-    nameEl.style.display = 'none';
-    piecesEl.style.display = 'none';
+function buildSuitNameOptions(attrType) {
+  // 只填充下拉选项，不触发onSuitChange
+  var nameSelect = document.getElementById('suit-attr-name');
+  nameSelect.innerHTML = '<option value="">选择套装</option>';
+  if (!attrType) return;
+  var key = SUIT_ATTR_KEYS[attrType];
+  var list = SUIT_DATA_RAW[key];
+  if (!list) return;
+  var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
+  var sorted = list.slice().sort(function(a,b){
+    return (tierOrder[suitTierLabel(a[2])]||9) - (tierOrder[suitTierLabel(b[2])]||9);
+  });
+  for (var i = 0; i < sorted.length; i++) {
+    var item = sorted[i];
+    var tier = suitTierLabel(item[2]);
+    var opt = document.createElement('option');
+    opt.value = item[0];
+    opt.textContent = item[0] + ' [' + tier + ']' + (item[1] ? ' -' + item[1] : '');
+    nameSelect.appendChild(opt);
   }
-  document.getElementById('suit-result').textContent = '';
+}
+
+function onSuitAttrTypeChange() {
+  var attrType = document.getElementById('suit-attr-type').value;
+  buildSuitNameOptions(attrType);
   onSuitChange();
 }
 
-// 套装名切换
-function onSuitNameChange() {
-  onSuitChange();
+function renderSuitPanel() {
+  var ch = appData.characters[appData.activeCharIdx];
+  if (!ch || !ch.suitData) return;
+  var s = ch.suitData;
+  document.getElementById('suit-attr-type').value = s.attrType || '';
+  buildSuitNameOptions(s.attrType);
+  document.getElementById('suit-attr-name').value = s.attrName || '';
+  document.getElementById('suit-attr-pieces').value = s.attrPieces || 0;
+  document.getElementById('suit-status-type').value = s.statusType || '';
+  document.getElementById('suit-status-pieces').value = s.statusPieces || 0;
+  document.getElementById('suit-hole4').value = s.hole4Count || 0;
+  calcSuitResult();
 }
 
 function onSuitChange() {
   var ch = appData.characters[appData.activeCharIdx];
-  if (!ch || !ch.suitData) ch.suitData = {};
-  var s = ch.suitData;
-  var typeEl = document.getElementById('suit-type-select');
-  var nameEl = document.getElementById('suit-name-select');
-  var piecesEl = document.getElementById('suit-pieces-select');
-  var type = typeEl.value;
-  if (type === 'attr') {
-    var nameVal = nameEl.value;
-    if (nameVal && nameVal.indexOf('|') > 0) {
-      var parts = nameVal.split('|');
-      s.attrType = parts[0]; s.attrName = parts[1];
-      s.formula3 = parts[2]; s.rate3 = parts[3];
-      s.formula5 = parts[4]; s.rate5 = parts[5];
-      s.attrPieces = parseInt(piecesEl.value) || 0;
-      s.statusType = ''; s.statusPieces = 0;
-    } else { s.attrType = ''; s.attrName = ''; s.attrPieces = 0; }
-  } else if (type === 'status') {
-    s.statusType = nameEl.value;
-    s.statusPieces = parseInt(piecesEl.value) || 0;
-    s.attrType = ''; s.attrName = ''; s.attrPieces = 0;
-  } else {
-    s.attrType = ''; s.attrName = ''; s.attrPieces = 0;
-    s.statusType = ''; s.statusPieces = 0;
-  }
-  calcSuitResult();
-  s.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
+  if (!ch) return;
+  if (!ch.suitData) ch.suitData = { attrType:'', attrName:'', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 };
+  ch.suitData.attrType = document.getElementById('suit-attr-type').value;
+  ch.suitData.attrName = document.getElementById('suit-attr-name').value;
+  ch.suitData.attrPieces = parseInt(document.getElementById('suit-attr-pieces').value) || 0;
+  ch.suitData.statusType = document.getElementById('suit-status-type').value;
+  ch.suitData.statusPieces = parseInt(document.getElementById('suit-status-pieces').value) || 0;
+  ch.suitData.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
   scheduleSave();
+  calcSuitResult();
 }
 
 function calcSuitResult() {
@@ -2109,60 +1877,47 @@ function calcSuitResult() {
   var ch = appData.characters[appData.activeCharIdx];
   if (!ch || !ch.suitData) return;
   var s = ch.suitData;
-  var resultEl = document.getElementById('suit-result');
+
+  // 属性套计算
+  var attrEl = document.getElementById('suit-attr-result');
   if (s.attrType && s.attrName && s.attrPieces > 0 && lv > 0) {
-    var is5 = s.attrPieces >= 5;
-    var formula = is5 ? s.formula5 : s.formula3;
-    var rate = is5 ? s.rate5 : s.rate3;
-    var val = evalSuitFormula(formula, lv);
-    var tier = suitTierLabel(s.formula3);
-    resultEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 -> +' + val + s.attrType + ' (\u53d8\u8eab' + rate + '%)';
-  } else if (s.statusType && s.statusPieces > 0 && lv > 0) {
+    var key = SUIT_ATTR_KEYS[s.attrType];
+    var list = SUIT_DATA_RAW[key];
+    var item = null;
+    for (var i = 0; i < list.length; i++) { if (list[i][0] === s.attrName) { item = list[i]; break; } }
+    if (item) {
+      var tier = suitTierLabel(item[2]);
+      var formula3 = item[2], formula5 = item[4];
+      var is5 = s.attrPieces >= 5;
+      var val = evalSuitFormula(is5 ? formula5 : formula3, lv);
+      var rate = is5 ? item[5] : item[3];
+      attrEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 → +' + val + s.attrType + '（变身' + rate + '%）';
+    } else {
+      attrEl.textContent = '';
+    }
+  } else if (s.attrType && s.attrName && s.attrPieces > 0) {
+    attrEl.textContent = '请先填写等级';
+  } else {
+    attrEl.textContent = '';
+  }
+
+  // 状态套计算
+  var statusEl = document.getElementById('suit-status-result');
+  if (s.statusType && s.statusPieces > 0 && lv > 0) {
     var info = STATUS_SKILL_MAP[s.statusType];
     var n5 = s.statusPieces >= 5;
     var skillLv = n5 ? (lv + 10) : (lv - 10);
     var rounds = n5 ? 15 : 4;
-    var effText = info ? info.effect(lv, n5) : '\u6280\u80fd' + skillLv + '\u7ea7';
-    resultEl.textContent = (n5 ? '5\u4ef6' : s.statusPieces + '\u4ef6') + ' -> \u6280\u80fd' + skillLv + '\u7ea7/' + rounds + '\u56de\u5408 (' + effText + ')';
-  } else if ((s.attrType || s.statusType) && ((s.attrPieces || s.statusPieces) > 0)) {
-    resultEl.textContent = '\u8bf7\u5148\u586b\u5199\u7b49\u7ea7';
+    var effText = info ? info.effect(lv, n5) : '技能' + skillLv + '级';
+    statusEl.textContent = (n5 ? '5件' : s.statusPieces + '件') + ' → 技能' + skillLv + '级/' + rounds + '回合 (' + effText + ')';
+  } else if (s.statusType && s.statusPieces > 0) {
+    statusEl.textContent = '请先填写等级';
   } else {
-    resultEl.textContent = '';
+    statusEl.textContent = '';
   }
 }
 
-function renderSuitPanel() {
-  var ch = appData.characters[appData.activeCharIdx];
-  if (!ch) return;
-  if (!ch.suitData) ch.suitData = {};
-  var s = ch.suitData;
-  var typeEl = document.getElementById('suit-type-select');
-  var nameEl = document.getElementById('suit-name-select');
-  var piecesEl = document.getElementById('suit-pieces-select');
-  if (s.attrType && s.attrName) {
-    typeEl.value = 'attr';
-    onSuitTypeChange();
-    var targetVal = s.attrType + '|' + s.attrName + '|' + (s.formula3||'') + '|' + (s.rate3||'') + '|' + (s.formula5||'') + '|' + (s.rate5||'');
-    for (var i = 0; i < nameEl.options.length; i++) {
-      if (nameEl.options[i].value === targetVal) { nameEl.selectedIndex = i; break; }
-    }
-    piecesEl.style.display = 'inline-block';
-    piecesEl.value = s.attrPieces || 0;
-  } else if (s.statusType) {
-    typeEl.value = 'status';
-    onSuitTypeChange();
-    nameEl.value = s.statusType;
-    piecesEl.style.display = 'inline-block';
-    piecesEl.value = s.statusPieces || 0;
-  } else {
-    typeEl.value = '';
-    nameEl.style.display = 'none';
-    piecesEl.style.display = 'none';
-  }
-  document.getElementById('suit-hole4').value = s.hole4Count || 0;
-  calcSuitResult();
-}
-
+// ==================== PROGRESS TABLE ====================
 function renderProgressTable() {
   const ch = appData.characters[appData.activeCharIdx];
   if (!ch) return;
@@ -2185,7 +1940,18 @@ function renderProgressTable() {
     const colSpan = headers.length;
 
     // 分类标题行
-    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label + '</td></tr>';
+    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label;
+    if (g.key === 'aux') {
+      // Add toggle buttons for hideable items
+      const toggleItems = ['暗器'];
+      toggleItems.forEach(item => {
+        const isHidden = (ch.hiddenItems || []).includes(item);
+        const label = isHidden ? '+ ' + item + '（已隐藏）' : '- ' + item;
+        const color = isHidden ? 'color:var(--muted);' : '';
+        html += ' <span style="cursor:pointer;font-size:.75rem;font-weight:normal;margin-left:8px;' + color + '" onclick="toggleHideItem(\'' + item + '\')" title="点击' + (isHidden ? '显示' : '隐藏') + '">' + label + '</span>';
+      });
+    }
+    html += '</td></tr>';
 
     // 表头行（每个分类自己的表头）
     html += '<tr>';
@@ -2194,7 +1960,13 @@ function renderProgressTable() {
 
     let subExp=0, subGold=0, subBang=0;
 
-    g.items.forEach(item => {
+    var items = g.items;
+    if (g.key === 'skills' && ch.skillNames && ch.skillNames.length) {
+      items = ch.skillNames;
+    }
+    items.forEach(item => {
+      // Skip hidden items
+      if ((ch.hiddenItems || []).includes(item)) return;
       const d = ch.data[item] || { cur:0, target:0 };
       const k = item;
       const result = autoCalc(item, d.cur, d.target);
@@ -2295,10 +2067,8 @@ function renderProgressTable() {
   document.getElementById('gt-gold').textContent = totalGold > 0 ? fmtGold(totalGold) : '—';
   document.getElementById('gt-exp').textContent = totalExp > 0 ? fmtExp(totalExp) : '—';
   document.getElementById('gt-bang').textContent = totalBang > 0 ? fmtNum(totalBang) : '—';
-
   calcSuitResult();
 }
-
 
 function onFruitPriceChange() {
   collectCurrentData();
@@ -3197,6 +2967,11 @@ function renderOverview() {
   h += '</tr>';
 
   // --- 装备套 ---
+  var hasAnySuit = false;
+  chars.forEach(function(ch){
+    if(ch.suitData && (ch.suitData.attrName || ch.suitData.statusType || (ch.suitData.hole4Count||0)>0)) hasAnySuit = true;
+  });
+  if (hasAnySuit) {
     h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">装备套</td></tr>';
     // 属性套
     h += '<tr><td class="ov-label">属性套</td>';
@@ -3242,161 +3017,12 @@ function renderOverview() {
       h += '<td class="ov-val">' + (hole4 > 0 ? hole4 : '<span style="color:var(--muted)">无</span>') + '</td>';
     });
     h += '</tr>';
+  }
 
   h += '</tbody></table></div>';
   container.innerHTML = h;
 }
 
-
-// ==================== 打坐倒计时 ====================
-var dzcdTimer = null;
-var dzcdTotal = 180;
-var dzcdRemain = 180;
-var dzcdRunning = false;
-
-function dzcdToggle() {
-  if (dzcdRunning) {
-    clearInterval(dzcdTimer); dzcdTimer = null; dzcdRunning = false;
-    document.getElementById('dzcd-btn').textContent = '继续';
-    document.getElementById('dzcd-btn').style.background = '#27ae60';
-  } else {
-    if (dzcdRemain <= 0) dzcdRemain = dzcdTotal;
-    dzcdRunning = true;
-    document.getElementById('dzcd-btn').textContent = '暂停';
-    document.getElementById('dzcd-btn').style.background = '#e67e22';
-    dzcdTimer = setInterval(function() {
-      dzcdRemain--;
-      dzcdUpdateUI();
-      if (dzcdRemain <= 0) {
-        clearInterval(dzcdTimer); dzcdTimer = null; dzcdRunning = false;
-        document.getElementById('dzcd-btn').textContent = '重新开始';
-        document.getElementById('dzcd-btn').style.background = '#667eea';
-        if (navigator.vibrate) navigator.vibrate([200,100,200]);
-        showToast('打坐结束！');
-      }
-    }, 1000);
-  }
-}
-
-function dzcdReset() {
-  clearInterval(dzcdTimer); dzcdTimer = null; dzcdRunning = false;
-  dzcdRemain = dzcdTotal;
-  dzcdUpdateUI();
-  document.getElementById('dzcd-btn').textContent = '开始';
-  document.getElementById('dzcd-btn').style.background = '#667eea';
-}
-
-function dzcdUpdateUI() {
-  var m = Math.floor(dzcdRemain / 60);
-  var s = dzcdRemain % 60;
-  document.getElementById('dzcd-time').textContent = m + ':' + String(s).padStart(2,'0');
-  var pct = (1 - dzcdRemain / dzcdTotal) * 100;
-  document.getElementById('dzcd-progress').style.width = pct + '%';
-  if (dzcdRemain <= 30) {
-    document.getElementById('dzcd-progress').style.background = 'linear-gradient(90deg,#e74c3c,#c0392b)';
-    document.getElementById('dzcd-time').style.color = '#e74c3c';
-  } else {
-    document.getElementById('dzcd-progress').style.background = 'linear-gradient(90deg,#667eea,#764ba2)';
-    document.getElementById('dzcd-time').style.color = '#667eea';
-  }
-}
-
-// ==================== LEDGER图标数据 ====================
-var LEDGER_ICONS = {
-  1:'\u2694\uFE0F',2:'\u2694\uFE0F',3:'\u2694\uFE0F',
-  4:'\uD83D\uDEE1\uFE0F',5:'\uD83D\uDEE1\uFE0F',6:'\uD83D\uDEE1\uFE0F',
-  7:'\uD83D\uDC8E',8:'\uD83D\uDD2E',9:'\uD83D\uDC09',10:'\uD83C\uDF19',11:'\uD83D\uDCA7',
-  12:'\uD83D\uDCDC',13:'\uD83C\uDF75',14:'\uD83C\uDF75',15:'\uD83E\uDEB4',
-  16:'\uD83E\uDEB4',17:'\uD83C\uDF4E',
-  18:'\uD83D\uDDA4',19:'\uD83C\uDF15',20:'\u26AA',
-  21:'\u2764\uFE0F',22:'\uD83C\uDF1E',23:'\u2728',
-  24:'\u2B50',25:'\uD83D\uDC9A',
-  26:'\uD83C\uDFB5',27:'\uD83C\uDFB5',28:'\uD83C\uDFB5',29:'\uD83C\uDFB5',30:'\uD83C\uDFB5',31:'\uD83C\uDFB5',
-  32:'\uD83C\uDF38',33:'\uD83C\uDF39',34:'\uD83C\uDF3C',35:'\uD83C\uDF33',
-  36:'\uD83D\uDCCB',37:'\uD83D\uDD36',38:'\uD83D\uDCDC',39:'\uD83D\uDCE6',
-  40:'\uD83D\uDD27',41:'\uD83D\uDCAA',42:'\uD83D\uDC5C',43:'\uD83D\uDCD6',
-  44:'\uD83C\uDF3F',45:'\uD83D\uDC1F',46:'\uD83C\uDF3A',47:'\uD83C\uDF47',
-  48:'\u2728',49:'\uD83D\uDC8E',
-  148:'\uD83D\uDFE2',149:'\uD83D\uDD34',150:'\uD83D\uDFE1',151:'\uD83D\uDFE3',
-  152:'\uD83D\uDD35',153:'\u26AB',154:'\u26AA',
-  155:'\uD83D\uDC8A',156:'\uD83D\uDC8A',157:'\uD83C\uDF6C',
-  158:'\uD83D\uDCA7',159:'\uD83C\uDF08',
-  10001:'\uD83D\uDCD7',10002:'\uD83D\uDCD8',10003:'\uD83D\uDC8A',10004:'\uD83D\uDC8A',
-  10005:'\uD83D\uDC8E',10006:'\uD83D\uDCDA',10007:'\uD83C\uDF40',10008:'\uD83D\uDCAB',
-  10009:'\uD83E\uDEB7',10010:'\uD83C\uDFAB',10011:'\u2697\uFE0F',10012:'\uD83D\uDDFA\uFE0F',
-  10013:'\uD83C\uDFAD',10014:'\uD83D\uDCC4',10015:'\u2695\uFE0F',10016:'\uD83D\uDD2E',
-  10017:'\uD83D\uDCCB',10018:'\u2699\uFE0F',
-  10100:'\uD83D\uDCE6',10101:'\uD83D\uDCB8'
-};
-
-var LEDGER_ALL_GROUPS = [
-  { label:'武器/防具', ids:[1,2,3,4,5,6] },
-  { label:'常用材料', ids:[7,8,9,10,11,12,13,14,15,16,17] },
-  { label:'宝石', ids:[18,19,20,21,22,23,24,25] },
-  { label:'乐器', ids:[26,27,28,29,30,31] },
-  { label:'花卉', ids:[32,33,34,35] },
-  { label:'其他材料', ids:[36,37,38,39,40,41,42,43,44,45,46,47,48,49] },
-  { label:'魔石', ids:[148,149,150,151,152,153,154] },
-  { label:'玄灵/特殊', ids:[155,156,157,158,159] },
-  { label:'宠物/装备', ids:[10001,10002,10003,10004,10005,10006,10007,10008,10009,10010,10011,10012,10013,10014,10015,10016,10017,10018] },
-  { label:'其他/成本', ids:[10100,10101] }
-];
-
-function renderLedgerIconGrid() {
-  var wrap = document.getElementById('ledger-icon-grid');
-  if (!wrap) return;
-  var FIXED_SET = {};
-  LEDGER_FIXED_IDS.forEach(function(id){ FIXED_SET[id]=true; });
-  var h = '';
-  LEDGER_ALL_GROUPS.forEach(function(grp) {
-    var visIds = grp.ids.filter(function(id){ return !!LEDGER_GOODS[id]; });
-    if (!visIds.length) return;
-    h += '<div style="width:100%;font-size:.68rem;color:var(--muted);margin:4px 0 2px;font-weight:600;">'+esc(grp.label)+'</div>';
-    visIds.forEach(function(id) {
-      var name = LEDGER_GOODS[id] || ('ID'+id);
-      var icon = LEDGER_ICONS[id] || '\uD83D\uDCE6';
-      var isFixed = FIXED_SET[id];
-      var price = isFixed ? (ledgerPrices[id] || 0) : 0;
-      var hasPrice = isFixed && price > 0;
-      var isCost = (id === 10101);
-      var borderColor = hasPrice ? 'var(--accent)' : '#ddd';
-      var bg = isCost ? '#fff0f0' : (hasPrice ? 'var(--card)' : '#fafafa');
-      var opacity = (isFixed && !hasPrice) ? '0.65' : '1';
-      var onclick = isFixed
-        ? (hasPrice ? 'ledgerAddFixed('+id+')' : 'ledgerOpenSetPrice('+id+')')
-        : 'ledgerOpenNfPopup('+id+')';
-      h += '<div onclick="'+onclick+'" title="'+esc(name)+'" style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:58px;min-height:58px;padding:4px 2px;border-radius:8px;cursor:pointer;border:1px solid '+borderColor+';background:'+bg+';opacity:'+opacity+';user-select:none;">';
-      h += '<span style="font-size:1.3rem;line-height:1.4;">'+icon+'</span>';
-      h += '<span style="font-size:.6rem;text-align:center;line-height:1.2;color:'+(isCost?'#e74c3c':'inherit')+';max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(name)+'</span>';
-      if (hasPrice) h += '<span style="font-size:.6rem;color:var(--accent);">'+price+'万</span>';
-      else if (isFixed) h += '<span style="font-size:.55rem;color:#aaa;">设价</span>';
-      h += '</div>';
-    });
-  });
-  wrap.innerHTML = h;
-}
-
-function ledgerOpenSetPrice(id) {
-  var detail = document.getElementById('ledger-price-detail');
-  if (detail) detail.open = true;
-  setTimeout(function(){
-    var el = document.querySelector('[data-lid="'+id+'"]');
-    if (el) { el.focus(); el.select(); }
-  }, 150);
-}
-
-function ledgerOpenNfPopup(id) {
-  var name = LEDGER_GOODS[id] || '物品';
-  var icon = LEDGER_ICONS[id] || '\uD83D\uDCE6';
-  document.getElementById('ledger-nf-popup-title').textContent = icon + ' ' + name;
-  document.getElementById('ledger-nf-type').value = id;
-  document.getElementById('ledger-nf-price').value = '';
-  document.getElementById('ledger-nf-count').value = '1';
-  document.getElementById('ledger-nf-desc').value = '';
-  document.getElementById('ledger-nf-popup').style.display = '';
-  document.getElementById('ledger-nf-mask').style.display = '';
-  setTimeout(function(){ document.getElementById('ledger-nf-price').focus(); }, 50);
-}
 
 // ==================== LEDGER (收入记账) ====================
 var LEDGER_GOODS = {
@@ -3489,11 +3115,19 @@ function ledgerTodayTotal() {
 
 function renderLedger() {
   loadLedgerData();
+  // 汇率
   document.getElementById('ledger-scale').value = ledgerData.scale || '';
-  renderLedgerIconGrid();
+  // 渲染价格网格
+  renderLedgerPriceGrid();
+  // 渲染非固定下拉
+  renderLedgerNonFixedSelect();
+  // 渲染设置物价面板
   renderLedgerPriceSetting();
+  // 渲染账单表
   renderLedgerTable();
+  // 渲染点卡状态
   renderLedgerDkStatus();
+  // 更新汇总
   updateLedgerSummary();
 }
 
@@ -3536,11 +3170,17 @@ function ledgerSetPrice(el) {
   var val = parseFloat(el.value);
   ledgerPrices[id] = val > 0 ? val : 0;
   saveLedgerPrices();
-  renderLedgerIconGrid();
+  renderLedgerPriceGrid();
 }
 
 function renderLedgerNonFixedSelect() {
-  // 已改为图标卡片方式，此函数保留兼容性
+  var sel = document.getElementById('ledger-nf-type');
+  var h = '';
+  LEDGER_NON_FIXED_IDS.forEach(function(id) {
+    var name = LEDGER_GOODS[id] || ('ID'+id);
+    h += '<option value="'+id+'">'+esc(name)+'</option>';
+  });
+  sel.innerHTML = h;
 }
 
 function ledgerAddFixed(id) {
@@ -3588,8 +3228,6 @@ function ledgerAddNonFixed() {
   document.getElementById('ledger-nf-price').value = '';
   document.getElementById('ledger-nf-desc').value = '';
   document.getElementById('ledger-nf-count').value = '1';
-  document.getElementById('ledger-nf-popup').style.display = 'none';
-  document.getElementById('ledger-nf-mask').style.display = 'none';
   saveLedgerData();
   renderLedgerTable();
   updateLedgerSummary();
