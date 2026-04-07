@@ -1813,6 +1813,8 @@ function onSuitTypeChange() {
       if (ai !== bi) return ai - bi;
       return a.tierNum - b.tierNum;
     });
+    console.log('[TIER-DEBUG] Sorted suits:');
+    allSuits.forEach(function(s){ console.log('  ' + s.tierNum + ' ' + s.tier + ' ' + s.suitName); });
     var lastAttr = '';
     allSuits.forEach(function(s) {
       if (s.attrName !== lastAttr) {
