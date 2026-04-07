@@ -479,8 +479,8 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
     <div class="card">
       <div class="fabao-filter-bar" id="fabao-filter-bar">
         <span class="filter-label">筛选：</span>
-        <button class="filter-btn active" onclick="setFabaoFilter('all')" id="fb-btn-all">全部</button>
-        <button class="filter-btn" onclick="setFabaoFilter('usable')" id="fb-btn-usable">本门派可用</button>
+        <button class="filter-btn" onclick="setFabaoFilter('all')" id="fb-btn-all">全部</button>
+        <button class="filter-btn active" onclick="setFabaoFilter('usable')" id="fb-btn-usable">本门派可用</button>
         <button class="filter-btn" onclick="setFabaoFilter('exclusive')" id="fb-btn-exclusive">本门派专属</button>
       </div>
       <div class="fabao-grid" id="fabao-grid"></div>
@@ -2305,7 +2305,7 @@ function charSect(ch) {
   return '';
 }
 
-var fabaoFilter = 'all';
+var fabaoFilter = 'usable';
 function setFabaoFilter(f) {
   fabaoFilter = f;
   ['all','usable','exclusive'].forEach(function(id) {
