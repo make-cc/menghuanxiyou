@@ -412,67 +412,36 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <!-- 装备套选择 -->
       <div id="suit-panel" style="padding:0 16px 8px;">
         <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.82rem;">
-          <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">🎭 装备套</div>
-          <!-- 属性套（变身术） -->
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
-            <span style="color:var(--muted);white-space:nowrap;">属性套：</span>
-            <select id="suit-attr-type" onchange="onSuitAttrTypeChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="">无</option>
-              <option value="体质">体质</option>
-              <option value="魔力">魔力</option>
-              <option value="力量">力量</option>
-              <option value="耐力">耐力</option>
-              <option value="敏捷">敏捷</option>
+          <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">&#x1f3ad; &#x88c5;&#x5907;&#x5957;</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);white-space:nowrap;">&#x7c7b;&#x578b;&#xff1a;</span>
+            <select id="suit-type-select" onchange="onSuitTypeChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
+              <option value="">&#x65e0;</option>
+              <option value="attr">&#x53d8;&#x8eab;&#x5957;</option>
+              <option value="status">&#x72b6;&#x6001;&#x5957;</option>
             </select>
-            <select id="suit-attr-name" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="">选择套装</option>
+            <select id="suit-name-select" onchange="onSuitNameChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;min-width:160px;display:none;">
+              <option value="">&#x8bf7;&#x9009;&#x62e9;&#x5957;&#x88c5;</option>
             </select>
-            <select id="suit-attr-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="0">无</option>
-              <option value="3">3件</option>
-              <option value="4">4件</option>
-              <option value="5">5件</option>
+            <select id="suit-pieces-select" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;display:none;">
+              <option value="0">0&#x4ef6;</option>
+              <option value="3">3&#x4ef6;</option>
+              <option value="4">4&#x4ef6;</option>
+              <option value="5">5&#x4ef6;</option>
             </select>
-            <span id="suit-attr-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
+            <span id="suit-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
           </div>
-          <!-- 状态套（附加状态） -->
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
-            <span style="color:var(--muted);white-space:nowrap;">状态套：</span>
-            <select id="suit-status-type" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="">无</option>
-              <option value="定心术">定心术</option>
-              <option value="金刚护法">金刚护法</option>
-              <option value="逆鳞">逆鳞</option>
-              <option value="生命之泉">生命之泉</option>
-              <option value="幽冥鬼眼">幽冥鬼眼</option>
-              <option value="盘丝阵">盘丝阵</option>
-              <option value="楚楚可怜">楚楚可怜</option>
-              <option value="百毒不侵">百毒不侵</option>
-              <option value="极度疯狂">极度疯狂</option>
-              <option value="魔王回首">魔王回首</option>
-              <option value="明光宝烛">明光宝烛</option>
-              <option value="变身">变身(狮驼)</option>
-            </select>
-            <select id="suit-status-pieces" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="0">无</option>
-              <option value="3">3件</option>
-              <option value="4">4件</option>
-              <option value="5">5件</option>
-            </select>
-            <span id="suit-status-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
-          </div>
-          <!-- 4孔数量 -->
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-            <span style="color:var(--muted);white-space:nowrap;">4孔装备：</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <span style="color:var(--muted);white-space:nowrap;">4&#x5b54;&#x88c5;&#x5907;&#xff1a;</span>
             <select id="suit-hole4" onchange="onSuitChange()" style="padding:3px 6px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="0">0件</option>
-              <option value="1">1件</option>
-              <option value="2">2件</option>
-              <option value="3">3件</option>
-              <option value="4">4件</option>
-              <option value="5">5件</option>
+              <option value="0">0&#x4ef6;</option>
+              <option value="1">1&#x4ef6;</option>
+              <option value="2">2&#x4ef6;</option>
+              <option value="3">3&#x4ef6;</option>
+              <option value="4">4&#x4ef6;</option>
+              <option value="5">5&#x4ef6;</option>
             </select>
-            <span style="font-size:.75rem;color:var(--muted);">4孔可多开1个符石组合</span>
+            <span style="font-size:.75rem;color:var(--muted);">4&#x5b54;&#x53ef;&#x591a;&#x5f001&#x4e2a;&#x7b26;&#x77f3;&#x7ec4;&#x5408;</span>
           </div>
         </div>
       </div>
@@ -1816,60 +1785,100 @@ function getCharLevel() {
   return (ch.data && ch.data['等级']) ? (ch.data['等级'].cur || 0) : 0;
 }
 
-function buildSuitNameOptions(attrType) {
-  // 只填充下拉选项，不触发onSuitChange
-  var nameSelect = document.getElementById('suit-attr-name');
-  nameSelect.innerHTML = '<option value="">选择套装</option>';
-  if (!attrType) return;
-  var key = SUIT_ATTR_KEYS[attrType];
-  var list = SUIT_DATA_RAW[key];
-  if (!list) return;
-  var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
-  var sorted = list.slice().sort(function(a,b){
-    return (tierOrder[suitTierLabel(a[2])]||9) - (tierOrder[suitTierLabel(b[2])]||9);
-  });
-  for (var i = 0; i < sorted.length; i++) {
-    var item = sorted[i];
-    var tier = suitTierLabel(item[2]);
-    var opt = document.createElement('option');
-    opt.value = item[0];
-    opt.textContent = item[0] + ' [' + tier + ']' + (item[1] ? ' -' + item[1] : '');
-    nameSelect.appendChild(opt);
+function onSuitTypeChange() {
+  var typeEl = document.getElementById('suit-type-select');
+  var nameEl = document.getElementById('suit-name-select');
+  var piecesEl = document.getElementById('suit-pieces-select');
+  var type = typeEl.value;
+  nameEl.innerHTML = '<option value="">请选择套装</option>';
+  if (type === 'attr') {
+    var tierOrder = {'一线':0,'二线':1,'三线':2,'四线':3,'五线':4};
+    var allSuits = [];
+    var ATTR_ORDER = ['魔力','力量','耐力','敏捷','体质'];
+    ATTR_ORDER.forEach(function(attrName) {
+      var key = SUIT_ATTR_KEYS[attrName];
+      var list = SUIT_DATA_RAW[key];
+      if (!list) return;
+      list.forEach(function(item) {
+        var tier = suitTierLabel(item[2]);
+        allSuits.push({
+          attrName: attrName, suitName: item[0], tier: tier,
+          tierNum: tierOrder[tier] || 9,
+          formula3: item[2], rate3: item[3], formula5: item[4], rate5: item[5], desc: item[1]
+        });
+      });
+    });
+    allSuits.sort(function(a, b) {
+      var ai = ATTR_ORDER.indexOf(a.attrName), bi = ATTR_ORDER.indexOf(b.attrName);
+      if (ai !== bi) return ai - bi;
+      return a.tierNum - b.tierNum;
+    });
+    var lastAttr = '';
+    allSuits.forEach(function(s) {
+      if (s.attrName !== lastAttr) {
+        var g = document.createElement('optgroup');
+        g.label = s.attrName;
+        nameEl.appendChild(g);
+        lastAttr = s.attrName;
+      }
+      var opt = document.createElement('option');
+      opt.value = s.attrName + '|' + s.suitName + '|' + s.formula3 + '|' + s.rate3 + '|' + s.formula5 + '|' + s.rate5;
+      opt.textContent = s.suitName + '【' + s.tier + '】';
+      nameEl.lastElementChild.appendChild(opt);
+    });
+    nameEl.style.display = 'inline-block';
+    piecesEl.style.display = 'inline-block';
+  } else if (type === 'status') {
+    Object.keys(STATUS_SKILL_MAP).forEach(function(skill) {
+      var opt = document.createElement('option');
+      opt.value = skill;
+      var info = STATUS_SKILL_MAP[skill];
+      opt.textContent = skill + '（' + info.desc + '）';
+      nameEl.appendChild(opt);
+    });
+    nameEl.style.display = 'inline-block';
+    piecesEl.style.display = 'inline-block';
+  } else {
+    nameEl.style.display = 'none';
+    piecesEl.style.display = 'none';
   }
-}
-
-function onSuitAttrTypeChange() {
-  var attrType = document.getElementById('suit-attr-type').value;
-  buildSuitNameOptions(attrType);
+  document.getElementById('suit-result').textContent = '';
   onSuitChange();
 }
 
-function renderSuitPanel() {
-  var ch = appData.characters[appData.activeCharIdx];
-  if (!ch || !ch.suitData) return;
-  var s = ch.suitData;
-  document.getElementById('suit-attr-type').value = s.attrType || '';
-  buildSuitNameOptions(s.attrType);
-  document.getElementById('suit-attr-name').value = s.attrName || '';
-  document.getElementById('suit-attr-pieces').value = s.attrPieces || 0;
-  document.getElementById('suit-status-type').value = s.statusType || '';
-  document.getElementById('suit-status-pieces').value = s.statusPieces || 0;
-  document.getElementById('suit-hole4').value = s.hole4Count || 0;
-  calcSuitResult();
+function onSuitNameChange() {
+  onSuitChange();
 }
 
 function onSuitChange() {
   var ch = appData.characters[appData.activeCharIdx];
-  if (!ch) return;
-  if (!ch.suitData) ch.suitData = { attrType:'', attrName:'', attrPieces:0, statusType:'', statusPieces:0, hole4Count:0 };
-  ch.suitData.attrType = document.getElementById('suit-attr-type').value;
-  ch.suitData.attrName = document.getElementById('suit-attr-name').value;
-  ch.suitData.attrPieces = parseInt(document.getElementById('suit-attr-pieces').value) || 0;
-  ch.suitData.statusType = document.getElementById('suit-status-type').value;
-  ch.suitData.statusPieces = parseInt(document.getElementById('suit-status-pieces').value) || 0;
-  ch.suitData.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
-  scheduleSave();
+  if (!ch || !ch.suitData) { ch.suitData = {}; }
+  var s = ch.suitData;
+  var typeEl = document.getElementById('suit-type-select');
+  var nameEl = document.getElementById('suit-name-select');
+  var piecesEl = document.getElementById('suit-pieces-select');
+  var type = typeEl.value;
+  if (type === 'attr') {
+    var nameVal = nameEl.value;
+    if (nameVal && nameVal.indexOf('|') > 0) {
+      var parts = nameVal.split('|');
+      s.attrType = parts[0]; s.attrName = parts[1];
+      s.formula3 = parts[2]; s.rate3 = parts[3];
+      s.formula5 = parts[4]; s.rate5 = parts[5];
+      s.attrPieces = parseInt(piecesEl.value) || 0;
+      s.statusType = ''; s.statusPieces = 0;
+    } else { s.attrType = ''; s.attrName = ''; s.attrPieces = 0; }
+  } else if (type === 'status') {
+    s.statusType = nameEl.value;
+    s.statusPieces = parseInt(piecesEl.value) || 0;
+    s.attrType = ''; s.attrName = ''; s.attrPieces = 0;
+  } else {
+    s.attrType = ''; s.attrName = ''; s.attrPieces = 0;
+    s.statusType = ''; s.statusPieces = 0;
+  }
+  s.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
   calcSuitResult();
+  scheduleSave();
 }
 
 function calcSuitResult() {
@@ -1877,45 +1886,61 @@ function calcSuitResult() {
   var ch = appData.characters[appData.activeCharIdx];
   if (!ch || !ch.suitData) return;
   var s = ch.suitData;
-
-  // 属性套计算
-  var attrEl = document.getElementById('suit-attr-result');
+  var resultEl = document.getElementById('suit-result');
   if (s.attrType && s.attrName && s.attrPieces > 0 && lv > 0) {
-    var key = SUIT_ATTR_KEYS[s.attrType];
-    var list = SUIT_DATA_RAW[key];
-    var item = null;
-    for (var i = 0; i < list.length; i++) { if (list[i][0] === s.attrName) { item = list[i]; break; } }
-    if (item) {
-      var tier = suitTierLabel(item[2]);
-      var formula3 = item[2], formula5 = item[4];
-      var is5 = s.attrPieces >= 5;
-      var val = evalSuitFormula(is5 ? formula5 : formula3, lv);
-      var rate = is5 ? item[5] : item[3];
-      attrEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 → +' + val + s.attrType + '（变身' + rate + '%）';
-    } else {
-      attrEl.textContent = '';
-    }
-  } else if (s.attrType && s.attrName && s.attrPieces > 0) {
-    attrEl.textContent = '请先填写等级';
-  } else {
-    attrEl.textContent = '';
-  }
-
-  // 状态套计算
-  var statusEl = document.getElementById('suit-status-result');
-  if (s.statusType && s.statusPieces > 0 && lv > 0) {
+    var is5 = s.attrPieces >= 5;
+    var formula = is5 ? s.formula5 : s.formula3;
+    var rate = is5 ? s.rate5 : s.rate3;
+    var val = evalSuitFormula(formula, lv);
+    var tier = suitTierLabel(s.formula3);
+    resultEl.textContent = '[' + tier + '] ' + s.attrPieces + '件 → +' + val + s.attrType + '（变身' + rate + '%）';
+  } else if (s.statusType && s.statusPieces > 0 && lv > 0) {
     var info = STATUS_SKILL_MAP[s.statusType];
     var n5 = s.statusPieces >= 5;
     var skillLv = n5 ? (lv + 10) : (lv - 10);
     var rounds = n5 ? 15 : 4;
     var effText = info ? info.effect(lv, n5) : '技能' + skillLv + '级';
-    statusEl.textContent = (n5 ? '5件' : s.statusPieces + '件') + ' → 技能' + skillLv + '级/' + rounds + '回合 (' + effText + ')';
-  } else if (s.statusType && s.statusPieces > 0) {
-    statusEl.textContent = '请先填写等级';
+    resultEl.textContent = (n5 ? '5件' : s.statusPieces + '件') + ' → 技能' + skillLv + '级/' + rounds + '回合 (' + effText + ')';
+  } else if ((s.attrType || s.statusType) && ((s.attrPieces || s.statusPieces) > 0)) {
+    resultEl.textContent = '请先填写等级';
   } else {
-    statusEl.textContent = '';
+    resultEl.textContent = '';
   }
 }
+
+function renderSuitPanel() {
+  var ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  if (!ch.suitData) { ch.suitData = {}; }
+  var s = ch.suitData;
+  var typeEl = document.getElementById('suit-type-select');
+  var nameEl = document.getElementById('suit-name-select');
+  var piecesEl = document.getElementById('suit-pieces-select');
+  if (s.attrType && s.attrName) {
+    typeEl.value = 'attr';
+    onSuitTypeChange();
+    var targetVal = s.attrType + '|' + s.attrName + '|' + (s.formula3||'') + '|' + (s.rate3||'') + '|' + (s.formula5||'') + '|' + (s.rate5||'');
+    for (var i = 0; i < nameEl.options.length; i++) {
+      if (nameEl.options[i].value === targetVal) { nameEl.selectedIndex = i; break; }
+    }
+    piecesEl.style.display = 'inline-block';
+    piecesEl.value = s.attrPieces || 0;
+  } else if (s.statusType) {
+    typeEl.value = 'status';
+    onSuitTypeChange();
+    nameEl.value = s.statusType;
+    piecesEl.style.display = 'inline-block';
+    piecesEl.value = s.statusPieces || 0;
+  } else {
+    typeEl.value = '';
+    nameEl.style.display = 'none';
+    piecesEl.style.display = 'none';
+  }
+  document.getElementById('suit-hole4').value = s.hole4Count || 0;
+  calcSuitResult();
+}
+
+
 
 // ==================== PROGRESS TABLE ====================
 function renderProgressTable() {
