@@ -421,8 +421,36 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <div id="suit-panel" style="padding:0 16px 8px;">
         <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.82rem;">
           <div style="font-weight:600;margin-bottom:8px;color:var(--accent);">🎭 装备套</div>
-          <!-- 属性套（变身术） -->
-          
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);white-space:nowrap;">装备套装：</span>
+            <select id="suit-type-select" onchange="onSuitTypeChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:90px;">
+              <option value="">请选择</option>
+              <option value="attr">属性套</option>
+              <option value="status">状态套</option>
+            </select>
+            <select id="suit-name-select" onchange="onSuitNameChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:120px;display:none;">
+              <option value="">请选择套装</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <select id="suit-pieces-select" onchange="onSuitChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:70px;display:none;">
+              <option value="0">0件</option>
+              <option value="3">3件</option>
+              <option value="4">4件</option>
+              <option value="5">5件</option>
+            </select>
+            <span id="suit-result" style="color:var(--accent);font-weight:600;font-size:.78rem;"></span>
+            <span style="margin-left:12px;color:var(--muted);white-space:nowrap;">4孔：</span>
+            <select id="suit-hole4" onchange="onSuitChange()" style="padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:4px;min-width:60px;">
+              <option value="0">0件</option>
+              <option value="1">1件</option>
+              <option value="2">2件</option>
+              <option value="3">3件</option>
+              <option value="4">4件</option>
+              <option value="5">5件</option>
+            </select>
+          </div>
+        </div>
 
       <div class="table-wrap">
         <table>
@@ -1838,27 +1866,27 @@ const SUIT_DATA_RAW = {
     ["雨师","灵力+20", "LV/4+10", 5, "LV/4+15", 15],
     ["净瓶女娲","高永恒，-5%防御", "LV/4+10", 3, "LV/4+15", 10],
     ["灵符女娲","魔之心", "LV/4+10", 3, "LV/4+15", 10],
-    ["灵鹤","高魔心，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
-    ["炎魔神","高魔心，-15%气血", "LV/4+15", 3, "LV/4+25", 10],
+    ["灵鹤","高级魔心，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["炎魔神","高级魔心，-15%气血", "LV/4+15", 3, "LV/4+25", 10],
     ["葫芦宝贝","慧根，+5%气血", "LV/4+15", 3, "LV/4+25", 10],
-    ["混沌兽","高魔心，-12%气血", "LV/3+5", 3, "LV/3+15", 10],
+    ["混沌兽","高级魔心，-12%气血", "LV/3+5", 3, "LV/3+15", 10],
     ["蜃气妖","魔之心，+30防御", "LV/3+5", 3, "LV/3+15", 10],
     ["长眉灵猴","法术暴击，-10%气血", "LV/3+5", 3, "LV/3+15", 10]
   ],
   ll: [
     ["强盗","",  "LV/6+5", 33, "LV/6+10", 100],
-    ["狂豹","高飞行，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["狂豹","高级飞行，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
     ["地狱战神","连击，-5%气血", "LV/5+10", 5, "LV/5+15", 15],
     ["老虎","强力，-10%速度", "LV/6+5", 5, "LV/6+10", 17],
     ["海毛虫","",  "LV/6+5", 33, "LV/6+10", 100],
     ["巡游天神","必杀，-20%速度", "LV/4+10", 3, "LV/4+15", 10],
     ["马面","必杀，-8%伤害", "LV/5+10", 8, "LV/5+15", 25],
     ["蛤蟆精","毒，-15%防御", "LV/6+5", 17, "LV/6+10", 50],
-    ["巨力神猿","高强力，-5%灵力", "LV/3+5", 3, "LV/3+15", 10],
+    ["巨力神猿","高级强力，-5%灵力", "LV/3+5", 3, "LV/3+15", 10],
     ["天将","强力，-8%灵力", "LV/5+10", 5, "LV/5+15", 15],
-    ["夜罗刹","高夜战，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
+    ["夜罗刹","高级夜战，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
     ["修罗傀儡鬼","夜战，+150气血", "LV/3+15", 3, "LV/3+15", 10],
-    ["鬼将","高必杀，-10%伤害", "LV/4+10", 3, "LV/4+15", 10],
+    ["鬼将","高级必杀，-10%伤害", "LV/4+10", 3, "LV/4+15", 10],
     ["噬天虎","高强力，-10%速度", "LV/4+15", 3, "LV/4+25", 10]
   ],
   mj: [
@@ -1871,20 +1899,20 @@ const SUIT_DATA_RAW = {
     ["凤凰","飞行", "LV/4+10", 5, "LV/4+15", 15],
     ["狐狸精","感知，-5%气血", "LV/6+5", 17, "LV/6+10", 50],
     ["兔子怪","敏捷，-10%气血", "LV/5+10", 8, "LV/5+15", 25],
-    ["幽灵","高夜战", "LV/4+10", 3, "LV/4+15", 10],
+    ["幽灵","高级夜战", "LV/4+10", 3, "LV/4+15", 10],
     ["雷鸟人","飞行，-10%气血", "LV/5+10", 7, "LV/5+15", 20],
     ["吸血鬼","偷袭，-5%速度", "LV/4+10", 3, "LV/4+15", 10],
-    ["画魂","高幸运", "LV/4+10", 3, "LV/4+15", 10],
-    ["雾中仙","高敏捷，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
-    ["机关鸟","高再生，-5%防御", "LV/4+15", 3, "LV/4+25", 10],
-    ["巴蛇","高毒", "LV/4+15", 3, "LV/4+25", 10],
+    ["画魂","高级幸运", "LV/4+10", 3, "LV/4+15", 10],
+    ["雾中仙","高级敏捷，-10%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["机关鸟","高级再生，-5%防御", "LV/4+15", 3, "LV/4+25", 10],
+    ["巴蛇","高级毒", "LV/4+15", 3, "LV/4+25", 10],
     ["猫灵","敏捷，速度+10", "LV/4+15", 3, "LV/4+25", 10],
     ["修罗傀儡妖","必杀", "LV/3+5", 3, "LV/3+15", 10]
   ],
   nl: [
     ["护卫","",  "LV/6+5", 33, "LV/6+10", 100],
     ["羊头怪","幸运，-10%气血", "LV/6+5", 17, "LV/6+10", 50],
-    ["律法女娲","高反击，-10%速度", "LV/4+10", 3, "LV/4+15", 10],
+    ["律法女娲","高级反击，-10%速度", "LV/4+10", 3, "LV/4+15", 10],
     ["牛妖","反击，-5%防御", "LV/6+5", 10, "LV/6+10", 30],
     ["龙龟","",  "LV/4+15", 3, "LV/4+25", 10],
     ["幽莹娃娃","防御，+5%速度", "LV/4+15", 3, "LV/4+25", 10],
@@ -1892,7 +1920,7 @@ const SUIT_DATA_RAW = {
     ["连弩车","高强力，-10%气血", "LV/4+15", 3, "LV/4+25", 10],
     ["红萼仙子","速度+5%，气血+5%", "LV/4+15", 3, "LV/4+25", 10],
     ["牛头","招架", "LV/5+10", 8, "LV/5+15", 25],
-    ["蝎子精","高反震，-10%气血", "LV/3+5", 3, "LV/3+15", 10],
+    ["蝎子精","高级反震，-10%气血", "LV/3+5", 3, "LV/3+15", 10],
     ["曼珠沙华","高敏捷，-9%防御", "LV/3+5", 3, "LV/3+15", 10],
     ["天兵","防御，+5%速度", "LV/5+10", 5, "LV/5+15", 15],
     ["芙蓉仙子","再生，防御-30", "LV/4+10", 3, "LV/4+15", 10]
@@ -1906,7 +1934,7 @@ const SUIT_DATA_RAW = {
     ["黑山老妖","偷袭，-10%速度", "LV/5+10", 7, "LV/5+15", 20],
     ["野猪","",  "LV/6+5", 33, "LV/6+10", 100],
     ["龟丞相","气血+7%，防御+10", "LV/5+10", 8, "LV/5+15", 25],
-    ["大力金刚","高防御，-5%灵力", "LV/4+15", 3, "LV/4+25", 10],
+    ["大力金刚","高级防御，-5%灵力", "LV/4+15", 3, "LV/4+25", 10],
     ["黑熊","防御，-5%灵力", "LV/6+5", 17, "LV/6+10", 50],
     ["黑熊精","反震，-10%防御", "LV/5+10", 8, "LV/5+15", 25],
     ["金身罗汉","气血+10%，+50魔法", "LV/3+5", 3, "LV/3+15", 10],
@@ -2059,6 +2087,7 @@ function onSuitChange() {
     s.statusType = ''; s.statusPieces = 0;
   }
   calcSuitResult();
+  s.hole4Count = parseInt(document.getElementById('suit-hole4').value) || 0;
   scheduleSave();
 }
 
@@ -2117,6 +2146,7 @@ function renderSuitPanel() {
     nameEl.style.display = 'none';
     piecesEl.style.display = 'none';
   }
+  document.getElementById('suit-hole4').value = s.hole4Count || 0;
   calcSuitResult();
 }
 
@@ -3063,11 +3093,6 @@ function renderOverview() {
   h += '</tr>';
 
   // --- 装备套 ---
-  var hasAnySuit = false;
-  chars.forEach(function(ch){
-    if(ch.suitData && (ch.suitData.attrName || ch.suitData.statusType || (ch.suitData.hole4Count||0)>0)) hasAnySuit = true;
-  });
-  if (hasAnySuit) {
     h += '<tr class="ov-section"><td colspan="' + (n + 1) + '">装备套</td></tr>';
     // 属性套
     h += '<tr><td class="ov-label">属性套</td>';
@@ -3113,7 +3138,6 @@ function renderOverview() {
       h += '<td class="ov-val">' + (hole4 > 0 ? hole4 : '<span style="color:var(--muted)">无</span>') + '</td>';
     });
     h += '</tr>';
-  }
 
   h += '</tbody></table></div>';
   container.innerHTML = h;
