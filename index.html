@@ -722,49 +722,83 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
   <div id="tab-gushang" style="display:none">
     <div class="card">
       <div class="card-header"><h2>⚡ 固伤计算器</h2></div>
-      <div style="max-width:700px;margin:0 auto;">
+      <div style="max-width:750px;margin:0 auto;">
         <!-- 门派选择 -->
         <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
-          <button class="gs-sect-btn active" onclick="gsSelectSect(0,this)">无底洞</button>
-          <button class="gs-sect-btn" onclick="gsSelectSect(1,this)">普陀山</button>
-          <button class="gs-sect-btn" onclick="gsSelectSect(2,this)">地府</button>
-          <button class="gs-sect-btn" onclick="gsSelectSect(3,this)">女儿村</button>
+          <button class="gs-sect-btn" onclick="gsSelectSect('nver',this)">女儿村</button>
+          <button class="gs-sect-btn" onclick="gsSelectSect('difu',this)">地府</button>
+          <button class="gs-sect-btn active" onclick="gsSelectSect('wudi',this)">无底洞</button>
+          <button class="gs-sect-btn" onclick="gsSelectSect('putuo',this)">普陀山</button>
         </div>
         <!-- 输入区 -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:12px;">
-          <label style="font-size:.78rem;color:var(--muted);">师门技能等级：<input type="number" id="gs-skill" value="175" oninput="calcGushang()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">敏捷：<input type="number" id="gs-agi" value="1200" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">装备伤害(全身)：<input type="number" id="gs-dmg" value="400" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">灵饰固伤加成：<input type="number" id="gs-fushi" value="100" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">武器伤害(仅武器)：<input type="number" id="gs-wpn" value="200" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" id="gs-wpn-label"></label>
-          <label style="font-size:.78rem;color:var(--muted);">暗器技巧等级：<input type="number" id="gs-throw" value="160" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">人修等级：<input type="number" id="gs-renxiu" value="25" oninput="calcGushang()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">怪抗法术等级：<input type="number" id="gs-guai" value="15" oninput="calcGushang()" style="width:70px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">神木符伤害：<input type="number" id="gs-shenmu" value="0" oninput="calcGushang()" style="width:80px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;"></label>
-          <label style="font-size:.78rem;color:var(--muted);">阵法加成：<select id="gs-zhen" onchange="calcGushang()" style="padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-            <option value="0">无阵法 (1.0)</option>
-            <option value="1">天覆阵 (1.15)</option>
-            <option value="2">雷绝阵 (1.2)</option>
-            <option value="3">地载阵 (1.05)</option>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 12px;margin-bottom:12px;">
+          <label class="gs-label">等级：<input type="number" id="gs-level" value="175" min="1" max="175" oninput="calcGushang()"></label>
+          <label class="gs-label">师门技能：<input type="number" id="gs-skill" value="150" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">敏捷：<input type="number" id="gs-agi" value="1200" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">武器伤害：<input type="number" id="gs-wpn" value="200" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">头饰伤害：<input type="number" id="gs-hat" value="40" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">灵饰伤害：<input type="number" id="gs-lsdmg" value="51" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">灵饰固伤：<input type="number" id="gs-lsgu" value="57" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">锐不固伤：<input type="number" id="gs-ruibugu" value="0" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">腰鞋固伤：<input type="number" id="gs-yaoxie" value="63" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">符石固伤：<input type="number" id="gs-fushigu" value="8" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">符石伤害：<input type="number" id="gs-fushishang" value="0" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">符石组合：<select id="gs-fushizuhe" onchange="calcGushang()">
+            <option value="0">无</option>
+            <option value="1">双4</option><option value="2">双3</option><option value="3">双2</option>
+            <option value="4">单3单4</option><option value="5">单2单4</option><option value="6">单2单3</option>
+            <option value="7">单4</option><option value="8">单3</option><option value="9">单2</option>
           </select></label>
-          <label style="font-size:.78rem;color:var(--muted);">分灵数：<input type="number" id="gs-fenling" value="3" min="1" max="10" oninput="calcGushang()" style="width:60px;padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;text-align:center;" title="同时秒几个单位"></label>
+          <label class="gs-label">伤害符：<input type="number" id="gs-shanghaifu" value="0" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">法宝：<select id="gs-fabao" onchange="calcGushang()">
+            <option value="0">无</option>
+            <option value="40">试剑石(取40)</option>
+            <option value="80">双试剑石(80)</option>
+            <option value="70">落星飞鸿(70)</option>
+            <option value="110">落星+试剑石(110)</option>
+          </select></label>
+          <label class="gs-label">阵法：<select id="gs-zhen" onchange="calcGushang()">
+            <option value="1">无(1.0)</option>
+            <option value="1.15" selected>天覆阵(1.15)</option>
+            <option value="1.2">雷绝阵(1.2)</option>
+          </select></label>
+          <label class="gs-label">法修等级：<input type="number" id="gs-renxiu" value="21" min="0" max="25" oninput="calcGushang()"></label>
+          <label class="gs-label">怪抗等级：<input type="number" id="gs-guai" value="0" min="0" max="25" oninput="calcGushang()"></label>
+          <label class="gs-label">帮派秘宝：<input type="number" id="gs-mibao" value="0" min="0" max="1" step="0.01" value="0" oninput="calcGushang()"></label>
+          <label class="gs-label">神木符：<input type="number" id="gs-shenmu" value="0" min="0" oninput="calcGushang()"></label>
+          <!-- 秒数 -->
+          <label class="gs-label">秒数：<select id="gs-fenling" onchange="calcGushang()">
+            <option value="3">3</option><option value="4">4</option><option value="5" selected>5</option>
+            <option value="6">6</option><option value="7">7</option>
+          </select></label>
         </div>
-        <!-- 女儿村特殊 -->
-        <div id="gs-nver-extra" style="display:none;margin-bottom:12px;padding:8px;background:var(--bg);border-radius:var(--radius);">
-          <label style="font-size:.78rem;color:var(--muted);margin-right:12px;">计算方式：
-            <select id="gs-nver-mode" onchange="calcGushang()" style="padding:3px;font-size:.8rem;border:1px solid #ccc;border-radius:4px;">
-              <option value="rain">雨落寒沙(法术)</option>
-              <option value="throw">暗器(含暗器伤害)</option>
-            </select>
+        <!-- 女儿村额外 -->
+        <div id="gs-nver-extra" style="display:none;margin-bottom:8px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <label class="gs-label">暗器技巧：<input type="number" id="gs-throw" value="160" min="0" oninput="calcGushang()"></label>
+            <label class="gs-label">暗器命中：<input type="number" id="gs-throwhit" value="100" min="0" oninput="calcGushang()"></label>
+          </div>
+        </div>
+        <!-- 地府白天/黑夜 -->
+        <div id="gs-difu-extra" style="display:none;margin-bottom:8px;">
+          <label style="font-size:.78rem;color:var(--muted);cursor:pointer;">
+            <input type="checkbox" id="gs-night" onchange="calcGushang()"> 黑夜模式(×1.3)
           </label>
         </div>
-        <!-- 结果区 -->
-        <div id="gs-result" style="padding:12px;background:var(--bg);border-radius:var(--radius);font-size:.85rem;line-height:1.8;"></div>
+        <!-- 无底洞秒脉/奶脉 -->
+        <div id="gs-wudi-extra" style="display:none;margin-bottom:8px;">
+          <label style="font-size:.78rem;color:var(--muted);cursor:pointer;">
+            <input type="checkbox" id="gs-wudi-milk" onchange="calcGushang()"> 奶脉(分灵0.7)
+          </label>
+        </div>
+        <!-- 结果 -->
+        <div id="gs-result"></div>
         <!-- 公式说明 -->
-        <details style="margin-top:12px;font-size:.75rem;color:var(--muted);">
-          <summary style="cursor:pointer;font-weight:500;">公式说明</summary>
-          <div id="gs-formula-note" style="margin-top:6px;white-space:pre-wrap;line-height:1.6;"></div>
+        <details style="margin-top:8px;">
+          <summary style="font-size:.75rem;color:var(--muted);cursor:pointer;">公式说明</summary>
+          <pre id="gs-formula-note" style="font-size:.7rem;color:var(--muted);white-space:pre-wrap;background:var(--bg);padding:8px;border-radius:6px;margin-top:4px;"></pre>
         </details>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:8px;">数据来源：梦幻五开工具箱 mhxytools.top，默认已点经脉第一丹</div>
       </div>
     </div>
   </div>
@@ -3341,13 +3375,325 @@ function renderLedgerDkStatus() {
   var info = document.getElementById('ledger-dk-info');
   if (!ledgerData.dk.start) { info.textContent = ''; return; }
   var start = new Date(ledgerData.dk.start);
-  var startStr = String(start.getHours()).padStart(2,'0')+':'+String(start.getMinutes()).padStart(2,'0');
-  var endStr = '';
-  if (ledgerData.dk.end) {
-    var end = new Date(ledgerData.dk.end);
-    endStr = String(end.getHours()).padStart(2,'0')+':'+String(end.getMinutes()).padStart(2,'0');
+  var startSt
+// ==================== 固伤计算器 ====================
+var gsCurSect = 'wudi';
+
+// 符石组合加成表 [无,双4,双3,双2,单3单4,单2单4,单2单3,单4,单3,单2]
+var FU_SHI_ZU_HE = {
+  nver:  [102,76,50,89,76,63,51,38,25],
+  difu:  [64,40,30,52,47,35,32,20,15],
+  wudi:  [128,84,64,106,96,74,64,42,32],
+  putuo: [128,84,64,106,96,74,64,42,32]
+};
+
+// 获取最大秒数
+function gsMaxMiao(skill, sect) {
+  switch(sect) {
+    case 'nver': case 'difu':
+      return skill>=150?7:skill>=125?6:skill>=100?5:skill>=75?4:skill>=50?3:2;
+    case 'wudi':
+      return skill>=140?5:skill>=105?4:skill>=70?3:2;
+    case 'putuo':
+      return skill>=180?6:skill>=135?5:skill>=90?4:skill>=45?3:2;
   }
-  var duration = ledgerData.dk.end ? (ledgerData.dk.end - ledgerData.dk.start) : (Date.now() - ledgerData.dk.start);
+  return 5;
+}
+
+// 分灵系数
+function gsFenLing(sect, i, maxMiao, isMilk) {
+  switch(sect) {
+    case 'nver':
+      var g = 1.1 - Math.floor(0.1 * i * 10) / 10;
+      return Math.max(g, 0.6);
+    case 'difu':
+      return (maxMiao - i) / 10 + 1;
+    case 'wudi':
+      if (isMilk) return 0.7;
+      var g2 = 1.1 - Math.floor(0.1 * i * 10) / 10;
+      return g2; // 无下限保护
+    case 'putuo':
+      var g3 = 1.1 - Math.floor(0.1 * i * 10) / 10;
+      return Math.max(g3, 0.55);
+  }
+  return 1.0;
+}
+
+// 修炼%
+function gsXiuLvPct(faxiu, guai) {
+  return Math.floor((faxiu - guai) * 0.02 * 100) / 100 + 1;
+}
+// 修炼固定
+function gsXiuLvFixed(faxiu, guai) {
+  return (faxiu - guai) * 5;
+}
+
+function gsSelectSect(sect, btn) {
+  gsCurSect = sect;
+  document.querySelectorAll('.gs-sect-btn').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+  document.getElementById('gs-nver-extra').style.display = sect==='nver'?'':'none';
+  document.getElementById('gs-difu-extra').style.display = sect==='difu'?'':'none';
+  document.getElementById('gs-wudi-extra').style.display = sect==='wudi'?'':'none';
+  // Auto set miao count based on skill
+  var skill = parseInt(document.getElementById('gs-skill').value)||0;
+  var maxM = gsMaxMiao(skill, sect);
+  var fl = document.getElementById('gs-fenling');
+  var ok = false;
+  for (var i = 0; i < fl.options.length; i++) {
+    var v = parseInt(fl.options[i].value);
+    fl.options[i].disabled = v > maxM;
+    if (!ok && v <= maxM) { fl.selectedIndex = i; ok = true; }
+  }
+  calcGushang();
+}
+
+function calcGushang() {
+  var sect = gsCurSect;
+  var level = parseInt(document.getElementById('gs-level').value) || 175;
+  var skill = parseInt(document.getElementById('gs-skill').value) || 0;
+  var agi = parseInt(document.getElementById('gs-agi').value) || 0;
+  var wpn = parseInt(document.getElementById('gs-wpn').value) || 0;
+  var hat = parseInt(document.getElementById('gs-hat').value) || 0;
+  var lsdmg = parseInt(document.getElementById('gs-lsdmg').value) || 0;
+  var lsgu = parseInt(document.getElementById('gs-lsgu').value) || 0;
+  var ruibugu = parseInt(document.getElementById('gs-ruibugu').value) || 0;
+  var yaoxie = parseInt(document.getElementById('gs-yaoxie').value) || 0;
+  var fushigu = parseInt(document.getElementById('gs-fushigu').value) || 0;
+  var fushishang = parseInt(document.getElementById('gs-fushishang').value) || 0;
+  var fushiZuheIdx = parseInt(document.getElementById('gs-fushizuhe').value) || 0;
+  var shanghaifu = parseInt(document.getElementById('gs-shanghaifu').value) || 0;
+  var fabao = parseInt(document.getElementById('gs-fabao').value) || 0;
+  var zhen = parseFloat(document.getElementById('gs-zhen').value) || 1.0;
+  var faxiu = parseInt(document.getElementById('gs-renxiu').value) || 0;
+  var guai = parseInt(document.getElementById('gs-guai').value) || 0;
+  var mibao = parseFloat(document.getElementById('gs-mibao').value) || 0;
+  var shenmu = parseInt(document.getElementById('gs-shenmu').value) || 0;
+  var fenling = parseInt(document.getElementById('gs-fenling').value) || 5;
+  var throwSkill = parseInt(document.getElementById('gs-throw').value) || 0;
+  var throwHit = parseInt(document.getElementById('gs-throwhit').value) || 0;
+  var isNight = document.getElementById('gs-night').checked;
+  var isMilk = document.getElementById('gs-wudi-milk').checked;
+
+  // 女儿阵法特殊
+  var zhenX = zhen;
+  if (sect === 'nver') {
+    if (zhen === 1.15) zhenX = 1.25;
+    else if (zhen === 1.2) zhenX = 1.14;
+    else zhenX = 1.0;
+  }
+
+  var h = wpn + hat + lsdmg + fushishang + shanghaifu + fabao; // 伤害总和
+  var guSum = lsgu + ruibugu + yaoxie; // 固伤总和(灵饰+锐不+腰鞋)
+  var fushiZuheVal = (FU_SHI_ZU_HE[sect] || [])[fushiZuheIdx - 1] || 0;
+  var xiulvPct = gsXiuLvPct(faxiu, guai);
+  var xiulvFixed = gsXiuLvFixed(faxiu, guai);
+  var mibaoF = mibao + 1;
+  var halfH = Math.floor(h / 2);
+
+  var maxMiao = gsMaxMiao(skill, sect);
+  var sectName = {nver:'女儿村',difu:'地府',wudi:'无底洞',putuo:'普陀山'}[sect] || '';
+  var formulaNote = '';
+
+  // 结果收集
+  var rows = [];
+
+  if (sect === 'nver') {
+    // === 女儿村·技能 ===
+    var M = Math.floor(skill * skill / 400) + Math.floor(skill / 2);
+    var m = Math.floor(throwSkill * throwSkill / 150) + throwSkill;
+    var K = Math.floor(h * 0.18);
+    var W = Math.floor(agi * 0.5);
+    var Y = Math.floor(guSum * 0.83);
+    var v = gsFenLing('nver', 1, maxMiao, false);
+    var C = Math.floor(zhenX * v * 100) / 100;
+    var J = Math.floor((M + m + K + W + Y) * C) + lsgu;
+    var y = Math.floor(J * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
+    var zhuMiao = Math.floor((y + halfH) * mibaoF);
+    var fuMiao = Math.floor(y * mibaoF);
+    var total = zhuMiao + fuMiao * (fenling - 1);
+    rows.push({label:'主秒',fenling:1,dmg:zhuMiao});
+    for (var i = 1; i < fenling; i++) rows.push({label:'副秒'+i,fenling:gsFenLing('nver',i+1,maxMiao,false),dmg:fuMiao});
+
+    formulaNote = '【女儿村·技能（落星飞鸿）】\n';
+    formulaNote += '基础 = floor(技能²/400) + floor(技能/2)\n';
+    formulaNote += '暗器基础 = floor(暗器技巧²/150) + 暗器技巧\n';
+    formulaNote += '伤害加成 = floor(伤害总和 × 0.18)\n';
+    formulaNote += '敏捷加成 = floor(敏捷 × 0.5)\n';
+    formulaNote += '固伤加成 = floor((灵饰固伤+锐不+腰鞋) × 0.83)\n';
+    formulaNote += '阵法特殊：天覆阵→1.25，雷绝阵→1.14\n';
+    formulaNote += 'J = floor((基础+暗器基础+伤害+敏捷+固伤) × 阵法×分灵) + 灵饰固伤\n';
+    formulaNote += 'y = floor(J × 修炼%) + 修炼固定 + 符石组合 + 神木符\n';
+    formulaNote += '主秒 = floor((y + 伤害总和/2) × 秘宝)\n';
+    formulaNote += '副秒 = floor(y × 秘宝)';
+
+    // === 女儿村·暗器 ===
+    var M2 = Math.floor(skill / 2);
+    var K2 = throwHit + 50;
+    var W2 = Math.floor(agi * 0.3);
+    var Y2 = Math.floor(guSum * 0.8);
+    var v2 = gsFenLing('nver', 1, maxMiao, false);
+    var C2 = Math.floor(zhenX * v2 * 100) / 100;
+    var J2 = Math.floor((M2 + K2 + W2 + Y2) * C2) + lsgu;
+    var y2 = Math.floor(J2 * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
+    var zhuMiao2 = Math.floor((y2 + halfH) * mibaoF);
+    var fuMiao2 = Math.floor(y2 * mibaoF);
+    var total2 = zhuMiao2 + fuMiao2 * (fenling - 1);
+    var rows2 = [{label:'主秒',fenling:1,dmg:zhuMiao2}];
+    for (var i2 = 1; i2 < fenling; i2++) rows2.push({label:'副秒'+i2,fenling:gsFenLing('nver',i2+1,maxMiao,false),dmg:fuMiao2});
+
+    formulaNote += '\n\n【女儿村·暗器】\n';
+    formulaNote += '基础 = floor(技能/2)\n';
+    formulaNote += '暗器命中 = 暗器命中 + 50\n';
+    formulaNote += '敏捷加成 = floor(敏捷 × 0.3)\n';
+    formulaNote += '固伤加成 = floor((灵饰固伤+锐不+腰鞋) × 0.8)';
+
+    // Render both tables
+    renderGsResult(sectName, rows, total, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote, '技能伤害', rows2, total2, '暗器伤害');
+
+  } else if (sect === 'difu') {
+    // === 地府·白天/黑夜 ===
+    var titles = isNight ? '黑夜' : '白天';
+    var d = isNight
+      ? Math.floor((Math.floor(skill * 1.5) + 30) * 1.3)
+      : Math.floor(skill * 1.5) + 30;
+    var dmgPart = Math.floor(h * 0.15);
+    var agiPart = Math.floor(agi * 0.35);
+    var guPart = Math.floor(guSum * 0.5);
+
+    for (var di = 0; di < (isNight ? 2 : 1); di++) {
+      var isN = di === 1;
+      var dVal = isN ? Math.floor((Math.floor(skill * 1.5) + 30) * 1.3) : Math.floor(skill * 1.5) + 30;
+      var titleN = isN ? '黑夜' : '白天';
+
+      // 地府聚伤：分灵 = (maxMiao - i) / 10 + 1
+      // 计算q = floor((基础 + 伤害 + 敏捷 + 固伤 + 符石组合) × 阵法)
+      var q = Math.floor((dVal + dmgPart + agiPart + guPart + fushiZuheVal) * zhen);
+      var zhuF = Math.floor(q * gsFenLing('difu', 1, maxMiao, false));
+      var zhuResult = Math.floor((Math.floor((zhuF + lsgu) * xiulvPct) + xiulvFixed + shenmu + halfH) * mibaoF);
+      var fuQ = q; // 副秒用原始q（不含符石组合的聚伤？不，原文是q不含符石组合）
+      // 重新看原文：主秒用F(=floor(q×分灵))，副秒也用q
+      // 主秒 = floor((floor((F + 灵饰固伤) × 修炼%) + 修炼固定 + 神木符 + floor(h/2)) × 秘宝)
+      // 副秒 = floor((floor((q + 灵饰固伤) × 修炼%) + 修炼固定 + 神木符) × 秘宝)
+      // 副秒用的是q不是F！
+      var fuResult = Math.floor((Math.floor((q + lsgu) * xiulvPct) + xiulvFixed + shenmu) * mibaoF);
+      var totalR = zhuResult + fuResult * (fenling - 1);
+
+      var dRows = [{label:'主秒',fenling:gsFenLing('difu',1,maxMiao,false),dmg:zhuResult}];
+      for (var fi = 1; fi < fenling; fi++) dRows.push({label:'副秒'+fi,fenling:gsFenLing('difu',fi+1,maxMiao,false),dmg:fuResult});
+      renderGsResult(sectName + '·' + titleN, dRows, totalR, fenling, xiulvPct, xiulvFixed, faxiu, guai, '', titleN);
+    }
+
+    formulaNote = '【地府·阎罗令】\n';
+    formulaNote += '白天基础 = floor(技能×1.5) + 30\n';
+    formulaNote += '黑夜基础 = floor((floor(技能×1.5)+30) × 1.3)\n';
+    formulaNote += '伤害加成 = floor(伤害总和 × 0.15)\n';
+    formulaNote += '敏捷加成 = floor(敏捷 × 0.35)\n';
+    formulaNote += '固伤加成 = floor((灵饰固伤+锐不+腰鞋) × 0.5)\n';
+    formulaNote += '聚伤分灵 = (maxMiao - 目标序号) / 10 + 1\n';
+    formulaNote += 'q = floor((基础+伤害+敏捷+固伤+符石组合) × 阵法)\n';
+    formulaNote += '主秒：F=floor(q×分灵), floor((floor((F+灵饰固伤)×修炼%)+修炼固定+神木符+伤害总和/2) × 秘宝)\n';
+    formulaNote += '副秒：floor((floor((q+灵饰固伤)×修炼%)+修炼固定+神木符) × 秘宝)';
+    document.getElementById('gs-formula-note').textContent = formulaNote;
+    return;
+
+  } else if (sect === 'wudi') {
+    // === 无底洞·夺命咒 ===
+    var wudiTitle = isMilk ? '奶脉' : '秒脉';
+    var wd = Math.floor(skill * 1.5) + 20;
+    var wdDmg = Math.floor(h * 0.125);
+    var wdAgi = Math.floor(agi * 0.7);
+    var wdGu = guSum; // 直接加，不乘系数
+    var wdF = isMilk ? 0.7 : 1.0;
+    var wdQ = Math.floor(((wd + wdDmg) * wdF + wdAgi + wdGu + fushiZuheVal) * zhen);
+    var wdY = Math.floor((Math.floor(wdQ * gsFenLing('wudi',1,maxMiao,isMilk)) + lsgu) * xiulvPct) + xiulvFixed;
+    var wdZhu = Math.floor((Math.floor(wdY * wdF) + shenmu + halfH) * mibaoF);
+    var wdFu = Math.floor((Math.floor(wdY * wdF) + shenmu) * mibaoF);
+    var wdTotal = wdZhu + wdFu * (fenling - 1);
+
+    var wdRows = [{label:'主秒',fenling:gsFenLing('wudi',1,maxMiao,isMilk),dmg:wdZhu}];
+    for (var wi = 1; wi < fenling; wi++) wdRows.push({label:'副秒'+wi,fenling:gsFenLing('wudi',wi+1,maxMiao,isMilk),dmg:wdFu});
+
+    formulaNote = '【无底洞·夺命咒】\n';
+    formulaNote += '基础 = floor(技能×1.5) + 20\n';
+    formulaNote += '伤害加成 = floor(伤害总和 × 0.125)\n';
+    formulaNote += '敏捷加成 = floor(敏捷 × 0.7)\n';
+    formulaNote += '灵饰固伤 = 灵饰固伤+锐不+腰鞋（直接加，不乘系数）\n';
+    formulaNote += '秒脉/奶脉：秒脉F=1.0，奶脉F=0.7\n';
+    formulaNote += 'q = floor(((基础+伤害)×F + 敏捷 + 固伤 + 符石组合) × 阵法)\n';
+    formulaNote += 'y = floor((floor(q×分灵) + 灵饰固伤) × 修炼%) + 修炼固定\n';
+    formulaNote += '主秒 = floor((floor(y×F) + 神木符 + 伤害总和/2) × 秘宝)\n';
+    formulaNote += '副秒 = floor((floor(y×F) + 神木符) × 秘宝)';
+
+    renderGsResult(sectName + '·' + wudiTitle, wdRows, wdTotal, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote, wudiTitle);
+
+  } else if (sect === 'putuo') {
+    // === 普陀山 ===
+    // 普陀与无底洞共用公式（wudi数组相同），但灵饰固伤系数不同
+    // 普陀：副秒只享受武器和伤害符的加成
+    // 暂用无底洞的简化公式（因为原代码中普陀没有单独函数）
+    // 实际普陀公式和无底洞类似，但系数不同
+    var pt = Math.floor(skill * 3) + 50; // 普陀基础公式
+    var ptDmg = Math.floor(h * 0.24); // 普陀用武器伤害×0.24（仅武器）
+    var ptAgi = Math.floor(agi * 0.7);
+    var ptGu = guSum; // 直接加
+    var ptQ = Math.floor((pt + ptDmg + ptAgi + ptGu + fushiZuheVal) * zhen);
+    var ptZhu = Math.floor((Math.floor(ptQ * gsFenLing('putuo',1,maxMiao,false)) + lsgu) * xiulvPct) + xiulvFixed;
+    var ptZhuResult = Math.floor((ptZhu + shenmu + halfH) * mibaoF);
+    // 普陀副秒：只用武器伤害和伤害符
+    var ptH2 = wpn + shanghaifu + fabao;
+    var ptQ2 = Math.floor((pt + Math.floor(ptH2 * 0.24) + ptAgi + ptGu + fushiZuheVal) * zhen);
+    var ptFu = Math.floor((Math.floor(ptQ2 * gsFenLing('putuo',2,maxMiao,false)) + lsgu) * xiulvPct) + xiulvFixed;
+    var ptFuResult = Math.floor((ptFu + shenmu) * mibaoF);
+    var ptTotal = ptZhuResult + ptFuResult * (fenling - 1);
+
+    var ptRows = [{label:'主秒',fenling:gsFenLing('putuo',1,maxMiao,false),dmg:ptZhuResult}];
+    for (var pi = 1; pi < fenling; pi++) ptRows.push({label:'副秒'+pi,fenling:gsFenLing('putuo',pi+1,maxMiao,false),dmg:ptFuResult});
+
+    formulaNote = '【普陀山·五行法术】\n';
+    formulaNote += '基础 = floor(技能 × 3) + 50\n';
+    formulaNote += '伤害加成 = 武器伤害 × 0.24（仅武器，非全身）\n';
+    formulaNote += '敏捷加成 = floor(敏捷 × 0.7)\n';
+    formulaNote += '灵饰固伤 = 灵饰固伤+锐不+腰鞋（直接加）\n';
+    formulaNote += '副秒特殊：只享受武器伤害和伤害符加成，其他装备伤害不加副秒\n';
+    formulaNote += '注：普陀山公式待进一步确认，当前为近似计算';
+
+    renderGsResult(sectName, ptRows, ptTotal, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote);
+  }
+}
+
+function renderGsResult(title, rows, total, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote, subtitle, rows2, total2, subtitle2) {
+  var h = '<div style="margin-bottom:6px;font-weight:700;color:var(--accent);">' + title + '</div>';
+  if (subtitle) h += '<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">' + subtitle + '</div>';
+  h += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px;">';
+  h += '<tr style="background:var(--bg);"><th style="padding:4px 8px;border:1px solid var(--border);">目标</th><th style="padding:4px 8px;border:1px solid var(--border);">分灵</th><th style="padding:4px 8px;border:1px solid var(--border);">伤害</th></tr>';
+  for (var i = 0; i < rows.length; i++) {
+    h += '<tr><td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">' + rows[i].label + '</td>';
+    h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">' + rows[i].fenling.toFixed(1) + '</td>';
+    h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--accent);">' + rows[i].dmg + '</td></tr>';
+  }
+  h += '</table>';
+  h += '<div style="font-size:.8rem;font-weight:700;margin-bottom:8px;">总输出：' + total + '</div>';
+  h += '<div style="font-size:.72rem;color:var(--muted);">修炼差=' + (faxiu - guai) + ' 修炼%=' + Math.round(xiulvPct * 100) + '% 修炼固定=' + (xiulvFixed >= 0 ? '+' : '') + xiulvFixed + '</div>';
+
+  if (rows2) {
+    h += '<hr style="border:none;border-top:1px solid var(--border);margin:8px 0;">';
+    h += '<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px;">' + (subtitle2 || '暗器') + '</div>';
+    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px;">';
+    h += '<tr style="background:var(--bg);"><th style="padding:4px 8px;border:1px solid var(--border);">目标</th><th style="padding:4px 8px;border:1px solid var(--border);">分灵</th><th style="padding:4px 8px;border:1px solid var(--border);">伤害</th></tr>';
+    for (var i = 0; i < rows2.length; i++) {
+      h += '<tr><td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">' + rows2[i].label + '</td>';
+      h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">' + rows2[i].fenling.toFixed(1) + '</td>';
+      h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--accent);">' + rows2[i].dmg + '</td></tr>';
+    }
+    h += '</table>';
+    h += '<div style="font-size:.8rem;font-weight:700;margin-bottom:8px;">总输出：' + total2 + '</div>';
+  }
+
+  document.getElementById('gs-result').innerHTML = h;
+  if (formulaNote) document.getElementById('gs-formula-note').textContent = formulaNote;
+}
+dk.end ? (ledgerData.dk.end - ledgerData.dk.start) : (Date.now() - ledgerData.dk.start);
   var mins = Math.floor(duration / 60000);
   var bl = parseFloat(document.getElementById('ledger-dk-bl').value) || 5;
   var roles = parseInt(document.getElementById('ledger-dk-roles').value) || 5;
@@ -3365,7 +3711,6 @@ var GS_SECTS = [
   {name:'地府',   skill:'阎罗令', formula:'阎罗令'},
   {name:'女儿村', skill:'雨落寒沙', formula:'雨落寒沙/暗器'}
 ];
-var gsCurSect = 0;
 
 function gsSelectSect(idx, btn) {
   gsCurSect = idx;
@@ -3376,143 +3721,7 @@ function gsSelectSect(idx, btn) {
   calcGushang();
 }
 
-function calcGushang() {
-  var sect = gsCurSect;
-  var skill = parseInt(document.getElementById('gs-skill').value) || 0;
-  var agi = parseInt(document.getElementById('gs-agi').value) || 0;
-  var dmg = parseInt(document.getElementById('gs-dmg').value) || 0;
-  var fushi = parseInt(document.getElementById('gs-fushi').value) || 0;
-  var wpn = parseInt(document.getElementById('gs-wpn').value) || 0;
-  var throwSkill = parseInt(document.getElementById('gs-throw').value) || 0;
-  var renxiu = parseInt(document.getElementById('gs-renxiu').value) || 0;
-  var guai = parseInt(document.getElementById('gs-guai').value) || 0;
-  var shenmu = parseInt(document.getElementById('gs-shenmu').value) || 0;
-  var zhenIdx = parseInt(document.getElementById('gs-zhen').value) || 0;
-  var fenling = parseInt(document.getElementById('gs-fenling').value) || 3;
 
-  var zhenVals = [1.0, 1.15, 1.2, 1.05]; // 无/天/雷/地
-  var zhen = zhenVals[zhenIdx] || 1.0;
-
-  var xiulvDiff = renxiu - guai;
-  var xiulvPct = 1 + xiulvDiff * 0.02; // 修炼百分比
-  var xiulvFixed = xiulvDiff * 5;       // 修炼固定值
-
-  // 分灵系数: 第1个1.1, 第2个1.0, 第3个0.9...
-  var flCoeffs = [];
-  for (var i = 0; i < fenling; i++) {
-    var c = 1.1 - 0.1 * i;
-    if (sect === 2) c = 1.0; // 地府点选聚伤，暂时按1.0算
-    flCoeffs.push(Math.max(c, 0.55));
-  }
-
-  var baseBase = 0, agiPart = 0, dmgPart = 0, fushiPart = 0, wpnPart = 0;
-  var sectName = GS_SECTS[sect].name;
-  var formulaNote = '';
-
-  if (sect === 0) {
-    // 无底洞 夺命咒
-    baseBase = skill * 1.5 + 20;
-    agiPart = agi * 0.7;
-    dmgPart = dmg * 0.125;
-    fushiPart = fushi * 1.0;
-    formulaNote = '【无底洞·夺命咒】公式：\n';
-    formulaNote += '基础 = 师门技能×1.5 + 20\n';
-    formulaNote += '敏捷加成 = 敏捷 × 0.7\n';
-    formulaNote += '伤害加成 = 装备伤害 × 0.125\n';
-    formulaNote += '灵饰固伤 = 灵饰固伤 × 1.0（直接加）\n';
-    formulaNote += '\n主秒 = (基础+敏捷×0.7+伤害×0.125+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符 + 武器伤害/2\n';
-    formulaNote += '副秒 = (基础+敏捷×0.7+伤害×0.125+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符';
-  } else if (sect === 1) {
-    // 普陀山 五行法术
-    baseBase = skill * 3 + 50;
-    agiPart = agi * 0.7;
-    wpnPart = wpn * 0.24; // 仅武器伤害
-    fushiPart = fushi * 1.0;
-    formulaNote = '【普陀山·五行法术】公式：\n';
-    formulaNote += '基础 = 师门技能 × 3 + 50\n';
-    formulaNote += '敏捷加成 = 敏捷 × 0.7\n';
-    formulaNote += '伤害加成 = 武器伤害 × 0.24（仅武器，非全身）\n';
-    formulaNote += '灵饰固伤 = 灵饰固伤 × 1.0（直接加）\n';
-    formulaNote += '\n主秒 = (基础+敏捷×0.7+武器×0.24+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符\n';
-    formulaNote += '副秒 = (基础+敏捷×0.7+武器×0.24+灵饰固伤) × 阵法 × 分灵 × 修炼% + 修炼固定 + 神木符';
-  } else if (sect === 2) {
-    // 地府 阎罗令
-    baseBase = skill * 1.5 + 30;
-    agiPart = agi * 0.35;
-    dmgPart = dmg * 0.15;
-    fushiPart = fushi * 0.5;
-    formulaNote = '【地府·阎罗令】公式：\n';
-    formulaNote += '基础 = (师门技能×1.5 + 30) × 1.3（黑夜加成）\n';
-    formulaNote += '敏捷加成 = 敏捷 × 0.35\n';
-    formulaNote += '伤害加成 = 装备伤害 × 0.15\n';
-    formulaNote += '灵饰固伤 = 灵饰固伤 × 0.5\n';
-    formulaNote += '\n主秒 = (基础×1.3 + 敏捷×0.35 + 伤害×0.15 + 灵饰×0.5) × 阵法 × 1.0 × 修炼% + 修炼固定 + 神木符\n';
-    formulaNote += '注：点选时聚伤 = 1 + (最大秒数-当前) × 0.1，这里按1.0计算';
-  } else if (sect === 3) {
-    // 女儿村
-    var nverMode = document.getElementById('gs-nver-mode').value;
-    if (nverMode === 'rain') {
-      baseBase = skill * skill / 400 + skill / 2;
-      agiPart = agi * 0.5;
-      dmgPart = dmg * 0.18;
-      fushiPart = fushi * 0.83;
-      formulaNote = '【女儿村·雨落寒沙】公式：\n';
-      formulaNote += '基础 = 技能²/400 + 技能/2\n';
-      formulaNote += '敏捷加成 = 敏捷 × 0.5\n';
-      formulaNote += '伤害加成 = 装备伤害 × 0.18\n';
-      formulaNote += '灵饰固伤 = 灵饰固伤 × 0.83\n';
-      formulaNote += '\n主秒 = (基础+敏捷×0.5+伤害×0.18+灵饰×0.83) × 阵法(1.25天/1.14雷) × 分灵 × 修炼% + 修炼固定 + 神木符';
-    } else {
-      baseBase = throwSkill * throwSkill / 150 + throwSkill / 2;
-      agiPart = agi * 0.3;
-      fushiPart = fushi * 0.8;
-      dmgPart = 0; // 暗器用暗器命中
-      // 暗器额外伤害 = 暗器命中 + 50，这里简化为0
-      formulaNote = '【女儿村·暗器】公式：\n';
-      formulaNote += '基础 = 暗器技巧²/150 + 暗器技巧/2\n';
-      formulaNote += '敏捷加成 = 敏捷 × 0.3\n';
-      formulaNote += '伤害加成 = 暗器命中 + 50（需单独输入暗器命中值）\n';
-      formulaNote += '灵饰固伤 = 灵饰固伤 × 0.8\n';
-      formulaNote += '\n注：暗器命中额外伤害未在此处计算，请手动加上';
-    }
-    // 女儿阵法特殊
-    if (zhenIdx === 1) zhen = 1.25; // 天阵女儿
-    else if (zhenIdx === 2) zhen = 1.14; // 雷阵女儿
-  }
-
-  // 地府黑夜1.3倍
-  var nightMulti = (sect === 2) ? 1.3 : 1.0;
-  var base = baseBase * nightMulti + agiPart + dmgPart + wpnPart + fushiPart;
-
-  // 计算结果
-  var h = '<div style="margin-bottom:8px;font-weight:700;color:var(--accent);">'+sectName+' · '+GS_SECTS[sect].formula+'</div>';
-  h += '<div style="font-size:.78rem;color:var(--muted);margin-bottom:8px;">基础值='+Math.round(baseBase*nightMulti)+' 敏捷加成='+Math.round(agiPart)+' 伤害加成='+Math.round(dmgPart);
-  if (wpnPart) h += ' 武器加成='+Math.round(wpnPart);
-  h += ' 灵饰='+Math.round(fushiPart)+' 合计='+Math.round(base)+'</div>';
-
-  h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">';
-  h += '<tr style="background:var(--bg);"><th style="padding:4px 8px;border:1px solid var(--border);">目标</th><th style="padding:4px 8px;border:1px solid var(--border);">分灵</th><th style="padding:4px 8px;border:1px solid var(--border);">伤害</th></tr>';
-
-  for (var i = 0; i < fenling; i++) {
-    var fl = flCoeffs[i];
-    var raw = base * zhen * fl;
-    var result = Math.floor(raw * xiulvPct) + xiulvFixed + shenmu;
-    if (sect === 0) result += Math.floor(wpn / 2); // 无底洞+武器伤害/2
-    if (result < 0) result = 0;
-    var label = i === 0 ? '主秒' : '副秒'+i;
-    h += '<tr><td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">'+label+'</td>';
-    h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;">'+fl.toFixed(1)+'</td>';
-    h += '<td style="padding:4px 8px;border:1px solid var(--border);text-align:center;font-weight:700;color:var(--accent);">'+result+'</td>';
-    h += '</tr>';
-  }
-  h += '</table>';
-
-  // 修炼信息
-  h += '<div style="font-size:.75rem;color:var(--muted);">修炼差='+(renxiu-guai)+' 修炼%='+Math.round(xiulvPct*100)+'% 修炼固定='+(xiulvDiff>=0?'+':'')+xiulvFixed+'</div>';
-
-  document.getElementById('gs-result').innerHTML = h;
-  document.getElementById('gs-formula-note').textContent = formulaNote;
-}
 
 function renderGushang() {
   calcGushang();
