@@ -2150,8 +2150,97 @@ function renderSuitPanel() {
   calcSuitResult();
 }
 
-// 件数切换（保留原有函数）
+function renderProgressTable() {
+  const ch = appData.characters[appData.activeCharIdx];
+  if (!ch) return;
+  const thead = document.getElementById('progress-thead');
+  const tbody = document.getElementById('progress-tbody');
+  let html = '';
+  let totalExp=0, totalGold=0, totalBang=0;
 
+  // 各分类表头配置
+  const HEADERS = {
+    skills:  ['项目','当前等级','目标等级','消耗经验','消耗金钱',''],
+    rxiu:    ['项目','当前等级','目标等级','所需修炼经验','消耗金钱','所需帮贡上限'],
+    cxiu:    ['项目','当前等级','目标等级','所需修炼经验','消耗金钱','修炼果个数'],
+    aux:     ['项目','当前等级','目标等级','消耗经验','消耗金钱','消耗帮贡','所需帮贡上限'],
+    other:   ['项目','当前','目标','消耗经验','消耗金钱','']
+  };
+
+  ITEM_GROUPS.forEach(g => {
+    const headers = HEADERS[g.key] || HEADERS.other;
+    const colSpan = headers.length;
+
+    // 分类标题行
+    html += '<tr class="section-row"><td colspan="' + colSpan + '" style="font-weight:bold;">' + g.label + '</td></tr>';
+
+    // 表头行（每个分类自己的表头）
+    html += '<tr>';
+    headers.forEach(h => { html += '<th>' + h + '</th>'; });
+    html += '</tr>';
+
+    let subExp=0, subGold=0, subBang=0;
+
+    g.items.forEach(item => {
+      const d = ch.data[item] || { cur:0, target:0 };
+      const k = item;
+      const result = autoCalc(item, d.cur, d.target);
+      const exp = result.exp || 0;
+      const gold = result.gold || 0;
+      const bang = result.bang || 0;
+      const bangReq = result.bangReq || 0;
+      const fruitCount = result.fruitCount || 0;
+      subExp += exp; subGold += gold; subBang += bang;
+      totalExp += exp; totalGold += gold; totalBang += bang;
+
+      // 构建行内容
+      if (g.key === 'skills') {
+        html += '<tr>' +
+          '<td><input type="text" data-key="' + k + '" data-field="name" value="' + esc(item) + '" onchange="onSkillNameChange(this)" onfocus="this.select()" style="width:100%;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);font-size:.85rem;padding:2px 4px;text-align:left;cursor:text;" onmouseover="this.style.borderColor=\'var(--border)\'" onmouseout="if(document.activeElement!==this)this.style.borderColor=\'transparent\'"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td></td>' +
+          '</tr>';
+      } else if (g.key === 'rxiu') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td class="auto-val">' + (bangReq > 0 ? fmtNum(bangReq) : '—') + '</td>' +
+          '</tr>';
+      } else if (g.key === 'cxiu') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td class="auto-val">' + (fruitCount > 0 ? '🍎' + fruitCount + '个' : '—') + '</td>' +
+          '</tr>';
+      } else if (g.key === 'aux') {
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td class="auto-val">' + (bang > 0 ? fmtNum(bang) : '—') + '</td>' +
+          '<td class="auto-val">' + (bangReq > 0 ? fmtNum(bangReq) : '—') + '</td>' +
+          '</tr>';
+      } else {
+        // other: 乾元丹, 潜力果, 等级
+        html += '<tr>' +
+          '<td>' + esc(item) + '</td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="cur" value="' + d.cur + '" oninput="onLevelChange(this)"></td>' +
+          '<td><input type="number" data-key="' + k + '" data-field="target" value="' + d.target + '" oninput="onLevelChange(this)"></td>' +
+          '<td class="auto-val">' + (exp > 0 ? fmtExp(exp) : '—') + '</td>' +
+          '<td class="auto-val">' + (gold > 0 ? fmtGold(gold) : '—') + '</td>' +
+          '<td></td>' +
+          '</tr>';
       }
     });
 
@@ -2193,8 +2282,10 @@ function renderSuitPanel() {
   document.getElementById('gt-gold').textContent = totalGold > 0 ? fmtGold(totalGold) : '—';
   document.getElementById('gt-exp').textContent = totalExp > 0 ? fmtExp(totalExp) : '—';
   document.getElementById('gt-bang').textContent = totalBang > 0 ? fmtNum(totalBang) : '—';
+
   calcSuitResult();
 }
+
 
 function onFruitPriceChange() {
   collectCurrentData();
