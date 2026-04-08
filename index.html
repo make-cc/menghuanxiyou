@@ -3437,7 +3437,14 @@ function renderLedgerDkStatus() {
   var info = document.getElementById('ledger-dk-info');
   if (!ledgerData.dk.start) { info.textContent = ''; return; }
   var start = new Date(ledgerData.dk.start);
-  var startSt
+  var now = new Date();
+  var diff = Math.floor((now - start) / 1000);
+  var hours = Math.floor(diff / 3600);
+  var mins = Math.floor((diff % 3600) / 60);
+  var secs = diff % 60;
+  info.textContent = hours + '小时' + mins + '分' + secs + '秒';
+}
+
 // ==================== 固伤计算器 ====================
 var gsCurSect = 'wudi';
 
@@ -3756,24 +3763,6 @@ function renderGsResult(title, rows, total, fenling, xiulvPct, xiulvFixed, faxiu
   document.getElementById('gs-result').innerHTML = h;
   if (formulaNote) document.getElementById('gs-formula-note').textContent = formulaNote;
 }
-dk.end ? (ledgerData.dk.end - ledgerData.dk.start) : (Date.now() - ledgerData.dk.start);
-  var mins = Math.floor(duration / 60000);
-  var bl = parseFloat(document.getElementById('ledger-dk-bl').value) || 5;
-  var roles = parseInt(document.getElementById('ledger-dk-roles').value) || 5;
-  var dkCost = (mins / roles) * bl;
-  var h = '<span>' + startStr;
-  if (endStr) h += ' → ' + endStr;
-  h += ' (' + mins + '分钟) 点卡≈' + dkCost.toFixed(1) + '元</span>';
-  info.innerHTML = h;
-}
-
-// ==================== GUSHANG (固伤计算器) ====================
-var GS_SECTS = [
-  {name:'无底洞', skill:'夺命咒', formula:'夺命咒'},
-  {name:'普陀山', skill:'五行法术', formula:'日光华/靛沧海/苍灵击'},
-  {name:'地府',   skill:'阎罗令', formula:'阎罗令'},
-  {name:'女儿村', skill:'雨落寒沙', formula:'雨落寒沙/暗器'}
-];
 
 
 
