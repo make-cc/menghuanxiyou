@@ -1518,7 +1518,7 @@ function switchTab(idx) {
     if (el) el.style.display = i === idx ? '' : 'none';
   });
   if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
-  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); calcSpeed(); }
+  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); restoreSpeedData(); calcSpeed(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
   if (TAB_IDS[idx] === 'ledger') renderLedger();
@@ -2248,6 +2248,12 @@ function collectCurrentData() {
     if (!ch.data[key]) ch.data[key] = { cur:0, target:0 };
     ch.data[key][field] = parseFloat(inp.value) || 0;
   });
+  // collect speed calc data
+  var sd = {};
+  document.querySelectorAll('[id^="spd-"]').forEach(el => {
+    sd[el.id] = el.tagName === 'SELECT' ? el.value : (el.value || '');
+  });
+  appData.speedCalc = sd;
 }
 
 // ==================== FABAO ====================
@@ -2557,7 +2563,22 @@ function renderWeaponList() {
   div.innerHTML = html;
 }
 
-// ==================== SPEED CALC ====================
+// ==================== SPEED SAVE/RESTORE ====================
+function restoreSpeedData() {
+  var sd = appData.speedCalc;
+  if (!sd) return;
+  Object.keys(sd).forEach(id => {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'SELECT') {
+      el.value = sd[id];
+    } else {
+      el.value = sd[id];
+    }
+  });
+}
+
+// ==================== SPEED CALC =====================
 var SPD_ROLES = [
   { key:'wdd', name:'无底洞', tier:2 },
   { key:'en', name:'女儿村', tier:2 },
