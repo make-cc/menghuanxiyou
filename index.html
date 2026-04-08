@@ -3520,7 +3520,6 @@ function gsSelectSect(sect, btn) {
 
 function calcGushang() {
   var sect = gsCurSect;
-  var level = parseInt(document.getElementById('gs-level').value) || 175;
   var skill = parseInt(document.getElementById('gs-skill').value) || 0;
   var agi = parseInt(document.getElementById('gs-agi').value) || 0;
   var wpn = parseInt(document.getElementById('gs-wpn').value) || 0;
@@ -3539,13 +3538,12 @@ function calcGushang() {
   var guai = parseInt(document.getElementById('gs-guai').value) || 0;
   var mibao = parseFloat(document.getElementById('gs-mibao').value) || 0;
   var shenmu = parseInt(document.getElementById('gs-shenmu').value) || 0;
-  var fenling = parseInt(document.getElementById('gs-fenling').value) || 5;
+  var miao = parseInt(document.getElementById('gs-fenling').value) || 5;
   var throwSkill = parseInt(document.getElementById('gs-throw').value) || 0;
   var throwHit = parseInt(document.getElementById('gs-throwhit').value) || 0;
   var isNight = document.getElementById('gs-night').checked;
   var isMilk = document.getElementById('gs-wudi-milk').checked;
 
-  // 女儿阵法特殊
   var zhenX = zhen;
   if (sect === 'nver') {
     if (zhen === 1.15) zhenX = 1.25;
@@ -3553,182 +3551,106 @@ function calcGushang() {
     else zhenX = 1.0;
   }
 
-  var h = wpn + hat + lsdmg + fushishang + shanghaifu + fabao; // 伤害总和
-  var guSum = lsgu + ruibugu + yaoxie; // 固伤总和(灵饰+锐不+腰鞋)
+  var h = wpn + hat + lsdmg + fushishang + shanghaifu + fabao;
+  var guSum = lsgu + ruibugu + yaoxie;
   var fushiZuheVal = (FU_SHI_ZU_HE[sect] || [])[fushiZuheIdx - 1] || 0;
   var xiulvPct = gsXiuLvPct(faxiu, guai);
   var xiulvFixed = gsXiuLvFixed(faxiu, guai);
   var mibaoF = mibao + 1;
   var halfH = Math.floor(h / 2);
-
   var maxMiao = gsMaxMiao(skill, sect);
-  var sectName = {nver:'女儿村',difu:'地府',wudi:'无底洞',putuo:'普陀山'}[sect] || '';
-  var formulaNote = '';
+  var sectName = {nver:'\u5973\u513f\u6751',difu:'\u5730\u5e9c',wudi:'\u65e0\u5e95\u6d1e',putuo:'\u666e\u9640\u5c71'}[sect] || '';
 
-  // 结果收集
-  var rows = [];
+  // 分灵系数基于秒数(与mhxytools.top一致)
+  var v = gsFenLing(sect, miao, maxMiao, isMilk);
+  var C = Math.floor(zhenX * v * 100) / 100;
 
   if (sect === 'nver') {
-    // === 女儿村·技能 ===
-    var M = Math.floor(skill * skill / 400) + Math.floor(skill / 2);
+    // === 女儿村 ===
     var m = Math.floor(throwSkill * throwSkill / 150) + throwSkill;
-    var K = Math.floor(h * 0.18);
-    var W = Math.floor(agi * 0.5);
-    var Y = Math.floor(guSum * 0.83);
-    var v = gsFenLing('nver', 1, maxMiao, false);
-    var C = Math.floor(zhenX * v * 100) / 100;
-    var J = Math.floor((M + m + K + W + Y) * C) + lsgu;
-    var y = Math.floor(J * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
-    var zhuMiao = Math.floor((y + halfH) * mibaoF);
-    var fuMiao = Math.floor(y * mibaoF);
-    var total = zhuMiao + fuMiao * (fenling - 1);
-    rows.push({label:'主秒',fenling:1,dmg:zhuMiao});
-    for (var i = 1; i < fenling; i++) rows.push({label:'副秒'+i,fenling:gsFenLing('nver',i+1,maxMiao,false),dmg:fuMiao});
+    // 技能模式
+    var M1 = Math.floor(skill * skill / 400) + Math.floor(skill / 2);
+    var K1 = Math.floor(h * 0.18);
+    var W1 = Math.floor(agi * 0.5);
+    var Y1 = Math.floor(guSum * 0.83);
+    var J1 = Math.floor((M1 + m + K1 + W1 + Y1) * C) + lsgu;
+    var y1 = Math.floor(J1 * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
+    var zhuMiao1 = Math.floor((y1 + halfH) * mibaoF);
+    var fuMiao1 = miao < 2 ? 0 : Math.floor(y1 * mibaoF);
+    var total1 = zhuMiao1 + fuMiao1 * (miao - 1);
 
-    formulaNote = '【女儿村·技能（落星飞鸿）】\n';
-    formulaNote += '基础 = floor(技能²/400) + floor(技能/2)\n';
-    formulaNote += '暗器基础 = floor(暗器技巧²/150) + 暗器技巧\n';
-    formulaNote += '伤害加成 = floor(伤害总和 × 0.18)\n';
-    formulaNote += '敏捷加成 = floor(敏捷 × 0.5)\n';
-    formulaNote += '固伤加成 = floor((灵饰固伤+锐不+腰鞋) × 0.83)\n';
-    formulaNote += '阵法特殊：天覆阵→1.25，雷绝阵→1.14\n';
-    formulaNote += 'J = floor((基础+暗器基础+伤害+敏捷+固伤) × 阵法×分灵) + 灵饰固伤\n';
-    formulaNote += 'y = floor(J × 修炼%) + 修炼固定 + 符石组合 + 神木符\n';
-    formulaNote += '主秒 = floor((y + 伤害总和/2) × 秘宝)\n';
-    formulaNote += '副秒 = floor(y × 秘宝)';
+    var rows1 = [{label:'\u4e3b\u79d2',fenling:C,dmg:zhuMiao1}];
+    if (miao >= 2) for (var i = 1; i < miao; i++) rows1.push({label:'\u526f\u79d2'+i,fenling:C,dmg:fuMiao1});
 
-    // === 女儿村·暗器 ===
+    // 暗器模式
     var M2 = Math.floor(skill / 2);
     var K2 = throwHit + 50;
     var W2 = Math.floor(agi * 0.3);
     var Y2 = Math.floor(guSum * 0.8);
-    var v2 = gsFenLing('nver', 1, maxMiao, false);
-    var C2 = Math.floor(zhenX * v2 * 100) / 100;
-    var J2 = Math.floor((M2 + K2 + W2 + Y2) * C2) + lsgu;
+    var J2 = Math.floor((M2 + m + K2 + W2 + Y2) * C) + lsgu;
     var y2 = Math.floor(J2 * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
     var zhuMiao2 = Math.floor((y2 + halfH) * mibaoF);
-    var fuMiao2 = Math.floor(y2 * mibaoF);
-    var total2 = zhuMiao2 + fuMiao2 * (fenling - 1);
-    var rows2 = [{label:'主秒',fenling:1,dmg:zhuMiao2}];
-    for (var i2 = 1; i2 < fenling; i2++) rows2.push({label:'副秒'+i2,fenling:gsFenLing('nver',i2+1,maxMiao,false),dmg:fuMiao2});
+    var fuMiao2 = miao < 2 ? 0 : Math.floor(y2 * mibaoF);
+    var total2 = zhuMiao2 + fuMiao2 * (miao - 1);
+    var rows2 = [{label:'\u4e3b\u79d2',fenling:C,dmg:zhuMiao2}];
+    if (miao >= 2) for (var i2 = 1; i2 < miao; i2++) rows2.push({label:'\u526f\u79d2'+i2,fenling:C,dmg:fuMiao2});
 
-    formulaNote += '\n\n【女儿村·暗器】\n';
-    formulaNote += '基础 = floor(技能/2)\n';
-    formulaNote += '暗器命中 = 暗器命中 + 50\n';
-    formulaNote += '敏捷加成 = floor(敏捷 × 0.3)\n';
-    formulaNote += '固伤加成 = floor((灵饰固伤+锐不+腰鞋) × 0.8)';
-
-    // Render both tables
-    renderGsResult(sectName, rows, total, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote, '技能伤害', rows2, total2, '暗器伤害');
+    var note = '\u3010\u5973\u513f\u6751\u00b7\u6280\u80fd\u3011 C=' + C + ' J=' + J1 + ' y=' + y1;
+    renderGsResult(sectName, rows1, total1, miao, xiulvPct, xiulvFixed, faxiu, guai, note, '\u6280\u80fd\u4f24\u5bb3', rows2, total2, '\u6697\u5668\u4f24\u5bb3');
 
   } else if (sect === 'difu') {
-    // === 地府·白天/黑夜 ===
-    var titles = isNight ? '黑夜' : '白天';
-    var d = isNight
-      ? Math.floor((Math.floor(skill * 1.5) + 30) * 1.3)
-      : Math.floor(skill * 1.5) + 30;
-    var dmgPart = Math.floor(h * 0.15);
-    var agiPart = Math.floor(agi * 0.35);
-    var guPart = Math.floor(guSum * 0.5);
-
-    for (var di = 0; di < (isNight ? 2 : 1); di++) {
-      var isN = di === 1;
-      var dVal = isN ? Math.floor((Math.floor(skill * 1.5) + 30) * 1.3) : Math.floor(skill * 1.5) + 30;
-      var titleN = isN ? '黑夜' : '白天';
-
-      // 地府聚伤：分灵 = (maxMiao - i) / 10 + 1
-      // 计算q = floor((基础 + 伤害 + 敏捷 + 固伤 + 符石组合) × 阵法)
-      var q = Math.floor((dVal + dmgPart + agiPart + guPart + fushiZuheVal) * zhen);
-      var zhuF = Math.floor(q * gsFenLing('difu', 1, maxMiao, false));
-      var zhuResult = Math.floor((Math.floor((zhuF + lsgu) * xiulvPct) + xiulvFixed + shenmu + halfH) * mibaoF);
-      var fuQ = q; // 副秒用原始q（不含符石组合的聚伤？不，原文是q不含符石组合）
-      // 重新看原文：主秒用F(=floor(q×分灵))，副秒也用q
-      // 主秒 = floor((floor((F + 灵饰固伤) × 修炼%) + 修炼固定 + 神木符 + floor(h/2)) × 秘宝)
-      // 副秒 = floor((floor((q + 灵饰固伤) × 修炼%) + 修炼固定 + 神木符) × 秘宝)
-      // 副秒用的是q不是F！
-      var fuResult = Math.floor((Math.floor((q + lsgu) * xiulvPct) + xiulvFixed + shenmu) * mibaoF);
-      var totalR = zhuResult + fuResult * (fenling - 1);
-
-      var dRows = [{label:'主秒',fenling:gsFenLing('difu',1,maxMiao,false),dmg:zhuResult}];
-      for (var fi = 1; fi < fenling; fi++) dRows.push({label:'副秒'+fi,fenling:gsFenLing('difu',fi+1,maxMiao,false),dmg:fuResult});
-      renderGsResult(sectName + '·' + titleN, dRows, totalR, fenling, xiulvPct, xiulvFixed, faxiu, guai, '', titleN);
-    }
-
-    formulaNote = '【地府·阎罗令】\n';
-    formulaNote += '白天基础 = floor(技能×1.5) + 30\n';
-    formulaNote += '黑夜基础 = floor((floor(技能×1.5)+30) × 1.3)\n';
-    formulaNote += '伤害加成 = floor(伤害总和 × 0.15)\n';
-    formulaNote += '敏捷加成 = floor(敏捷 × 0.35)\n';
-    formulaNote += '固伤加成 = floor((灵饰固伤+锐不+腰鞋) × 0.5)\n';
-    formulaNote += '聚伤分灵 = (maxMiao - 目标序号) / 10 + 1\n';
-    formulaNote += 'q = floor((基础+伤害+敏捷+固伤+符石组合) × 阵法)\n';
-    formulaNote += '主秒：F=floor(q×分灵), floor((floor((F+灵饰固伤)×修炼%)+修炼固定+神木符+伤害总和/2) × 秘宝)\n';
-    formulaNote += '副秒：floor((floor((q+灵饰固伤)×修炼%)+修炼固定+神木符) × 秘宝)';
-    document.getElementById('gs-formula-note').textContent = formulaNote;
-    return;
+    // === 地府 (ie函数) ===
+    var dBase = isNight ? Math.floor((Math.floor(skill * 1.5) + 30) * 1.3) : Math.floor(skill * 1.5) + 30;
+    var dmgP = Math.floor(h * 0.15);
+    var agiP = Math.floor(agi * 0.35);
+    var guP = Math.floor(guSum * 0.5);
+    // 地府分灵: (maxMiao - miao) / 10 + 1
+    var difenV = gsFenLing('difu', miao, maxMiao, false);
+    // 注意地府公式特殊: q先算, 分灵乘在q上
+    var q = Math.floor((dBase + dmgP + agiP + guP + fushiZuheVal) * zhen);
+    var F = Math.floor(q * difenV);
+    // 修炼在这里: C=xiulvPct, t=xiulvFixed, N=mibao(地府mibao在后面乘)
+    var D = Math.floor((Math.floor((F + lsgu) * xiulvPct) + xiulvFixed + shenmu + halfH) * mibaoF);
+    var E_d = Math.floor((Math.floor((q + lsgu) * xiulvPct) + xiulvFixed + shenmu) * mibaoF);
+    var totalR = D + E_d * (miao - 1);
+    var rows = [{label:'\u4e3b\u79d2',fenling:difenV,dmg:D}];
+    if (miao >= 2) for (var di = 1; di < miao; di++) rows.push({label:'\u526f\u79d2'+di,fenling:gsFenLing('difu',di+1,maxMiao,false),dmg:E_d});
+    var note = '\u3010\u5730\u5e9c\u00b7' + (isNight?'\u9ed1\u591c':'\u767d\u5929') + '\u3011';
+    renderGsResult(sectName + '·' + (isNight?'黑夜':'白天'), rows, totalR, miao, xiulvPct, xiulvFixed, faxiu, guai, note);
 
   } else if (sect === 'wudi') {
-    // === 无底洞·夺命咒 ===
-    var wudiTitle = isMilk ? '奶脉' : '秒脉';
+    // === 无底洞 (se函数, mhxytools.top) ===
+    var wudiT = isMilk ? '奶脉' : '秒脉';
     var wd = Math.floor(skill * 1.5) + 20;
-    var wdDmg = Math.floor(h * 0.125);
-    var wdAgi = Math.floor(agi * 0.7);
-    var wdGu = guSum; // 直接加，不乘系数
-    var wdF = isMilk ? 0.7 : 1.0;
-    var wdQ = Math.floor(((wd + wdDmg) * wdF + wdAgi + wdGu + fushiZuheVal) * zhen);
-    var wdY = Math.floor((Math.floor(wdQ * gsFenLing('wudi',1,maxMiao,isMilk)) + lsgu) * xiulvPct) + xiulvFixed;
-    var wdZhu = Math.floor((Math.floor(wdY * wdF) + shenmu + halfH) * mibaoF);
-    var wdFu = Math.floor((Math.floor(wdY * wdF) + shenmu) * mibaoF);
-    var wdTotal = wdZhu + wdFu * (fenling - 1);
-
-    var wdRows = [{label:'主秒',fenling:gsFenLing('wudi',1,maxMiao,isMilk),dmg:wdZhu}];
-    for (var wi = 1; wi < fenling; wi++) wdRows.push({label:'副秒'+wi,fenling:gsFenLing('wudi',wi+1,maxMiao,isMilk),dmg:wdFu});
-
-    formulaNote = '【无底洞·夺命咒】\n';
-    formulaNote += '基础 = floor(技能×1.5) + 20\n';
-    formulaNote += '伤害加成 = floor(伤害总和 × 0.125)\n';
-    formulaNote += '敏捷加成 = floor(敏捷 × 0.7)\n';
-    formulaNote += '灵饰固伤 = 灵饰固伤+锐不+腰鞋（直接加，不乘系数）\n';
-    formulaNote += '秒脉/奶脉：秒脉F=1.0，奶脉F=0.7\n';
-    formulaNote += 'q = floor(((基础+伤害)×F + 敏捷 + 固伤 + 符石组合) × 阵法)\n';
-    formulaNote += 'y = floor((floor(q×分灵) + 灵饰固伤) × 修炼%) + 修炼固定\n';
-    formulaNote += '主秒 = floor((floor(y×F) + 神木符 + 伤害总和/2) × 秘宝)\n';
-    formulaNote += '副秒 = floor((floor(y×F) + 神木符) × 秘宝)';
-
-    renderGsResult(sectName + '·' + wudiTitle, wdRows, wdTotal, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote, wudiTitle);
-
-  } else if (sect === 'putuo') {
-    // === 普陀山 ===
-    // 普陀与无底洞共用公式（wudi数组相同），但灵饰固伤系数不同
-    // 普陀：副秒只享受武器和伤害符的加成
-    // 暂用无底洞的简化公式（因为原代码中普陀没有单独函数）
-    // 实际普陀公式和无底洞类似，但系数不同
-    var pt = Math.floor(skill * 3) + 50; // 普陀基础公式
-    var ptDmg = Math.floor(h * 0.24); // 普陀用武器伤害×0.24（仅武器）
-    var ptAgi = Math.floor(agi * 0.7);
-    var ptGu = guSum; // 直接加
-    var ptQ = Math.floor((pt + ptDmg + ptAgi + ptGu + fushiZuheVal) * zhen);
-    var ptZhu = Math.floor((Math.floor(ptQ * gsFenLing('putuo',1,maxMiao,false)) + lsgu) * xiulvPct) + xiulvFixed;
-    var ptZhuResult = Math.floor((ptZhu + shenmu + halfH) * mibaoF);
-    // 普陀副秒：只用武器伤害和伤害符
-    var ptH2 = wpn + shanghaifu + fabao;
-    var ptQ2 = Math.floor((pt + Math.floor(ptH2 * 0.24) + ptAgi + ptGu + fushiZuheVal) * zhen);
-    var ptFu = Math.floor((Math.floor(ptQ2 * gsFenLing('putuo',2,maxMiao,false)) + lsgu) * xiulvPct) + xiulvFixed;
-    var ptFuResult = Math.floor((ptFu + shenmu) * mibaoF);
-    var ptTotal = ptZhuResult + ptFuResult * (fenling - 1);
-
-    var ptRows = [{label:'主秒',fenling:gsFenLing('putuo',1,maxMiao,false),dmg:ptZhuResult}];
-    for (var pi = 1; pi < fenling; pi++) ptRows.push({label:'副秒'+pi,fenling:gsFenLing('putuo',pi+1,maxMiao,false),dmg:ptFuResult});
-
-    formulaNote = '【普陀山·五行法术】\n';
-    formulaNote += '基础 = floor(技能 × 3) + 50\n';
-    formulaNote += '伤害加成 = 武器伤害 × 0.24（仅武器，非全身）\n';
-    formulaNote += '敏捷加成 = floor(敏捷 × 0.7)\n';
-    formulaNote += '灵饰固伤 = 灵饰固伤+锐不+腰鞋（直接加）\n';
-    formulaNote += '副秒特殊：只享受武器伤害和伤害符加成，其他装备伤害不加副秒\n';
-    formulaNote += '注：普陀山公式待进一步确认，当前为近似计算';
-
-    renderGsResult(sectName, ptRows, ptTotal, fenling, xiulvPct, xiulvFixed, faxiu, guai, formulaNote);
+    var wdH = Math.floor(h * 0.125);
+    var wdA = Math.floor(agi * 0.7);
+    var wdG = guSum;
+    var wdQ = isMilk ? 1 : 2;
+    var wdFF = isMilk ? 0.7 : 1;
+    var J_wd = Math.floor(((wd + wdH) * wdQ + wdA + wdG + fushiZuheVal) * zhen);
+    var y_wd = Math.floor((Math.floor(J_wd * v) + lsgu) * xiulvPct) + xiulvFixed;
+    var zhuWd = Math.floor((Math.floor(y_wd * wdFF) + shenmu + halfH) * mibaoF);
+    var fuWd = Math.floor((Math.floor(y_wd * wdFF) + shenmu) * mibaoF);
+    var totalR = zhuWd + fuWd * (miao - 1);
+    var rows = [{label:'主秒',fenling:v,dmg:zhuWd}];
+    if (miao >= 2) for (var wi = 1; wi < miao; wi++) rows.push({label:'副秒'+wi,fenling:gsFenLing('wudi',wi+1,maxMiao,isMilk),dmg:fuWd});
+    var note = '【无底洞·' + wudiT + '】';
+    renderGsResult(sectName + '·' + wudiT, rows, totalR, miao, xiulvPct, xiulvFixed, faxiu, guai, note);
+} else if (sect === 'putuo') {
+    // === 普陀山 (工具箱无普陀, 近似公式) ===
+    var pt = Math.floor(skill * 3) + 50;
+    var ptH = Math.floor(h * 0.24);
+    var ptA = Math.floor(agi * 0.7);
+    var ptG = guSum;
+    var J_pt = Math.floor((pt + ptH + ptA + ptG + fushiZuheVal) * zhen);
+    var y_pt = Math.floor((Math.floor(J_pt * v) + lsgu) * xiulvPct) + xiulvFixed;
+    var zhuPt = Math.floor((y_pt + shenmu + halfH) * mibaoF);
+    var fuPt = Math.floor((y_pt + shenmu) * mibaoF);
+    var totalR = zhuPt + fuPt * (miao - 1);
+    var rows = [{label:'主秒',fenling:v,dmg:zhuPt}];
+    if (miao >= 2) for (var pi = 1; pi < miao; pi++) rows.push({label:'副秒'+pi,fenling:gsFenLing('putuo',pi+1,maxMiao,false),dmg:fuPt});
+    var note = '【普陀山】(近似公式,工具箱无普陀)';
+    renderGsResult(sectName, rows, totalR, miao, xiulvPct, xiulvFixed, faxiu, guai, note);
   }
 }
 
