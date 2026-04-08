@@ -3573,7 +3573,7 @@ function calcGushang() {
     var K1 = Math.floor(h * 0.18);
     var W1 = Math.floor(agi * 0.5);
     var Y1 = Math.floor(guSum * 0.83);
-    var J1 = Math.floor((M1 + m + K1 + W1 + Y1) * C) + lsgu;
+    var J1 = Math.floor((M1 + m + K1 + W1 + Y1) * C) + fushigu;
     var y1 = Math.floor(J1 * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
     var zhuMiao1 = Math.floor((y1 + halfH) * mibaoF);
     var fuMiao1 = miao < 2 ? 0 : Math.floor(y1 * mibaoF);
@@ -3587,7 +3587,7 @@ function calcGushang() {
     var K2 = throwHit + 50;
     var W2 = Math.floor(agi * 0.3);
     var Y2 = Math.floor(guSum * 0.8);
-    var J2 = Math.floor((M2 + m + K2 + W2 + Y2) * C) + lsgu;
+    var J2 = Math.floor((M2 + m + K2 + W2 + Y2) * C) + fushigu;
     var y2 = Math.floor(J2 * xiulvPct) + xiulvFixed + fushiZuheVal + shenmu;
     var zhuMiao2 = Math.floor((y2 + halfH) * mibaoF);
     var fuMiao2 = miao < 2 ? 0 : Math.floor(y2 * mibaoF);
@@ -3610,8 +3610,8 @@ function calcGushang() {
     var q = Math.floor((dBase + dmgP + agiP + guP + fushiZuheVal) * zhen);
     var F = Math.floor(q * difenV);
     // 修炼在这里: C=xiulvPct, t=xiulvFixed, N=mibao(地府mibao在后面乘)
-    var D = Math.floor((Math.floor((F + lsgu) * xiulvPct) + xiulvFixed + shenmu + halfH) * mibaoF);
-    var E_d = Math.floor((Math.floor((q + lsgu) * xiulvPct) + xiulvFixed + shenmu) * mibaoF);
+    var D = Math.floor((Math.floor((F + fushigu) * xiulvPct) + xiulvFixed + shenmu + halfH) * mibaoF);
+    var E_d = Math.floor((Math.floor((q + fushigu) * xiulvPct) + xiulvFixed + shenmu) * mibaoF);
     var totalR = D + E_d * (miao - 1);
     var rows = [{label:'\u4e3b\u79d2',fenling:difenV,dmg:D}];
     if (miao >= 2) for (var di = 1; di < miao; di++) rows.push({label:'\u526f\u79d2'+di,fenling:gsFenLing('difu',di+1,maxMiao,false),dmg:E_d});
@@ -3628,7 +3628,7 @@ function calcGushang() {
     var wdQ = isMilk ? 1 : 2;
     var wdFF = isMilk ? 0.7 : 1;
     var J_wd = Math.floor(((wd + wdH) * wdQ + wdA + wdG + fushiZuheVal) * zhen);
-    var y_wd = Math.floor((Math.floor(J_wd * v) + lsgu) * xiulvPct) + xiulvFixed;
+    var y_wd = Math.floor((Math.floor(J_wd * v) + fushigu) * xiulvPct) + xiulvFixed;
     var zhuWd = Math.floor((Math.floor(y_wd * wdFF) + shenmu + halfH) * mibaoF);
     var fuWd = Math.floor((Math.floor(y_wd * wdFF) + shenmu) * mibaoF);
     var totalR = zhuWd + fuWd * (miao - 1);
@@ -3643,7 +3643,7 @@ function calcGushang() {
     var ptA = Math.floor(agi * 0.7);
     var ptG = guSum;
     var J_pt = Math.floor((pt + ptH + ptA + ptG + fushiZuheVal) * zhen);
-    var y_pt = Math.floor((Math.floor(J_pt * v) + lsgu) * xiulvPct) + xiulvFixed;
+    var y_pt = Math.floor((Math.floor(J_pt * v) + fushigu) * xiulvPct) + xiulvFixed;
     var zhuPt = Math.floor((y_pt + shenmu + halfH) * mibaoF);
     var fuPt = Math.floor((y_pt + shenmu) * mibaoF);
     var totalR = zhuPt + fuPt * (miao - 1);
