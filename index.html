@@ -737,42 +737,42 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         </div>
         <!-- 输入区 -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 12px;margin-bottom:12px;">
-          <label class="gs-label">等级：<input type="number" id="gs-level" value="175" min="1" max="175" oninput="calcGushang()"></label>
-          <label class="gs-label">师门技能：<input type="number" id="gs-skill" value="150" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">敏捷：<input type="number" id="gs-agi" value="1200" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">武器伤害：<input type="number" id="gs-wpn" value="200" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">头饰伤害：<input type="number" id="gs-hat" value="40" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">灵饰伤害：<input type="number" id="gs-lsdmg" value="51" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">灵饰固伤：<input type="number" id="gs-lsgu" value="57" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">锐不固伤：<input type="number" id="gs-ruibugu" value="0" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">腰鞋固伤：<input type="number" id="gs-yaoxie" value="63" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">符石固伤：<input type="number" id="gs-fushigu" value="8" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">符石伤害：<input type="number" id="gs-fushishang" value="0" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">符石组合：<select id="gs-fushizuhe" onchange="calcGushang()">
+          <label class="gs-label">等级：<input type="number" id="gs-level" value="175" min="1" max="175" ></label>
+          <label class="gs-label">师门技能：<input type="number" id="gs-skill" value="150" min="0" ></label>
+          <label class="gs-label">敏捷：<input type="number" id="gs-agi" value="1200" min="0" ></label>
+          <label class="gs-label">武器伤害：<input type="number" id="gs-wpn" value="200" min="0" ></label>
+          <label class="gs-label">头饰伤害：<input type="number" id="gs-hat" value="40" min="0" ></label>
+          <label class="gs-label">灵饰伤害：<input type="number" id="gs-lsdmg" value="51" min="0" ></label>
+          <label class="gs-label">灵饰固伤：<input type="number" id="gs-lsgu" value="57" min="0" ></label>
+          <label class="gs-label">锐不固伤：<input type="number" id="gs-ruibugu" value="0" min="0" ></label>
+          <label class="gs-label">腰鞋固伤：<input type="number" id="gs-yaoxie" value="63" min="0" ></label>
+          <label class="gs-label">符石固伤：<input type="number" id="gs-fushigu" value="8" min="0" ></label>
+          <label class="gs-label">符石伤害：<input type="number" id="gs-fushishang" value="0" min="0" ></label>
+          <label class="gs-label">符石组合：<select id="gs-fushizuhe" >
             <option value="0">无</option>
             <option value="1">双4</option><option value="2">双3</option><option value="3">双2</option>
             <option value="4">单3单4</option><option value="5">单2单4</option><option value="6">单2单3</option>
             <option value="7">单4</option><option value="8">单3</option><option value="9">单2</option>
           </select></label>
-          <label class="gs-label">伤害符：<input type="number" id="gs-shanghaifu" value="0" min="0" oninput="calcGushang()"></label>
-          <label class="gs-label">法宝：<select id="gs-fabao" onchange="calcGushang()">
+          <label class="gs-label">伤害符：<input type="number" id="gs-shanghaifu" value="0" min="0" ></label>
+          <label class="gs-label">法宝：<select id="gs-fabao" >
             <option value="0">无</option>
             <option value="40">试剑石(取40)</option>
             <option value="80">双试剑石(80)</option>
             <option value="70">落星飞鸿(70)</option>
             <option value="110">落星+试剑石(110)</option>
           </select></label>
-          <label class="gs-label">阵法：<select id="gs-zhen" onchange="calcGushang()">
+          <label class="gs-label">阵法：<select id="gs-zhen" >
             <option value="1">无(1.0)</option>
             <option value="1.15" selected>天覆阵(1.15)</option>
             <option value="1.2">雷绝阵(1.2)</option>
           </select></label>
-          <label class="gs-label">法修等级：<input type="number" id="gs-renxiu" value="21" min="0" max="25" oninput="calcGushang()"></label>
-          <label class="gs-label">怪抗等级：<input type="number" id="gs-guai" value="0" min="0" max="25" oninput="calcGushang()"></label>
-          <label class="gs-label">帮派秘宝：<input type="number" id="gs-mibao" value="0" min="0" max="1" step="0.01" value="0" oninput="calcGushang()"></label>
-          <label class="gs-label">神木符：<input type="number" id="gs-shenmu" value="0" min="0" oninput="calcGushang()"></label>
+          <label class="gs-label">法修等级：<input type="number" id="gs-renxiu" value="21" min="0" max="25" ></label>
+          <label class="gs-label">怪抗等级：<input type="number" id="gs-guai" value="0" min="0" max="25" ></label>
+          <label class="gs-label">帮派秘宝：<input type="number" id="gs-mibao" value="0" min="0" max="1" step="0.01" value="0" ></label>
+          <label class="gs-label">神木符：<input type="number" id="gs-shenmu" value="0" min="0" ></label>
           <!-- 秒数 -->
-          <label class="gs-label">秒数：<select id="gs-fenling" onchange="calcGushang()">
+          <label class="gs-label">秒数：<select id="gs-fenling" >
             <option value="3">3</option><option value="4">4</option><option value="5" selected>5</option>
             <option value="6">6</option><option value="7">7</option>
           </select></label>
@@ -780,23 +780,24 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <!-- 女儿村额外 -->
         <div id="gs-nver-extra" style="display:none;margin-bottom:8px;">
           <div style="display:flex;gap:12px;align-items:center;">
-            <label class="gs-label">暗器技巧：<input type="number" id="gs-throw" value="160" min="0" oninput="calcGushang()"></label>
-            <label class="gs-label">暗器命中：<input type="number" id="gs-throwhit" value="100" min="0" oninput="calcGushang()"></label>
+            <label class="gs-label">暗器技巧：<input type="number" id="gs-throw" value="160" min="0" ></label>
+            <label class="gs-label">暗器命中：<input type="number" id="gs-throwhit" value="100" min="0" ></label>
           </div>
         </div>
         <!-- 地府白天/黑夜 -->
         <div id="gs-difu-extra" style="display:none;margin-bottom:8px;">
           <label style="font-size:.78rem;color:var(--muted);cursor:pointer;">
-            <input type="checkbox" id="gs-night" onchange="calcGushang()"> 黑夜模式(×1.3)
+            <input type="checkbox" id="gs-night" > 黑夜模式(×1.3)
           </label>
         </div>
         <!-- 无底洞秒脉/奶脉 -->
         <div id="gs-wudi-extra" style="display:none;margin-bottom:8px;">
           <label style="font-size:.78rem;color:var(--muted);cursor:pointer;">
-            <input type="checkbox" id="gs-wudi-milk" onchange="calcGushang()"> 奶脉(分灵0.7)
+            <input type="checkbox" id="gs-wudi-milk" > 奶脉(分灵0.7)
           </label>
         </div>
         <!-- 结果 -->
+        <div style="text-align:center;margin:12px 0;"><button class="btn btn-primary" onclick="calcGushang()" style="padding:8px 32px;font-size:.9rem;">计算</button></div>
         <div id="gs-result"></div>
         <!-- 公式说明 -->
         <details style="margin-top:8px;">
