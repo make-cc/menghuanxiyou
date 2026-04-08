@@ -3497,6 +3497,7 @@ function gsSelectSect(sect, btn) {
   document.getElementById('gs-nver-extra').style.display = sect==='nver'?'':'none';
   document.getElementById('gs-difu-extra').style.display = sect==='difu'?'':'none';
   document.getElementById('gs-wudi-extra').style.display = sect==='wudi'?'':'none';
+  calcGushang();
   // Auto set miao count based on skill
   var skill = parseInt(document.getElementById('gs-skill').value)||0;
   var maxM = gsMaxMiao(skill, sect);
@@ -3774,14 +3775,7 @@ var GS_SECTS = [
   {name:'女儿村', skill:'雨落寒沙', formula:'雨落寒沙/暗器'}
 ];
 
-function gsSelectSect(idx, btn) {
-  gsCurSect = idx;
-  document.querySelectorAll('.gs-sect-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  // 女儿村显示额外选项
-  document.getElementById('gs-nver-extra').style.display = idx===3?'':'none';
-  calcGushang();
-}
+
 
 
 
