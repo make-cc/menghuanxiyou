@@ -489,6 +489,17 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
 
   <!-- ========== TAB 2: 综合 ========== -->
   <div id="tab-chat" style="display:none">
+    <!-- 记录区 -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><h2>📝 材料记录</h2></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;padding:4px 0;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">初级</span><input type="text" id="cnote-chuji" placeholder="记录..." oninput="onCalcNoteChange()" style="width:120px;padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:6px;"></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">中级</span><input type="text" id="cnote-zhongji" placeholder="记录..." oninput="onCalcNoteChange()" style="width:120px;padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:6px;"></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">高级</span><input type="text" id="cnote-gaoji" placeholder="记录..." oninput="onCalcNoteChange()" style="width:120px;padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:6px;"></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">3药</span><input type="text" id="cnote-sanyao" placeholder="记录..." oninput="onCalcNoteChange()" style="width:120px;padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:6px;"></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">家具</span><input type="text" id="cnote-jiaju" placeholder="记录..." oninput="onCalcNoteChange()" style="width:120px;padding:4px 8px;font-size:.85rem;border:1px solid #ccc;border-radius:6px;"></label>
+      </div>
+    </div>
     <div class="card">
       <div class="card-header"><h2>📢 常用喊话 · 点击复制</h2></div>
       <div class="chat-replace-bar">
@@ -1287,7 +1298,8 @@ let appData = {
     '#cFF7F00 XXXXXXX#163#191#163',
     '#Y XXXXXXX#163#191#163',
     '#Y XXXXXXX#163#191#163'
-  ]
+  ],
+  calcNotes: { chuji: '', zhongji: '', gaoji: '', sanyao: '', jiaju: '' }
 };
 
 // ==================== CLOUD (Same-Origin + CORS Proxy) ====================
@@ -1351,6 +1363,9 @@ async function loadCloud(isManualRetry) {
     if (d.gemPrices) appData.gemPrices = d.gemPrices;
     if (d.chatPresets) appData.chatPresets = d.chatPresets;
     if (d.hiddenItems) appData.hiddenItems = d.hiddenItems;
+    if (d.speedCalc) appData.speedCalc = d.speedCalc;
+    if (d.weaponList) appData.weaponList = d.weaponList;
+    if (d.calcNotes) appData.calcNotes = d.calcNotes;
     // 迁移全局hiddenItems到各角色（兼容旧数据）
     if (appData.hiddenItems && appData.hiddenItems.length && appData.characters.length) {
       appData.characters.forEach(function(ch) {
@@ -1519,7 +1534,7 @@ function switchTab(idx) {
     if (el) el.style.display = i === idx ? '' : 'none';
   });
   if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
-  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); restoreSpeedData(); calcSpeed(); }
+  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); restoreSpeedData(); calcSpeed(); restoreCalcNotes(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
   if (TAB_IDS[idx] === 'ledger') renderLedger();
@@ -2255,6 +2270,13 @@ function collectCurrentData() {
     sd[el.id] = el.tagName === 'SELECT' ? el.value : (el.value || '');
   });
   appData.speedCalc = sd;
+  // Collect calcNotes
+  var cn = {};
+  ['chuji','zhongji','gaoji','sanyao','jiaju'].forEach(function(k) {
+    var el = document.getElementById('cnote-' + k);
+    if (el) cn[k] = el.value;
+  });
+  appData.calcNotes = cn;
 }
 
 // ==================== FABAO ====================
@@ -2562,6 +2584,19 @@ function renderWeaponList() {
   html += '</tbody></table>';
   html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">属性法伤（体耐力魔贡献）: ' + base.toFixed(1) + '　·　元/点 = 价格÷总法伤</p>';
   div.innerHTML = html;
+}
+
+// ==================== CALC NOTES ====================
+function onCalcNoteChange() {
+  scheduleSave();
+}
+
+function restoreCalcNotes() {
+  var cn = appData.calcNotes || {};
+  ['chuji','zhongji','gaoji','sanyao','jiaju'].forEach(function(k) {
+    var el = document.getElementById('cnote-' + k);
+    if (el) el.value = cn[k] || '';
+  });
 }
 
 // ==================== SPEED SAVE/RESTORE ====================
@@ -3717,6 +3752,9 @@ function renderAll() {
       if (lb.fruitPrice !== undefined) appData.fruitPrice = lb.fruitPrice;
       if (lb.gemPrices) appData.gemPrices = lb.gemPrices;
       if (d.chatPresets) appData.chatPresets = d.chatPresets;
+      if (lb.speedCalc) appData.speedCalc = lb.speedCalc;
+      if (lb.weaponList) appData.weaponList = lb.weaponList;
+      if (lb.calcNotes) appData.calcNotes = lb.calcNotes;
       // Per-character hiddenItems
       appData.characters.forEach(function(ch) {
         if (!ch.hiddenItems) ch.hiddenItems = [];
