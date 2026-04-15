@@ -2270,11 +2270,11 @@ function collectCurrentData() {
     sd[el.id] = el.tagName === 'SELECT' ? el.value : (el.value || '');
   });
   appData.speedCalc = sd;
-  // Collect calcNotes
-  var cn = {};
+  // Collect calcNotes - only update from DOM if element exists and visible
+  var cn = Object.assign({chuji:'',zhongji:'',gaoji:'',sanyao:'',jiaju:''}, appData.calcNotes || {});
   ['chuji','zhongji','gaoji','sanyao','jiaju'].forEach(function(k) {
     var el = document.getElementById('cnote-' + k);
-    if (el) cn[k] = el.value;
+    if (el && el.offsetParent !== null) cn[k] = el.value;
   });
   appData.calcNotes = cn;
 }
