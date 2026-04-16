@@ -749,7 +749,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <!-- 输入区 -->
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 12px;margin-bottom:12px;">
           <label class="gs-label">等级：<input type="number" id="gs-level" value="175" min="1" max="175" ></label>
-          <label class="gs-label">师门技能：<input type="number" id="gs-skill" value="150" min="0" ></label>
+          <label class="gs-label">师门技能：<input type="number" id="gs-skill" value="150" min="0" oninput="gsAutoMiao()" ></label>
           <label class="gs-label">敏捷：<input type="number" id="gs-agi" value="1200" min="0" ></label>
           <label class="gs-label">武器伤害：<input type="number" id="gs-wpn" value="200" min="0" ></label>
           <label class="gs-label">头饰伤害：<input type="number" id="gs-hat" value="40" min="0" ></label>
@@ -3566,6 +3566,24 @@ function gsXiuLvPct(faxiu, guai) {
 // 修炼固定
 function gsXiuLvFixed(faxiu, guai) {
   return (faxiu - guai) * 5;
+}
+
+function gsAutoMiao() {
+  calcGushang();
+  var skill = parseInt(document.getElementById('gs-skill').value)||0;
+  var maxM = gsMaxMiao(skill, gsCurSect);
+  var fl = document.getElementById('gs-fenling');
+  var cur = parseInt(fl.value)||0;
+  if (cur > maxM) {
+    // select the highest available
+    for (var i = fl.options.length - 1; i >= 0; i--) {
+      if (parseInt(fl.options[i].value) <= maxM) { fl.selectedIndex = i; break; }
+    }
+  }
+  for (var i = 0; i < fl.options.length; i++) {
+    fl.options[i].disabled = parseInt(fl.options[i].value) > maxM;
+  }
+  calcGushang();
 }
 
 function gsSelectSect(sect, btn) {
