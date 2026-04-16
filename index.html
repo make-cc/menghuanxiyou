@@ -779,7 +779,43 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
             <option value="1.2">雷绝阵(1.2)</option>
           </select></label>
           <label class="gs-label">法修等级：<input type="number" id="gs-renxiu" value="21" min="0" max="25" ></label>
-          <label class="gs-label">怪抗等级：<input type="number" id="gs-guai" value="0" min="0" max="25" ></label>
+          <label class="gs-label">怪抗等级：<input type="number" id="gs-guai" value="0" min="0" max="25" style="width:60px;" >
+            <select id="gs-guai-preset" onchange="document.getElementById('gs-guai').value=this.value;calcGushang();" style="font-size:.8rem;border:1px solid #ccc;border-radius:4px;padding:2px 4px;">
+              <option value="">--常见怪--</option>
+              <optgroup label="日常">
+                <option value="12">木桩(12)</option>
+                <option value="0">塔怪小怪(0)</option>
+                <option value="4">大鬼小怪(4)</option>
+                <option value="7">封妖小怪(7)</option>
+                <option value="6">蓬莱场景(6)</option>
+                <option value="6">妖王小怪(6)</option>
+                <option value="4">夜叉小怪(4)</option>
+                <option value="10">铃铛(10)</option>
+                <option value="16">乱流来客(16)</option>
+              </optgroup>
+              <optgroup label="副本">
+                <option value="12">通天河(12)</option>
+                <option value="10">金兜洞(10)</option>
+                <option value="6">猴王出世(6)</option>
+                <option value="14">齐天大圣(14)</option>
+                <option value="7">石猴授徒(7)</option>
+                <option value="12">红孩儿(12)</option>
+                <option value="16">九幽除名(16)</option>
+                <option value="16">蟠桃宴(16)</option>
+                <option value="6">七绝山(6)</option>
+                <option value="12">黑风山(12)</option>
+                <option value="12">无底洞(12)</option>
+                <option value="21">青丘迷雾(21)</option>
+                <option value="7">前世今生(7)</option>
+                <option value="12">五行斗法(12)</option>
+                <option value="7">衣冠古丘(7)</option>
+              </optgroup>
+              <optgroup label="秘境降妖">
+                <option value="7">秘境 1-10层(7)</option>
+                <option value="12">秘境 11层(12)</option>
+              </optgroup>
+            </select>
+          </label>
           <label class="gs-label">帮派秘宝：<input type="number" id="gs-mibao" value="0" min="0" max="1" step="0.01" value="0" ></label>
           <label class="gs-label">神木符：<input type="number" id="gs-shenmu" value="0" min="0" ></label>
           <!-- 秒数 -->
