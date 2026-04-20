@@ -2970,22 +2970,18 @@ function updateRateDisplay() {
       var per10 = (cardPrice * 10 / 10000).toFixed(2);
       // 1张点卡=15元，10张=150元，用RMB直接买150元能得多少万梦幻币
       if (rmb > 0 && gold > 0) {
-        // 1RMB按汇率能买多少万梦幻币
-        var mhbPerRmb = gold / rmb / 10000;
-        // 1点卡能买多少万梦幻币
-        var mhbPerCard = cardPrice / 10000;
-        // 1RMB = 10点卡，所以1点卡应该 = 1RMB/10 的价值
-        // 即用梦幻币买1点卡 vs 用RMB买1点卡(=1RMB/10的汇率价值)
-        var rmbPerCard = rmb / 10; // 1点卡=0.1RMB的汇率价值能买多少万梦幻币
-        var mhbFromRmbPerCard = rmbPerCard * gold / rmb / 10000; // = gold/10/10000
-        var diffNum = mhbPerCard - mhbFromRmbPerCard;
-        var diff = diffNum.toFixed(2);
+        // 对比: 1RMB能买多少万梦幻币 vs 10点卡值多少万梦幻币
+        var mhb1r = (gold / rmb / 10000).toFixed(2); // 1RMB能买的万梦幻币
+        var diffNum = per10 - mhb1r; // 10点卡价值 - 1RMB价值
+        var diff = Math.abs(diffNum).toFixed(2);
         if (diffNum > 0.01) {
-          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#e74c3c;font-size:.8rem">(比用RMB买多+' + diff + '万/卡 ✔买点卡划算)</span>';
+          // 10点卡 > 1RMB → 买点卡划算(用梦幻币买点卡，点卡比RMB值钱)
+          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#e74c3c;font-size:.8rem">(1R=' + mhb1r + '万 ✔买点卡划算)</span>';
         } else if (diffNum < -0.01) {
-          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#27ae60;font-size:.8rem">(比用RMB买少' + diff + '万/卡 ✘用RMB划算)</span>';
+          // 10点卡 < 1RMB → 用RMB划算(RMB比点卡值钱)
+          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#27ae60;font-size:.8rem">(1R=' + mhb1r + '万 ✔用RMB划算)</span>';
         } else {
-          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#999;font-size:.8rem">(与用RMB买相当)</span>';
+          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#999;font-size:.8rem">(1R=' + mhb1r + '万 相当)</span>';
         }
       } else {
         elCard.textContent = '▶ 10点卡 = ' + per10 + ' 万梦幻币';
