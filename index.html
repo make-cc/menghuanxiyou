@@ -651,7 +651,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
           <input type="number" id="rate-rmb" step="0.01" value="233.16" oninput="updateRate()">
           <span class="unit">RMB ＝</span>
           <input type="number" id="rate-gold" step="100" value="3000" oninput="updateRate()">
-          <span class="unit">万游戏币</span>
+          <span class="unit">万梦幻币</span>
         </div>
         <div class="calc-rate">
           <label>修炼果价格：</label>
@@ -2955,15 +2955,15 @@ function updateRateDisplay() {
   var rmb = appData.rate.rmb || 0;
   var gold = appData.rate.gold || 0;
   var cardPrice = appData.rate.cardPrice || 5;
-  // 1R = ? 万游戏币
+  // 1R = ? 万梦幻币
   var el1r = document.getElementById('rate-1r-mhb');
   if (el1r) {
     if (rmb > 0 && gold > 0) {
       var perR = (gold / rmb).toFixed(2);
-      el1r.textContent = perR + ' 万游戏币';
+      el1r.textContent = perR + ' 万梦幻币';
     } else { el1r.textContent = '—'; }
   }
-  // 10点卡 = ? 万游戏币
+  // 10点卡 = ? 万梦幻币
   var elCard = document.getElementById('rate-card-mhb');
   if (elCard) {
     if (cardPrice > 0) {
@@ -2982,7 +2982,7 @@ function calcFromRMB() {
   const ratio = appData.rate.gold / appData.rate.rmb;
   const gold = (rmb * ratio).toFixed(2);
   document.getElementById('calc-result').innerHTML =
-    '💰 ' + rmb + ' RMB ＝ <strong>' + gold + '</strong> 万游戏币';
+    '💰 ' + rmb + ' RMB ＝ <strong>' + gold + '</strong> 万梦幻币';
 }
 
 function calcFromGold() {
@@ -2994,7 +2994,7 @@ function calcFromGold() {
   const ratio = appData.rate.rmb / appData.rate.gold;
   const rmb = (gold * ratio).toFixed(2);
   document.getElementById('calc-result').innerHTML =
-    '🎮 ' + gold + ' 万游戏币 ＝ <strong>' + rmb + '</strong> RMB';
+    '🎮 ' + gold + ' 万梦幻币 ＝ <strong>' + rmb + '</strong> RMB';
 }
 
 function restoreCalcUI() {
