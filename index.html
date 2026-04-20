@@ -661,7 +661,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <div class="calc-rate">
           <label>1点卡 =</label>
           <input type="number" id="rate-cardprice" step="1" value="350" min="1" oninput="updateRate()">
-          <span class="unit">万梦幻币</span>
+          <span class="unit">梦幻币</span>
           <span id="rate-card-mhb" style="margin-left:12px;font-size:.85rem;color:var(--accent);font-weight:600;"></span>
         </div>
         <div class="calc-rate" style="font-size:.85rem;color:var(--accent);font-weight:600;">
@@ -1335,7 +1335,7 @@ let appData = {
   characters: [DEFAULT_CHAR()],
   activeCharIdx: 0,
   fabaoCharIdx: 0,
-  rate: { rmb: 233.16, gold: 3000, cardPrice: 350 },
+  rate: { rmb: 233.16, gold: 3000, cardPrice: 12445 },
   fruitPrice: 75,
   gemPrices: {},
   hiddenItems: [], // Items to hide in progress table, e.g. ['暗器']
@@ -2944,7 +2944,7 @@ function calcAllGems() {
 function updateRate() {
   appData.rate.rmb = parseFloat(document.getElementById('rate-rmb').value) || 0;
   appData.rate.gold = parseFloat(document.getElementById('rate-gold').value) || 0;
-  appData.rate.cardPrice = parseFloat(document.getElementById('rate-cardprice').value) || 350;
+  appData.rate.cardPrice = parseFloat(document.getElementById('rate-cardprice').value) || 12445;
   calcFromRMB();
   calcFromGold();
   updateRateDisplay();
@@ -2967,8 +2967,8 @@ function updateRateDisplay() {
   var elCard = document.getElementById('rate-card-mhb');
   if (elCard) {
     if (cardPrice > 0) {
-      var per10Card = (cardPrice * 10).toFixed(0);
-      elCard.textContent = '▶ 10点卡 = ' + per10Card + ' 万梦幻币';
+      var per10 = (cardPrice * 10 / 10000).toFixed(2);
+      elCard.textContent = '▶ 10点卡 = ' + per10 + ' 万梦幻币';
     } else { elCard.textContent = ''; }
   }
 }
@@ -3001,7 +3001,7 @@ function restoreCalcUI() {
   document.getElementById('rate-rmb').value = appData.rate.rmb || 233.16;
   document.getElementById('rate-gold').value = appData.rate.gold || 3000;
   document.getElementById('fruitPrice').value = appData.fruitPrice || 75;
-  document.getElementById('rate-cardprice').value = (appData.rate.cardPrice != null ? appData.rate.cardPrice : 350);
+  document.getElementById('rate-cardprice').value = (appData.rate.cardPrice != null ? appData.rate.cardPrice : 12445);
 }
 
 // ==================== SAVE ====================
