@@ -498,6 +498,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
         <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">高级</span><input type="text" id="cnote-gaoji" placeholder="记录..." oninput="onCalcNoteChange()" style="width:260px;padding:6px 10px;font-size:.9rem;border:1px solid #ccc;border-radius:6px;"></label>
         <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">3药</span><input type="text" id="cnote-sanyao" placeholder="记录..." oninput="onCalcNoteChange()" style="width:260px;padding:6px 10px;font-size:.9rem;border:1px solid #ccc;border-radius:6px;"></label>
         <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">家具</span><input type="text" id="cnote-jiaju" placeholder="记录..." oninput="onCalcNoteChange()" style="width:260px;padding:6px 10px;font-size:.9rem;border:1px solid #ccc;border-radius:6px;"></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.85rem;"><span style="min-width:3em;color:var(--muted);">其他</span><input type="text" id="cnote-other" placeholder="记录..." oninput="onCalcNoteChange()" style="width:260px;padding:6px 10px;font-size:.9rem;border:1px solid #ccc;border-radius:6px;"></label>
       </div>
     </div>
     <div class="card">
@@ -1335,7 +1336,7 @@ let appData = {
     '#Y XXXXXXX#163#191#163',
     '#Y XXXXXXX#163#191#163'
   ],
-  calcNotes: { chuji: '', zhongji: '', gaoji: '', sanyao: '', jiaju: '' }
+  calcNotes: { chuji: '', zhongji: '', gaoji: '', sanyao: '', jiaju: '', other: '' }
 };
 
 // ==================== CLOUD (Same-Origin + CORS Proxy) ====================
@@ -2308,7 +2309,7 @@ function collectCurrentData() {
   appData.speedCalc = sd;
   // Collect calcNotes - only update from DOM if element exists and visible
   var cn = Object.assign({chuji:'',zhongji:'',gaoji:'',sanyao:'',jiaju:''}, appData.calcNotes || {});
-  ['chuji','zhongji','gaoji','sanyao','jiaju'].forEach(function(k) {
+  ['chuji','zhongji','gaoji','sanyao','jiaju','other'].forEach(function(k) {
     var el = document.getElementById('cnote-' + k);
     if (el && el.offsetParent !== null) cn[k] = el.value;
   });
@@ -2629,7 +2630,7 @@ function onCalcNoteChange() {
 
 function restoreCalcNotes() {
   var cn = appData.calcNotes || {};
-  ['chuji','zhongji','gaoji','sanyao','jiaju'].forEach(function(k) {
+  ['chuji','zhongji','gaoji','sanyao','jiaju','other'].forEach(function(k) {
     var el = document.getElementById('cnote-' + k);
     if (el) el.value = cn[k] || '';
   });
