@@ -2963,12 +2963,27 @@ function updateRateDisplay() {
       el1r.textContent = perR + ' 万梦幻币';
     } else { el1r.textContent = '—'; }
   }
-  // 10点卡 = ? 万梦幻币
+  // 10点卡 = ? 万梦幻币 + 划算对比
   var elCard = document.getElementById('rate-card-mhb');
   if (elCard) {
     if (cardPrice > 0) {
       var per10 = (cardPrice * 10 / 10000).toFixed(2);
-      elCard.textContent = '▶ 10点卡 = ' + per10 + ' 万梦幻币';
+      // 1张点卡=15元，10张=150元，用RMB直接买150元能得多少万梦幻币
+      if (rmb > 0 && gold > 0) {
+        var cost10card = 150; // 10张点卡=150元
+        var mhbFromRmb = (cost10card * gold / rmb / 10000).toFixed(2);
+        var diff = (per10 - mhbFromRmb).toFixed(2);
+        var diffNum = per10 - mhbFromRmb;
+        if (diffNum > 0.01) {
+          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#e74c3c;font-size:.8rem">(比RMB买点卡多+' + diff + '万✔划算)</span>';
+        } else if (diffNum < -0.01) {
+          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#27ae60;font-size:.8rem">(比RMB买点卡少' + diff + '万✘不划算)</span>';
+        } else {
+          elCard.innerHTML = '▶ 10点卡 = <strong>' + per10 + '</strong> 万梦幻币 <span style="color:#999;font-size:.8rem">(与RMB买点卡相当)</span>';
+        }
+      } else {
+        elCard.textContent = '▶ 10点卡 = ' + per10 + ' 万梦幻币';
+      }
     } else { elCard.textContent = ''; }
   }
 }
