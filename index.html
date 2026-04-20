@@ -2325,6 +2325,15 @@ function collectCurrentData() {
     if (el && el.offsetParent !== null) cn[k] = el.value;
   });
   appData.calcNotes = cn;
+  // collect rate data
+  var rr = document.getElementById('rate-rmb');
+  var rg = document.getElementById('rate-gold');
+  var rf = document.getElementById('fruitPrice');
+  var rc = document.getElementById('rate-cardprice');
+  if (rr) appData.rate.rmb = parseFloat(rr.value) || 0;
+  if (rg) appData.rate.gold = parseFloat(rg.value) || 0;
+  if (rf) appData.fruitPrice = parseFloat(rf.value) || 0;
+  if (rc) appData.rate.cardPrice = parseFloat(rc.value) || 0;
 }
 
 // ==================== FABAO ====================
