@@ -2954,7 +2954,7 @@ function updateRate() {
 function updateRateDisplay() {
   var rmb = appData.rate.rmb || 0;
   var gold = appData.rate.gold || 0;
-  var cardPrice = appData.rate.cardPrice || 5;
+  var cardPrice = appData.rate.cardPrice || 12445;
   // 1R = ? 万梦幻币
   var el1r = document.getElementById('rate-1r-mhb');
   if (el1r) {
@@ -2971,7 +2971,7 @@ function updateRateDisplay() {
       // 1张点卡=15元，10张=150元，用RMB直接买150元能得多少万梦幻币
       if (rmb > 0 && gold > 0) {
         // 对比: 1RMB能买多少万梦幻币 vs 10点卡值多少万梦幻币
-        var mhb1r = (gold / rmb / 10000).toFixed(2); // 1RMB能买的万梦幻币
+        var mhb1r = (gold / rmb).toFixed(2); // 1RMB能买的万梦幻币
         var diffNum = per10 - mhb1r; // 10点卡价值 - 1RMB价值
         var diff = Math.abs(diffNum).toFixed(2);
         if (diffNum > 0.01) {
