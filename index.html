@@ -1947,7 +1947,7 @@ function onSuitTypeChange() {
     piecesEl.style.display = 'none';
   }
   document.getElementById('suit-result').textContent = '';
-  onSuitChange();
+  if (nameEl.value) onSuitChange();
 }
 
 function onSuitNameChange() {
@@ -2042,6 +2042,7 @@ function renderSuitPanel() {
   }
   document.getElementById('suit-hole4').value = s.hole4Count || 0;
   calcSuitResult();
+  onSuitChange();
 }
 
 
