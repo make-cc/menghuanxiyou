@@ -2850,22 +2850,26 @@ const GEM_LIST = [
   { name: '神秘石', merge: 2 },
   { name: '翡翠石', merge: 2 },
   { name: '星辉石', merge: 3 },
-  { name: '五色灵尘', merge: 3 }
+  { name: '五色灵尘', merge: 3 },
+  { name: '锐不可当', merge: [3,3,4,3,4,4,5], maxLv: 8 },
+  { name: '健步如飞', merge: [3,3,4,3,4,4,5], maxLv: 8 }
 ];
 
-function calcGemPrices(basePrice, merge) {
+function calcGemPrices(basePrice, merge, maxLv) {
   // basePrice: 1级单价（万两）
-  // merge: 合成数量（2或3）
-  // 返回 [1级, 2级, ..., 9级] 各级单价（万两）
-  // 以及累计总花费
-  const prices = [basePrice]; // 1级
-  let cumulative = [0, basePrice]; // cumulative[N] = 从1级升到N级的总花费
+  // merge: 合成数量（数字或数组，数组时 merge[i] 表示从 i+1 级合成到 i+2 级需要几个）
+  // maxLv: 最高等级（默认9）
+  // 返回 [1级, 2级, ..., maxLv级] 各级单价（万两）
+  const top = maxLv || 9;
+  const getMerge = (lv) => Array.isArray(merge) ? (merge[lv-2] || merge[merge.length-1]) : merge;
+  const prices = [basePrice]; // prices[0] = 1级
+  let cumulative = [0, basePrice];
 
-  for (let lv = 2; lv <= 9; lv++) {
-    prices[lv-1] = prices[lv-2] * merge;
+  for (let lv = 2; lv <= top; lv++) {
+    prices[lv-1] = prices[lv-2] * getMerge(lv);
     cumulative[lv] = cumulative[lv-1] + prices[lv-1];
   }
-  return { prices, cumulative };
+  return { prices, cumulative, maxLv: top };
 }
 
 function fmtGemPriceStr(n) {
@@ -2891,7 +2895,8 @@ function renderGemInputs() {
   GEM_LIST.forEach((gem, idx) => {
     const base = appData.gemPrices[gem.name] || 1.5;
     html += '<div class="gem-section">';
-    html += '<h3>' + gem.name + (gem.merge === 3 ? '（3合1）' : '（2合1）') +
+    var mergeLabel = Array.isArray(gem.merge) ? '（不等比）' : (gem.merge === 3 ? '（3合1）' : '（2合1）');
+    html += '<h3>' + gem.name + mergeLabel +
       '　<input type="number" data-gem="' + gem.name + '" style="width:70px;font-size:.8rem;padding:2px 4px;border:1px solid #ccc;border-radius:4px;" ' +
       'value="' + base + '" min="0.01" step="0.1" ' +
       'oninput="var v=parseFloat(this.value);if(!isNaN(v)&&v>0)appData.gemPrices[\'' + gem.name + '\']=v;updateGemTables()">' +
@@ -2907,12 +2912,12 @@ function updateGemTables() {
   // 只更新表格内容，不重建输入框
   GEM_LIST.forEach((gem, idx) => {
     const base = appData.gemPrices[gem.name] || 1.5;
-    const { prices, cumulative } = calcGemPrices(base, gem.merge);
+    const { prices, cumulative, maxLv } = calcGemPrices(base, gem.merge, gem.maxLv);
     const div = document.getElementById('gem-table-' + idx);
     if (!div) return;
     let html = '<table class="gem-table"><thead><tr>';
     html += '<th></th>';
-    for (let i = 1; i <= 9; i++) html += '<th>' + i + '级</th>';
+    for (let i = 1; i <= maxLv; i++) html += '<th>' + i + '级</th>';
     html += '</tr></thead><tbody>';
     // 价格行
     html += '<tr class="price-row"><td>单价</td>';
