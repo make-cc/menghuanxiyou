@@ -2895,7 +2895,7 @@ function renderGemInputs() {
   GEM_LIST.forEach((gem, idx) => {
     const base = appData.gemPrices[gem.name] || 1.5;
     html += '<div class="gem-section">';
-    var mergeLabel = Array.isArray(gem.merge) ? '（不等比）' : (gem.merge === 3 ? '（3合1）' : '（2合1）');
+    var mergeLabel = gem.merge === 3 ? '（3合1）' : (gem.merge === 2 ? '（2合1）' : '');
     html += '<h3>' + gem.name + mergeLabel +
       '　<input type="number" data-gem="' + gem.name + '" style="width:70px;font-size:.8rem;padding:2px 4px;border:1px solid #ccc;border-radius:4px;" ' +
       'value="' + base + '" min="0.01" step="0.1" ' +
