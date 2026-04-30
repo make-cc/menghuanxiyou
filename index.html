@@ -1569,7 +1569,7 @@ function switchTab(idx) {
   });
   if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
   if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); restoreSpeedData(); calcSpeed(); restoreCalcNotes(); }
-  if (TAB_IDS[idx] === 'calc') { updateRateDisplay(); restoreSpeedData(); calcSpeed(); }
+  if (TAB_IDS[idx] === 'calc') { updateRateDisplay(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
   if (TAB_IDS[idx] === 'ledger') renderLedger();
@@ -2300,9 +2300,9 @@ function collectCurrentData() {
     if (!ch.data[key]) ch.data[key] = { cur:0, target:0 };
     ch.data[key][field] = parseFloat(inp.value) || 0;
   });
-  // collect speed calc data - only when calc tab is visible
-  var calcTabVisible = document.querySelector('#tab-calc') && document.querySelector('#tab-calc').style.display !== 'none';
-  if (calcTabVisible) {
+  // collect speed calc data - only when chat tab is visible (speed calc is in 综合 tab)
+  var speedTabVisible = document.querySelector('#tab-chat') && document.querySelector('#tab-chat').style.display !== 'none';
+  if (speedTabVisible) {
     var sd = {};
     document.querySelectorAll('[id^="spd-"]').forEach(el => {
       sd[el.id] = el.tagName === 'SELECT' ? el.value : (el.value || '');
