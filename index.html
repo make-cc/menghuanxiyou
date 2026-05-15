@@ -525,6 +525,7 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
         <span style="display:inline-flex;align-items:center;gap:4px;">武器伤害<input type="number" id="wp-dmg" value="380" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
         <span style="display:inline-flex;align-items:center;gap:4px;">锻炼等级<input type="number" id="wp-duan" value="0" min="0" max="16" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
+        
         <span style="display:inline-flex;align-items:center;gap:4px;">价格(RMB)<input type="number" id="wp-price" value="0" min="0" step="0.01" style="width:80px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
         <span style="display:inline-flex;align-items:center;gap:4px;">名称<input type="text" id="wp-name" placeholder="可选" style="width:100px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
         <button class="btn" onclick="addWeapon()" style="padding:6px 16px;font-size:.85rem;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;">+ 添加</button>
@@ -2580,7 +2581,9 @@ function addWeapon() {
   const duan = parseInt(document.getElementById('wp-duan').value) || 0;
   const price = parseFloat(document.getElementById('wp-price').value) || 0;
   const name = document.getElementById('wp-name').value.trim() || ('武器' + (appData.weaponList.length + 1));
-  appData.weaponList.push({ name, dmg, duan, price });
+  // snapshot current stats into weapon object so existing weapons don't change when stats are edited
+  var st = getWpStats();
+  appData.weaponList.push({ name, dmg, duan, price, ti:st.ti, nai:st.nai, li:st.li, mo:st.mo });
   scheduleSave();
   renderWeaponList();
 }
@@ -2604,13 +2607,16 @@ function renderWeaponList() {
     div.innerHTML = '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:8px 0;">暂无武器，点击上方「添加」按钮</p>';
     return;
   }
-  const { base } = getWpStats();
+  // use per-weapon snapshot stats so editing global stats doesn't change added weapons
   let rows = appData.weaponList.map((w, i) => {
     const wpFashang = calcWeaponDamage(w.dmg, w.duan);
-    const total = base + wpFashang;
+    const ti = w.ti || 0, nai = w.nai || 0, li = w.li || 0, mo = w.mo || 0;
+    const baseWithAttr = ti*0.3 + nai*0.2 + li*0.4 + mo*0.7;
+    const total = baseWithAttr + wpFashang;
     const price = w.price || 0;
     const costPerPoint = total > 0 && price > 0 ? (price / total).toFixed(2) : '—';
-    return { name: w.name, dmg: w.dmg, duan: w.duan, price, wpFashang: wpFashang.toFixed(1), total: total.toFixed(1), costPerPoint, idx: i };
+    const attrLabel = (ti || nai || li || mo) ? [].concat(ti?['体+'+ti]:[],nai?['耐+'+nai]:[],li?['力+'+li]:[],mo?['魔+'+mo]:[]).join(' ') : '';
+    return { name: w.name, dmg: w.dmg, duan: w.duan, price, attrLabel, wpFashang: wpFashang.toFixed(1), total: total.toFixed(1), costPerPoint, idx: i };
   });
   // 按法伤从高到低排序
   rows.sort((a, b) => b.total - a.total);
@@ -2620,6 +2626,7 @@ function renderWeaponList() {
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">名称</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">伤害</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">锻炼</th>';
+  html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">属性</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">价格</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">武器法伤</th>';
   html += '<th style="padding:6px 8px;border:1px solid var(--border);text-align:center;">总法伤</th>';
@@ -2631,6 +2638,7 @@ function renderWeaponList() {
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.name + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.dmg + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.duan + '级</td>';
+    html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (r.attrLabel||'—') + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + (r.price > 0 ? '¥' + r.price : '—') + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;">' + r.wpFashang + '</td>';
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;' + color + '">' + r.total + '</td>';
@@ -2638,7 +2646,7 @@ function renderWeaponList() {
     html += '<td style="padding:6px 8px;border:1px solid var(--border);text-align:center;"><button onclick="removeWeapon(' + r.idx + ')" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.8rem;">✕</button></td></tr>';
   });
   html += '</tbody></table>';
-  html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">属性法伤（体耐力魔贡献）: ' + base.toFixed(1) + '　·　元/点 = 价格÷总法伤</p>';
+  html += '<p style="font-size:.78rem;color:var(--muted);margin:8px 0 0;">提示：每把武器法伤按添加时属性点独立计算，修改上方属性点不会影响已添加的武器</p>';
   div.innerHTML = html;
 }
 
