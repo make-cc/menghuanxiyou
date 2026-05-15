@@ -517,10 +517,10 @@ body.locked #btn-lock { background: var(--red); color: #fff; }
       <p style="font-size:.8rem;color:var(--muted);margin:0 0 12px;">法伤 = 体×0.3 + 耐×0.2 + 力×0.4 + 魔×0.7 + (武器伤害 - 锻炼等级×8) / 4</p>
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;">
         <label style="font-size:.85rem;">属性点：</label>
-        <span style="display:inline-flex;align-items:center;gap:4px;">体<input type="number" id="wp-ti" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
-        <span style="display:inline-flex;align-items:center;gap:4px;">耐<input type="number" id="wp-nai" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
-        <span style="display:inline-flex;align-items:center;gap:4px;">力<input type="number" id="wp-li" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
-        <span style="display:inline-flex;align-items:center;gap:4px;">魔<input type="number" id="wp-mo" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList()"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">体<input type="number" id="wp-ti" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList(); if(typeof scheduleSave==='function') scheduleSave();"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">耐<input type="number" id="wp-nai" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList(); if(typeof scheduleSave==='function') scheduleSave();"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">力<input type="number" id="wp-li" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList(); if(typeof scheduleSave==='function') scheduleSave();"></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;">魔<input type="number" id="wp-mo" value="0" style="width:60px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;" oninput="renderWeaponList(); if(typeof scheduleSave==='function') scheduleSave();"></span>
       </div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
         <span style="display:inline-flex;align-items:center;gap:4px;">武器伤害<input type="number" id="wp-dmg" value="380" style="width:70px;font-size:.85rem;padding:3px 6px;border:1px solid #ccc;border-radius:4px;"></span>
@@ -1568,7 +1568,7 @@ function switchTab(idx) {
     if (el) el.style.display = i === idx ? '' : 'none';
   });
   if (TAB_IDS[idx] === 'fabao') renderFabaoGrid();
-  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); restoreSpeedData(); calcSpeed(); restoreCalcNotes(); }
+  if (TAB_IDS[idx] === 'chat') { renderChatGrid(); renderWeaponList(); restoreSpeedData(); restoreWpStats(); calcSpeed(); restoreCalcNotes(); }
   if (TAB_IDS[idx] === 'calc') { updateRateDisplay(); }
   if (TAB_IDS[idx] === 'gem') calcAllGems();
   if (TAB_IDS[idx] === 'overview') renderOverview();
@@ -2300,6 +2300,14 @@ function collectCurrentData() {
     if (!ch.data[key]) ch.data[key] = { cur:0, target:0 };
     ch.data[key][field] = parseFloat(inp.value) || 0;
   });
+  // collect wpStats (武器法伤对比属性点)
+  appData.wpStats = {
+    ti:  (parseFloat(document.getElementById("wp-ti").value) || 0),
+    nai: (parseFloat(document.getElementById("wp-nai").value) || 0),
+    li:  (parseFloat(document.getElementById("wp-li").value) || 0),
+    mo:  (parseFloat(document.getElementById("wp-mo").value) || 0)
+  };
+
   // collect speed calc data - only when chat tab is visible (speed calc is in 综合 tab)
   var speedTabVisible = document.querySelector('#tab-chat') && document.querySelector('#tab-chat').style.display !== 'none';
   if (speedTabVisible) {
@@ -2660,6 +2668,16 @@ function restoreSpeedData() {
       el.value = sd[id];
     }
   });
+}
+
+function restoreWpStats() {
+  if (!appData.wpStats) return;
+  var s = appData.wpStats;
+  if (s.ti  !== undefined) document.getElementById('wp-ti').value  = s.ti;
+  if (s.nai !== undefined) document.getElementById('wp-nai').value = s.nai;
+  if (s.li  !== undefined) document.getElementById('wp-li').value  = s.li;
+  if (s.mo  !== undefined) document.getElementById('wp-mo').value  = s.mo;
+  renderWeaponList();
 }
 
 // ==================== SPEED CALC =====================
@@ -3866,6 +3884,7 @@ function renderAll() {
       if (lb.gemPrices) appData.gemPrices = lb.gemPrices;
       if (d.chatPresets) appData.chatPresets = d.chatPresets;
       if (lb.speedCalc) appData.speedCalc = lb.speedCalc;
+  if (lb.wpStats) appData.wpStats = lb.wpStats;
       if (lb.weaponList) appData.weaponList = lb.weaponList;
       if (lb.calcNotes) appData.calcNotes = lb.calcNotes;
       // Per-character hiddenItems
